@@ -1,0 +1,25 @@
+[project]
+name = "eecs449-project"
+version = "0.1.0"
+description = "Real-conversation language assistant"
+entry-point = "main"
+kind = "web-app"
+jac-version = "==0.37.23"
+
+[dependencies]
+python-dotenv = ">=1.0,<2"
+[dependencies.npm]
+jac-client-node = "1.0.7"
+
+[dependencies.npm.dev]
+"@jac-client/dev-deps" = "1.0.0"
+
+
+
+[dev-dependencies]
+watchdog = ">=3.0.0"
+
+[client]
+
+[byllm.model]
+default_model = "gemini/gemini-3.8-flash"
