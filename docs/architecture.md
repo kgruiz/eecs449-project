@@ -23,11 +23,17 @@ code dependencies.
 Consent + learner profile -> session -> finalized transcript -> requested
 hint / translation -> end session -> coaching.
 
-`append_turn(session_id, speaker, text, duration_seconds)` is the future ASR
-handoff. Interim hypotheses stay client-local. The adapter must identify
-speakers, avoid duplicate finalized turns and report non-overlapping audio
-duration. Manual turns have zero duration. This scaffold does not record,
-stream or transcribe audio, or automatically detect pauses.
+`append_turn(session_id, speaker, text, duration_seconds)` is the ASR
+handoff. `components/SpeechInput.jac` uses the browser Web Speech API
+(continuous, interim results): interim hypotheses stay client-local and each
+finalized utterance is submitted once, in order, with the speaker selected
+when the utterance began and a duration measured from its first interim
+result to finalization, so durations never overlap. Switching speaker
+mid-utterance flushes it to the previous speaker. Recognition restarts after
+browser silence timeouts until the learner stops it. Manual turns have zero
+duration. There is no automatic diarization or pause detection, and Chrome/
+Edge send audio to their speech provider; raw audio is never stored here.
+Browsers without the API (e.g. Firefox) fall back to typed turns.
 
 Conversation nodes snapshot languages/level at start. Endpoints use
 `def:protect` and resolve IDs within the caller's root. Text persists; raw
