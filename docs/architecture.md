@@ -35,6 +35,19 @@ duration. There is no automatic diarization or pause detection, and Chrome/
 Edge send audio to their speech provider; raw audio is never stored here.
 Browsers without the API (e.g. Firefox) fall back to typed turns.
 
+The native `mobile` app does not use a browser microphone.
+`mobile/SpeechInput.native.jac` uses `expo-speech-recognition` (Apple Speech on
+iOS, SpeechRecognizer on Android) and has the same contract: interim text stays on
+the device, and each finalized utterance goes to `append_turn` once, in order,
+with the speaker captured at its first interim result. iOS runs one
+non-continuous session per utterance (it finalizes after ~3s of silence) and
+restarts it. Android runs continuous sessions, which finalize per segment
+without a start beep on every restart. A session that ends before its final
+result submits its last hypothesis. A repeated final with no new speech
+(iOS 18) is ignored. The mobile app calls the same `endpoints.jac` functions;
+release builds point `[apps.mobile.client.api] base_url` at the web server.
+`FeaturePanels` is HTML and is not yet ported to the mobile app.
+
 Conversation nodes snapshot languages/level at start. Endpoints use
 `def:protect` and resolve IDs within the caller's root. Text persists; raw
 audio does not. Deletion/retention controls are future work. AI features
