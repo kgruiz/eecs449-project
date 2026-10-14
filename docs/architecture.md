@@ -1,53 +1,75 @@
-# Week 6 architecture
+# Language Assistant architecture
 
-## Four independent PRs
+## Current data flow
 
-1. `codex/jac-foundation` -> `main`: generated Jac web app, private learner
-   graph, consent, sessions, transcript and shared Gemini configuration.
-2. `codex/live-assist` -> `codex/jac-foundation`: on-demand level-aware hints
-   and AI-partner endpoint/panel.
-3. `codex/tap-to-translate` -> `codex/jac-foundation`: latest partner sentence
-   or selected turn translation with a session-scoped cache.
-4. `codex/conversation-coaching` -> `codex/jac-foundation`: text-evidence
-   feedback, mistake history and tailored practice contracts.
+Authentication -> learner profile + consent -> active session -> finalized
+transcript turns -> ended session.
 
-Merge initialization first, then retarget the three independent feature PRs
-to main. Each feature touches its own module and one import/render pair in
-`FeaturePanels.jac`. When merging multiple features, keep all feature imports
-and panels and remove the foundation placeholder. Resolve that small shared
-slot without discarding previously merged panels. Features share no feature
-code dependencies.
+`main.jac` exposes the client app and imports the shared server endpoints.
+`frontend.jac` handles authentication, profile setup, participant consent,
+speaker selection, typed turns, speech input, and session completion.
+`components/FeaturePanels.jac` currently renders a placeholder.
 
-## Pipeline
+## Shared contracts and ownership
 
-Consent + learner profile -> session -> finalized transcript -> requested
-hint / translation -> end session -> coaching.
+`core/models.jac` defines `LearnerProfile`, `TranscriptTurn`, `Conversation`,
+and `SessionView`. A conversation snapshots the learner's languages and
+CEFR level at creation, stores its turns, and tracks submitted utterance
+seconds and a model-request counter. Selecting an AI partner stores the
+mode but does not yet produce an AI response.
 
-`append_turn(session_id, speaker, text, duration_seconds)` is the ASR
-handoff. `components/SpeechInput.jac` uses the browser Web Speech API
-(continuous, interim results): interim hypotheses stay client-local and each
-finalized utterance is submitted once, in order, with the speaker selected
-when the utterance began and a duration measured from its first interim
-result to finalization, so durations never overlap. Switching speaker
-mid-utterance flushes it to the previous speaker. Recognition restarts after
-browser silence timeouts until the learner stops it. Manual turns have zero
-duration. There is no automatic diarization or pause detection, and Chrome/
-Edge send audio to their speech provider; raw audio is never stored here.
-Browsers without the API (e.g. Firefox) fall back to typed turns.
+Protected endpoints in `endpoints.jac` resolve sessions within the caller's
+root. `append_turn(session_id, speaker, text, duration_seconds)` is the
+shared handoff for speech adapters and typed input. It accepts learner or
+partner turns only while a session is active. Typed turns use zero duration.
 
-Conversation nodes snapshot languages/level at start. Endpoints use
-`def:protect` and resolve IDs within the caller's root. Text persists; raw
-audio does not. Deletion/retention controls are future work. AI features
-send transcript text to Gemini only on explicit request.
+## Browser speech input
 
-Usage fields count audio seconds and successful model requests. Provider
-usage/cost accounting, budgets and latency measurement remain future work.
+`components/SpeechInput.jac` uses `SpeechRecognition` or
+`webkitSpeechRecognition` with continuous recognition and interim results.
+Interim hypotheses stay client-local; finalized utterances are queued for
+sequential submission to `append_turn`.
 
-## Milestones
+The adapter captures the selected speaker when an utterance first produces
+an interim result and measures its duration until finalization. A result
+with no prior interim hypothesis can have zero duration. These durations
+are estimates, not total microphone-on time or provider billable minutes.
+Switching speaker during an open utterance requests finalization for the
+previous speaker. Recognition attempts to restart after browser silence
+timeouts until stopped. These behaviors are implementation intent and
+still need browser verification.
 
-- Week 8: mic/ASR adapter and interim transcript display.
-- Week 11: hint latency, pause triggers, translation and spoken output.
-- Week 14: audio-based pronunciation/fluency evidence, retention controls,
-  coaching quality review and beta with 10-20 learners.
+There is no automatic diarization or pause detection. Unsupported browsers
+fall back to typed turns. The app does not store raw audio; the browser's
+speech service handles transcription.
 
-No runtime or compiler validation has been performed for these scaffolds.
+## Planned integration points
+
+Future feature modules should share authenticated sessions and transcript
+contracts and connect their panels through `FeaturePanels.jac`. Preserve
+all existing feature imports and panels when integrating another feature.
+The intended extended flow is:
+
+Transcript -> requested hint / translation / AI-partner reply -> end
+session -> coaching report -> mistake history and optional practice lessons.
+
+`core/ai.jac` loads server-side environment configuration and creates a
+byLLM model configuration. It is not imported by the current conversation
+flow. Future model calls should use that shared configuration and send
+conversation text only as covered by participant consent and the requested
+feature. The configured provider/model still needs availability checks.
+
+Translation caching, hint generation, AI-partner responses, coaching,
+mistake history, and lessons are not implemented in this checkout.
+
+## Limitations
+
+Text persists in the user's graph; deletion and retention controls are
+future work. Provider usage/cost accounting, budgets, latency measurement,
+and audio-based pronunciation scoring are also future work. The model
+request field currently has no feature call sites that increment it.
+
+The initial four-PR scaffold merge instructions are historical; use the
+current checkout's files and interfaces as the integration baseline. See
+[the project plan](project-plan.md) for the indicative schedule and product
+decisions, and [the README](../README.md) for setup and validation status.
