@@ -10,6 +10,12 @@ transcript turns -> ended session.
 speaker selection, typed turns, speech input, and session completion.
 `components/FeaturePanels.jac` currently renders a placeholder.
 
+`jac.toml` defines `web` (the default app, entry point `main`) and `mobile`
+(entry point `mobile.main`). The web app serves the shared API.
+`mobile/ConversationApp.jac` implements the native authentication, consent,
+profile, and conversation UI using the same server endpoints. The HTML
+feature panels are not ported to mobile.
+
 ## Shared contracts and ownership
 
 `core/models.jac` defines `LearnerProfile`, `TranscriptTurn`, `Conversation`,
@@ -42,6 +48,23 @@ still need browser verification.
 There is no automatic diarization or pause detection. Unsupported browsers
 fall back to typed turns. The app does not store raw audio; the browser's
 speech service handles transcription.
+
+## Native mobile speech input
+
+The native `mobile` app does not use a browser microphone.
+`mobile/SpeechInput.native.jac` uses `expo-speech-recognition` (Apple Speech on
+iOS, SpeechRecognizer on Android) and queues turns for sequential submission
+to `append_turn`. Interim text stays on the device; turns carry estimated
+durations and the speaker captured at the first interim result. The adapter
+requests non-continuous recognition on iOS and continuous recognition on
+Android, and restarts while listening remains enabled. If recognition ends
+before a final result arrives, it submits the last hypothesis. It ignores
+repeated final results when there is no new utterance. The mobile app calls
+the same `endpoints.jac` functions; release builds set `base_url` under
+`[apps.mobile.client.api]` to the web server.
+`mobile/SpeechInput.jac` is the typed-only browser-preview fallback.
+`core/speech.jac` shares locale and error helpers between both speech adapters.
+These native adapter behaviors still need end-to-end verification.
 
 ## Planned integration points
 

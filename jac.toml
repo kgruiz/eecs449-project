@@ -2,9 +2,28 @@
 name = "eecs449-project"
 version = "0.1.0"
 description = "Real-conversation language assistant"
-entry-point = "main"
-kind = "web-app"
+default-app = "web"
 jac-version = "==0.37.23"
+
+# The web app serves the API; the mobile app is a client of that server.
+[apps.web]
+kind = "web-app"
+entry-point = "main"
+
+[apps.mobile]
+kind = "mobile"
+entry-point = "mobile.main"
+
+# Release builds must reach the deployed web server, e.g.:
+# [apps.mobile.client.api]
+# base_url = "https://your-server.example.com"
+
+[apps.mobile.dependencies.npm]
+react-native-web = "^0.19.13"
+
+# Native speech recognition; the version line must match the Expo SDK of .jac/mobile-rn.
+[apps.mobile.dependencies.npm.native]
+expo-speech-recognition = "~57.1.1"
 
 [dependencies]
 python-dotenv = ">=1.0,<2"

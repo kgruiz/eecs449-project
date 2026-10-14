@@ -3,26 +3,7 @@ client-local; each finalized utterance is submitted once through append_turn
 with its speaker and a non-overlapping duration. Raw audio is never stored."""
 import from ..core.models { SessionView }
 import from ..endpoints { append_turn }
-
-glob SPEECH_LOCALES: dict[str, str] = {
-    "arabic": "ar-SA", "chinese": "zh-CN", "mandarin": "zh-CN", "dutch": "nl-NL",
-    "english": "en-US", "french": "fr-FR", "german": "de-DE", "hindi": "hi-IN",
-    "italian": "it-IT", "japanese": "ja-JP", "korean": "ko-KR", "portuguese": "pt-BR",
-    "russian": "ru-RU", "spanish": "es-ES"
-};
-glob SPEECH_ERRORS: dict[str, str] = {
-    "not-allowed": "Microphone access was blocked. Allow it in your browser settings to transcribe.",
-    "service-not-allowed": "This browser's speech service is unavailable here.",
-    "audio-capture": "No microphone was found.",
-    "network": "The browser's speech service could not be reached.",
-    "language-not-supported": "This browser cannot transcribe that language. Try a code such as es-ES."
-};
-
-"""Map a profile language name to a BCP-47 tag; codes pass through unchanged."""
-def speech_locale(language: str) -> str {
-    key = language.strip().lower();
-    return SPEECH_LOCALES[key] if key in SPEECH_LOCALES else language.strip();
-}
+import from ..core.speech { speech_locale, speech_error_message, ROUTINE_SPEECH_ERRORS }
 
 def:pub SpeechInput(sessionId: str, speaker: str, language: str,
                     onSessionChange: Callable[[SessionView], None]) -> JsxElement {
@@ -35,7 +16,7 @@ def:pub SpeechInput(sessionId: str, speaker: str, language: str,
     has utteranceRef: Ref[any] = Ref(None);
     # Result indices below this were already submitted in the current recognition run.
     has nextFinalRef: Ref[int] = Ref(0);
-    has queueRef: Ref[list[dict]] = Ref([]);
+    has queueRef: Ref[list[dict[str, any]]] = Ref([]);
     has drainingRef: Ref[bool] = Ref(False);
     # Typed loosely: the checker has no stubs for the (partly prefixed) speech API.
     browser: any = window;
@@ -45,7 +26,7 @@ def:pub SpeechInput(sessionId: str, speaker: str, language: str,
     # Submit queued turns one at a time so transcript order matches speech order.
     async def drain() -> None {
         updated: SessionView | None = None;
-        turn: dict = {};
+        turn: dict[str, any] = {};
         if drainingRef.current { return; }
         drainingRef.current = True;
         try {
@@ -95,10 +76,10 @@ def:pub SpeechInput(sessionId: str, speaker: str, language: str,
     }
     def handleError(code: str) -> None {
         # Silence and our own aborts are routine; onend restarts if still listening.
-        if code == "no-speech" or code == "aborted" { return; }
+        if code in ROUTINE_SPEECH_ERRORS { return; }
         listeningRef.current = False;
         listening = False;
-        error = SPEECH_ERRORS[code] if code in SPEECH_ERRORS else "Speech recognition error: " + code + ".";
+        error = speech_error_message(code);
     }
     def handleEnd() -> None {
         interim = "";

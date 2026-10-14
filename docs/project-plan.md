@@ -6,8 +6,9 @@ Help language learners participate in real conversations and learn from
 what went wrong. Provide support during a conversation and targeted
 practice afterward, using one shared speech and transcript pipeline.
 
-This plan reflects the Week 7 update on 10/14/2026. Milestones are targets,
-not evidence of completed or tested functionality.
+The schedule reflects the Week 7 update on 10/14/2026; current progress also
+includes the subsequent mobile client work in PR #10. Milestones are
+targets, not evidence of completed or tested functionality.
 
 ## Current progress
 
@@ -15,8 +16,10 @@ The Jac foundation and browser speech-to-text work are merged. The checkout
 contains authentication, learner profiles, consent, sessions, saved text,
 typed turns, and browser transcription with manual speaker selection.
 The Week 7 update lists PR #7 as the merged initial speech-to-text demo.
-Runtime behavior still needs verification; the coaching panels remain
-placeholders.
+A native mobile conversation UI and speech-recognition adapter have been
+added in PR #10, sharing the web server's endpoints. The author reports an
+iOS simulator launch to sign-in; the conversation flow and native speech
+still need end-to-end verification. Coaching panels remain placeholders.
 
 ## Planned features
 
@@ -70,8 +73,9 @@ feature if time permits.
 ## Open decisions
 
 - Choose a product name.
-- Decide whether a mobile app should be the main experience. The current
-  implementation is a web app; a mobile version is a proposal.
+- Decide whether mobile should be the main experience. A native client is
+  now implemented alongside the web app; device testing and the intended
+  primary platform still need decisions.
 - Choose and verify the model/provider for language features. The code
   currently configures Gemini; a small model such as `qwen3.5:4b` was floated
   for cost control but has not been integrated or evaluated here.

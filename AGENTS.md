@@ -8,7 +8,10 @@ planned, and verified.
 ## Current implementation
 
 The app has authentication, learner profiles, participant consent, sessions,
-saved transcripts, typed turns, and a browser speech-to-text adapter.
+saved transcripts, typed turns, and browser and native speech-to-text adapters.
+`jac.toml` defines a `web` app serving the API and browser UI, and a `mobile`
+app with a native conversation UI. Both use the shared server endpoints;
+the mobile browser preview supports typed turns only.
 `components/FeaturePanels.jac` is a placeholder. Live reply hints,
 AI-partner responses, translation, coaching, mistake history, and lessons
 are planned, not implemented. The AI-partner selector only records a mode.
@@ -40,6 +43,9 @@ code style and existing public interfaces unless the task requires a change.
 The four initial scaffold PRs were intentionally created without tests,
 compiler checks, app servers, or Gemini requests. Do not treat their merge,
 or the later speech-to-text merge, as evidence that validation passed.
+The mobile PR author reports a passing project-wide `jac check` under
+Jac 0.37.23 and an iOS simulator launch up to sign-in. Those results do not
+establish that authentication, sessions, or live transcription work end to end.
 Do not run those initial scaffold validation steps or paid model requests
 unless authorized for the task. Preserve this constraint when updating docs.
 
@@ -47,7 +53,9 @@ When validation is authorized:
 
 - `jac check <file>` type-checks and lints; follow its guide references.
 - `jac run <file>` executes a script.
-- `jac run --dev main.jac` serves the app with development reload behavior.
+- `jac run --dev web` serves the web app with development reload behavior.
+- Follow the README's mobile setup and toolchain workarounds before native
+  builds. Avoid concurrent iOS builds, which can overwrite generated files.
 - `jac browse open localhost:8000` starts browser QA; use `snapshot`,
   `click`, `fill`, `screenshot`, and `close` as supported by the installed CLI.
 
