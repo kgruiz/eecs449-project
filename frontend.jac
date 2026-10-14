@@ -1,8 +1,9 @@
-"""Conversation workspace. Typed turns stand in for the future ASR stream."""
+"""Conversation workspace. Speech-to-text and typed turns share one transcript."""
 import from "@jac/runtime" { jacLogin, jacSignup, jacLogout, jacIsLoggedIn, SignupResult }
-import from .core.models { LearnerProfile, SessionView }
+import from .core.models { SessionView }
 import from .endpoints { save_profile, start_conversation, append_turn, end_conversation }
 import from .components.FeaturePanels { FeaturePanels }
+import from .components.SpeechInput { SpeechInput }
 def:pub app -> JsxElement {
     has logged_in: bool = jacIsLoggedIn(), email: str = "", password: str = "",
         native_language: str = "English", target_language: str = "Spanish", level: str = "A2",
@@ -28,11 +29,10 @@ def:pub app -> JsxElement {
         jacLogout(); logged_in = False; session = None; consent = False;
     }
     async def start() -> None {
-        saved: LearnerProfile | None = None;
         created: SessionView | None = None;
         error = ""; busy = True;
         try {
-            saved = await save_profile(native_language, target_language, level);
+            await save_profile(native_language, target_language, level);
             created = await start_conversation(consent, partner_mode);
             session = created; consent = False;
         } except Exception { error = "Could not start. Check your profile and participant consent."; }
@@ -43,7 +43,7 @@ def:pub app -> JsxElement {
         if session is None or not text.strip() { return; }
         error = ""; busy = True;
         try {
-            updated = await append_turn(session.id, speaker, text);
+            updated = await append_turn(session.id, speaker, text, 0.0);
             session = updated; text = "";
         } except Exception { error = "Could not add this turn."; }
         finally { busy = False; }
@@ -80,9 +80,9 @@ def:pub app -> JsxElement {
                     <option value="human">Real person</option><option value="ai">AI partner</option>
                 </select></label>
                 <label><input type="checkbox" checked={consent} onChange={lambda (e: ChangeEvent) { consent = e.target.checked; }}/>
-                    All participants agree to transcription, saved text, and sending conversation text to Gemini for requested help.
+                    All participants agree to live transcription by the browser's speech service, saved text, and sending conversation text to Gemini for requested help.
                 </label>
-                <p>Raw audio is not saved. This first version accepts typed transcript turns.</p>
+                <p>Raw audio is not saved. Speech is transcribed by your browser's speech service (Chrome and Edge send audio to their provider); you can also type turns.</p>
                 <button disabled={busy or not consent} onClick={start}>Start</button>
             </section>}
             {session is not None and <section>
@@ -92,6 +92,9 @@ def:pub app -> JsxElement {
                     <label>Speaker <select value={speaker} onChange={lambda (e: ChangeEvent) { speaker = e.target.value; }}>
                         <option value="partner">Partner</option><option value="learner">Me</option>
                     </select></label>
+                    <SpeechInput key={session.id} sessionId={session.id} speaker={speaker}
+                        language={session.target_language}
+                        onSessionChange={lambda (updated: SessionView) { session = updated; }}/>
                     <label>Sentence <input value={text} onChange={lambda (e: ChangeEvent) { text = e.target.value; }}/></label>
                     <button disabled={busy or not text.strip()} onClick={addTurn}>Add turn</button>
                     <button disabled={busy} onClick={finish}>End conversation</button>

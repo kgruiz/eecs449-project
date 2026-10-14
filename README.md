@@ -16,7 +16,8 @@ jac run --dev main.jac
 
 Open the local URL printed by Jac. Create an account, choose your languages
 and CEFR level, confirm participant consent, and start a session. Add partner
-and learner transcript turns manually while the audio adapter is built.
+and learner turns by speaking (choose who is talking, then Start listening;
+Chrome, Edge or Safari) or by typing.
 Gemini configuration is server-only; override the model with `GEMINI_MODEL`.
 
 ## Structure
@@ -26,12 +27,14 @@ Gemini configuration is server-only; override the model with `GEMINI_MODEL`.
 - `endpoints.jac`: authenticated profile and transcript/session endpoints.
 - `core/models.jac`: profile, transcript, session and usage contracts.
 - `core/ai.jac`: shared server-only Gemini/byLLM configuration.
+- `components/SpeechInput.jac`: browser speech-to-text adapter feeding `append_turn`.
 - `components/FeaturePanels.jac`: slot for independent feature panels.
 - `docs/architecture.md`: integration seams, scope and PR merge instructions.
 
 Conversation text is stored in the authenticated user's graph. Raw audio is
 not stored. Requested AI features send text to Gemini, covered by the consent
-copy. Retention controls and real audio capture remain to be implemented.
+copy. Speech is transcribed by the browser's speech service. Retention controls
+remain to be implemented.
 
 No tests, compiler checks, app runs or Gemini requests have been performed
 for these PRs, as requested. Dependency installation was also skipped.
