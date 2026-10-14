@@ -1,26 +1,59 @@
 # Language Assistant
 
-A Jac workspace for a live conversation coach, built on a shared transcript
-pipeline with three independent feature modules. The `web` app serves the API
-and a browser UI; the `mobile` app is a native iOS/Android client of that
-server.
+A Jac workspace for practicing real conversations, with a web app, a native
+iOS/Android client, and a shared transcript pipeline. The planned coaching
+loop combines live reply hints, tap-to-translate, and feedback after a
+conversation.
 
-## Setup in WSL
+## Current state
 
-Jac 0.37.23 generated this project with `jac create --kind web-app --skip`.
-From the repo directory in WSL:
+The current checkout includes:
+
+- Account creation and sign-in.
+- A learner profile with native language, target language, and CEFR level.
+- Participant consent before starting a conversation.
+- Authenticated sessions, saved text transcripts, and typed turns.
+- Browser speech recognition with interim text, finalized turns, manual
+  speaker selection, and recorded utterance durations.
+- A native mobile conversation UI and device speech-recognition adapter
+  using the same authenticated server endpoints. Its web preview uses typed
+  turns only; the HTML feature panels are not ported to mobile.
+
+Live hints, AI-partner responses, translation, coaching reports, mistake
+history, and personalized lessons are planned. `FeaturePanels.jac` is still
+an extension placeholder. The AI-partner selector records a session mode;
+selecting it does not yet generate responses. Gemini configuration exists,
+but the current conversation flow makes no model requests.
+
+See [the project plan](docs/project-plan.md) for scope, milestones, risks,
+and open decisions, and [the architecture](docs/architecture.md) for the
+current integration points.
+
+## Development setup
+
+The project pins Jac 0.37.23 in `jac.toml`. Use a matching Jac installation.
+The existing setup workflow targets WSL. From the repository directory:
 
 ```sh
-cp .env.example .env  # skip if your .env already contains GEMINI_API_KEY
+# Only copy this template if you do not already have a .env file.
+cp .env.example .env
 jac install
 jac run --dev web
 ```
 
 Open the local URL printed by Jac. Create an account, choose your languages
-and CEFR level, confirm participant consent, and start a session. Add partner
-and learner turns by speaking (choose who is talking, then Start listening;
-Chrome, Edge or Safari) or by typing.
-Gemini configuration is server-only; override the model with `GEMINI_MODEL`.
+and CEFR level, confirm participant consent, and start a session. Select who
+is speaking, then use **Start listening**, or type a sentence and add it as
+a turn. Speech input requires a browser exposing `SpeechRecognition` or
+`webkitSpeechRecognition`; the UI names Chrome, Edge, and Safari. Browsers
+without that API can use typed turns. Actual browser and language support
+still needs runtime verification.
+
+The `.env.example` file contains placeholders for server-side
+`GEMINI_API_KEY` and `GEMINI_MODEL`. Replace the key before implementing or
+trying Gemini features. The current configured model string is
+`gemini/gemini-3.8-flash`; its provider availability has not been verified.
+Never commit real credentials.
 
 ## Native mobile app
 
@@ -55,12 +88,14 @@ jac run --platform ios mobile        # or android: build, install and launch
 jac run --dev --platform web mobile  # browser preview, typed turns only
 ```
 
-Release builds call the deployed web server: set `[apps.mobile.client.api]
-base_url` in `jac.toml`.
+Release builds call the deployed web server: set `base_url` under
+`[apps.mobile.client.api]` in `jac.toml`.
 
 ### iOS simulator (Xcode 27, iOS 27)
 
-Verified on macOS 27 with Xcode 27 and Jac 0.37.23, up to the sign-in screen.
+The mobile PR author reports verification on macOS 27 with Xcode 27 and
+Jac 0.37.23, up to the sign-in screen. The following toolchain workarounds
+are retained from that report; they were not rerun during conflict resolution.
 Jac 0.37.23 is required: 0.37.14 compiles `has` state to `useJacState`, which
 its mobile runtime does not export, so the app fails with "undefined is not a
 function". Check with `jac --version`; to upgrade:
@@ -199,27 +234,42 @@ code signing.
 
 ## Structure
 
-- `main.jac`: `web` app entry (server endpoints and browser client).
-- `frontend.jac`: sign-in, learner setup, consent and conversation workspace.
-- `endpoints.jac`: authenticated profile and transcript/session endpoints.
-- `core/models.jac`: profile, transcript, session and usage contracts.
-- `core/ai.jac`: shared server-only Gemini/byLLM configuration.
-- `components/SpeechInput.jac`: browser speech-to-text adapter feeding `append_turn`.
-- `core/speech.jac`: locale mapping and error messages shared by both adapters.
-- `mobile/main.jac`: `mobile` app entry; `mobile/ConversationApp.jac` is its screen.
-- `mobile/SpeechInput.native.jac`: native speech-to-text adapter feeding
-  `append_turn`; `mobile/SpeechInput.jac` is its typed-only web-preview variant.
-- `components/FeaturePanels.jac`: slot for independent feature panels.
-- `docs/architecture.md`: integration seams, scope and PR merge instructions.
+- `main.jac`: entry point for the `web` app and its server endpoints.
+- `frontend.jac`: authentication, profile setup, consent, and conversation UI.
+- `endpoints.jac`: authenticated profile, session, and transcript endpoints.
+- `core/models.jac`: learner profile, transcript, session, and usage contracts.
+- `core/ai.jac`: server-only Gemini/byLLM configuration for future features.
+- `components/SpeechInput.jac`: browser speech-to-text adapter.
+- `core/speech.jac`: shared locale mapping and speech error messages.
+- `mobile/main.jac`: entry point for the `mobile` app.
+- `mobile/ConversationApp.jac`: native authentication and conversation UI.
+- `mobile/SpeechInput.native.jac`: device speech-to-text adapter.
+- `mobile/SpeechInput.jac`: typed-only mobile web-preview fallback.
+- `mobile/theme.jac` and `mobile/ui.jac`: native styling and UI helpers.
+- `components/FeaturePanels.jac`: extension slot for planned coaching features.
+- `docs/architecture.md`: data flow, integration points, and limitations.
+- `docs/project-plan.md`: product goals and indicative delivery plan.
 
-Conversation text is stored in the authenticated user's graph. Raw audio is
-not stored. Requested AI features send text to Gemini, covered by the consent
-copy. Speech is transcribed by the browser's speech service on the web and by
-the phone's speech service (Apple or Google) in the mobile app. Retention
-controls remain to be implemented.
+## Data handling
 
-`jac check` passes for the whole project under Jac 0.37.23, and the mobile
-app has been run in the iOS 27 simulator up to its sign-in screen. No tests,
-sign-in or session flows, web app runs or Gemini requests have been exercised.
+Conversation text is stored in the authenticated user's graph. The app does
+not store raw audio. Speech recognition uses the browser's speech service;
+the consent copy explains that Chrome and Edge send audio to their provider.
+The native app uses the phone's speech service; its consent copy explains
+that Apple or Google may process the audio. The consent flow also covers
+sending conversation text to Gemini for future requested help. Deletion
+and retention controls are not implemented.
 
-[Original planning slides](https://docs.google.com/presentation/d/1oia2oowVMfUT1DjR8zHERDEfMGvG46OYe3SEBxx5his)
+## Validation status
+
+The initial scaffolds were created without dependency installation, tests,
+compiler checks, app runs, or Gemini requests, at the user's request.
+The mobile PR author reports that `jac check` passes for the whole project
+under Jac 0.37.23 and that the mobile app reached its sign-in screen in an
+iOS 27 simulator. Those results were not rerun during conflict resolution.
+The author reports no tests, sign-in or session-flow checks, web app runs,
+or Gemini requests. No test suite is currently checked in.
+
+The end-to-end conversation flow and live native transcription still need
+verification. Follow `AGENTS.md` when planning validation and record the
+exact commands and outcomes when it occurs.
