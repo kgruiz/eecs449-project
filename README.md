@@ -13,6 +13,9 @@ The current checkout includes:
 - A learner profile with native language, target language, and CEFR level.
 - Participant consent before starting a conversation.
 - Authenticated sessions, saved text transcripts, and typed turns.
+- A web **Download transcript (.txt)** button for active or ended conversations
+  with at least one turn. The UTF-8 file includes speaker labels, languages,
+  CEFR level, and session status, and is generated locally in the browser.
 - Browser speech recognition with interim text, finalized turns, manual
   speaker selection, and recorded utterance durations.
 - A native mobile conversation UI and device speech-recognition adapter
@@ -240,6 +243,8 @@ code signing.
 - `core/models.jac`: learner profile, transcript, session, and usage contracts.
 - `core/ai.jac`: server-only Gemini/byLLM configuration for future features.
 - `components/SpeechInput.jac`: browser speech-to-text adapter.
+- `components/TranscriptDownload.jac`: local plain-text download in the web UI.
+- `core/transcript.jac`: readable transcript formatting.
 - `core/speech.jac`: shared locale mapping and speech error messages.
 - `mobile/main.jac`: entry point for the `mobile` app.
 - `mobile/ConversationApp.jac`: native authentication and conversation UI.
@@ -270,6 +275,20 @@ iOS 27 simulator. Those results were not rerun during conflict resolution.
 The author reports no tests, sign-in or session-flow checks, web app runs,
 or Gemini requests. No test suite is currently checked in.
 
-The end-to-end conversation flow and live native transcription still need
+Live native transcription and physical-device conversation flows still need
 verification. Follow `AGENTS.md` when planning validation and record the
 exact commands and outcomes when it occurs.
+
+### Transcript-download validation (2026-10-23)
+
+`jac check` passed for both app entry points with existing warnings. The web
+app was run with Jac 0.37.23 in WSL using a temporary Linux-local copy of the
+changed source: installation on the Windows mount timed out, while
+`jac install` and `jac run --dev web` succeeded in the Linux-local copy.
+Synthetic-account checks covered sign-in, required authentication/consent,
+typed turns, cross-account isolation, ending a session, and rejecting late
+turns. Browser checks confirmed the disabled empty-state button and downloaded
+active/ended UTF-8 files with the correct status, speaker order, accents,
+non-Latin text, and literal markup. The compiled formatter also passed direct
+Node assertions for the same text format. No microphone, native-device, or
+Gemini checks were performed; live speech still needs verification.
