@@ -10,6 +10,13 @@ transcript turns -> ended session.
 speaker selection, typed turns, speech input, and session completion.
 `components/FeaturePanels.jac` currently renders a placeholder.
 
+The web UI uses the Pip visual design through `web.css` and decorative
+`components/WebArtwork.jac` components. The active session layout places
+the transcript beside the existing speech and typed-turn controls, stacking
+them at narrow browser widths. The design adds no translation, hints,
+AI replies, or practice navigation. Speech listening status remains local
+to `SpeechInput.jac`; an active session does not imply microphone capture.
+
 `jac.toml` defines `web` (the default app, entry point `main`) and `mobile`
 (entry point `mobile.main`). The web app serves the shared API.
 `mobile/ConversationApp.jac` implements the native authentication, consent,
