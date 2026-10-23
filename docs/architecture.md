@@ -10,6 +10,13 @@ transcript turns -> ended session.
 speaker selection, typed turns, speech input, and session completion.
 `components/FeaturePanels.jac` currently renders a placeholder.
 
+The web transcript section also renders `TranscriptDownload`, which uses
+`core/transcript.jac` to format the displayed `SessionView` as UTF-8 text.
+It works during or after a session and is disabled until a turn exists.
+Exports include language/CEFR context and speaker-labeled turns in transcript
+order. The browser generates the download locally; no additional endpoint,
+stored copy, or model request is involved. Native export is not implemented.
+
 `jac.toml` defines `web` (the default app, entry point `main`) and `mobile`
 (entry point `mobile.main`). The web app serves the shared API.
 `mobile/ConversationApp.jac` implements the native authentication, consent,

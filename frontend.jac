@@ -4,6 +4,7 @@ import from .core.models { SessionView }
 import from .endpoints { save_profile, start_conversation, append_turn, end_conversation }
 import from .components.FeaturePanels { FeaturePanels }
 import from .components.SpeechInput { SpeechInput }
+import from .components.TranscriptDownload { TranscriptDownload }
 def:pub app -> JsxElement {
     has logged_in: bool = jacIsLoggedIn(), email: str = "", password: str = "",
         native_language: str = "English", target_language: str = "Spanish", level: str = "A2",
@@ -87,6 +88,7 @@ def:pub app -> JsxElement {
             </section>}
             {session is not None and <section>
                 <h2>Transcript ? {session.status}</h2>
+                <TranscriptDownload session={session}/>
                 <ol>{[<li key={turn.id}><strong>{turn.speaker}: </strong>{turn.text}</li> for turn in session.turns]}</ol>
                 {session.status == "active" and <div>
                     <label>Speaker <select value={speaker} onChange={lambda (e: ChangeEvent) { speaker = e.target.value; }}>
