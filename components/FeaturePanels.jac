@@ -1,7 +1,7 @@
 """Feature extension slot; sibling feature PRs add one panel each."""
 import from ..core.models { SessionView }
 def:pub FeaturePanels(session: SessionView, onSessionChange: Callable[[SessionView], None]) -> JsxElement {
-    <section aria-label="Conversation help">
-        <p>Conversation help panels will be added in the feature PRs.</p>
+    <section className="feature-placeholder" aria-label="Conversation help">
+        <p>Hints, translation, and coaching are planned for a future update.</p>
     </section>
 }

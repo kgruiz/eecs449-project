@@ -15,6 +15,9 @@ The current checkout includes:
 - Authenticated sessions, saved text transcripts, and typed turns.
 - Browser speech recognition with interim text, finalized turns, manual
   speaker selection, and recorded utterance durations.
+- A responsive Pip-styled web interface for sign-in, conversation setup,
+  transcripts, speech controls, and typed turns. The design does not add
+  the planned language-assistance features.
 - A native mobile conversation UI and device speech-recognition adapter
   using the same authenticated server endpoints. Its web preview uses typed
   turns only; the HTML feature panels are not ported to mobile.
@@ -236,6 +239,8 @@ code signing.
 
 - `main.jac`: entry point for the `web` app and its server endpoints.
 - `frontend.jac`: authentication, profile setup, consent, and conversation UI.
+- `web.css`: web-only colors, typography, controls, and responsive layouts.
+- `components/WebArtwork.jac`: decorative web logo and companion artwork.
 - `endpoints.jac`: authenticated profile, session, and transcript endpoints.
 - `core/models.jac`: learner profile, transcript, session, and usage contracts.
 - `core/ai.jac`: server-only Gemini/byLLM configuration for future features.
@@ -270,6 +275,23 @@ iOS 27 simulator. Those results were not rerun during conflict resolution.
 The author reports no tests, sign-in or session-flow checks, web app runs,
 or Gemini requests. No test suite is currently checked in.
 
-The end-to-end conversation flow and live native transcription still need
-verification. Follow `AGENTS.md` when planning validation and record the
-exact commands and outcomes when it occurs.
+### Web UI verification on 10/23/2026
+
+The web restyle was checked with Jac 0.37.23:
+
+- `jac check` passed for both configured app entry points. The checker
+  reports warnings, including loose speech-API types and JSX host names.
+- `biome check web.css` passed without warnings.
+- `jac build --as client web` built the browser bundle successfully.
+- `jac run --dev --host 127.0.0.1 --port 8000 --api-port 8001 web`
+  served the UI for browser checks with a disposable local test account.
+- Browser checks verified sign-in, the consent-gated Start control,
+  conversation creation, Partner and Me typed turns, session completion,
+  and sign-out. The 390px-wide setup and active conversation layouts had
+  no horizontal overflow. No browser console warnings or errors were
+  reported during that flow.
+
+These checks do not verify microphone capture, spoken-turn delivery,
+cross-account isolation, native mobile behavior, or model requests. No
+simulator was started for this web change. Follow `AGENTS.md` for further
+validation and record the exact commands and outcomes when it occurs.
