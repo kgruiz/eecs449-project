@@ -105,17 +105,10 @@ body {
 	letter-spacing: -1.5px;
 	line-height: 1;
 }
-.brand-tagline {
-	margin-left: 12px;
-	padding-left: 24px;
-	border-left: 1px solid var(--pip-border);
-	font-size: 10px;
-	font-weight: 650;
-	text-transform: uppercase;
-	letter-spacing: 2.2px;
-	color: var(--pip-muted);
-}
 .current-page {
+	display: inline-flex;
+	align-items: center;
+	gap: 10px;
 	padding: 9px 20px;
 	border-radius: 14px;
 	color: var(--pip-blue);
@@ -123,15 +116,16 @@ body {
 	font-size: 13px;
 	font-weight: 650;
 }
+.current-page svg {
+	width: 20px;
+	height: 20px;
+	flex: none;
+}
 .account-controls {
 	display: flex;
 	align-items: center;
 	justify-content: flex-end;
 	gap: 18px;
-}
-.header-note {
-	color: var(--pip-muted);
-	font-size: 12px;
 }
 .language-badge {
 	border: 1px solid var(--pip-border);
@@ -686,10 +680,6 @@ body {
 }
 
 @media (max-width: 1050px) {
-	.brand-tagline,
-	.header-note {
-		display: none;
-	}
 	.workspace {
 		width: calc(100% - 48px);
 	}
