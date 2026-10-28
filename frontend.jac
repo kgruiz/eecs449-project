@@ -65,13 +65,13 @@ def:pub app -> JsxElement {
                 <BrandMark/>
                 <span className="wordmark">pip</span>
             </a>
-            <span className="current-page">
+            {logged_in and <span className="current-page">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">
                     <path d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.4 8.4 0 0 1 3.8-.9h.5a8.5 8.5 0 0 1 8 8v.5Z"/>
                     <path d="M8 11.5h.01m4 0h.01m4 0h.01" strokeWidth="2.8"/>
                 </svg>
                 Conversation
-            </span>
+            </span>}
             <div className="account-controls">
                 {logged_in and <span className="language-badge">{target_language + " · " + level}</span>}
                 {logged_in and <button className="button button-quiet" onClick={logout}>Sign out</button>}
