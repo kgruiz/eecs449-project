@@ -112,7 +112,7 @@ def:pub app -> JsxElement {
                                 onChange={lambda (e: ChangeEvent) { password = e.target.value; }}/>
                         </label>
                         <button className="button button-primary" disabled={busy} onClick={lambda { authenticate(False); }}>
-                            {"Please wait..." if busy else "Sign in"}<span aria-hidden="true">↗</span>
+                            {"Please wait..." if busy else "Sign in"}
                         </button>
                         <button className="button button-secondary" disabled={busy} onClick={lambda { authenticate(True); }}>Create account</button>
                     </div>
