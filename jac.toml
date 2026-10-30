@@ -48,6 +48,3 @@ typescript = "^5.3.3"
 watchdog = ">=3.0.0"
 
 [client]
-
-[byllm.model]
-default_model = "gemini/gemini-3.8-flash"

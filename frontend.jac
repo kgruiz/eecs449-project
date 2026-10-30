@@ -5,6 +5,7 @@ import from .endpoints { save_profile, start_conversation, append_turn, end_conv
 import from .components.FeaturePanels { FeaturePanels }
 import from .components.SpeechInput { SpeechInput }
 import from .components.WebArtwork { BrandMark, PipCompanion }
+import from .components.Translation { TranscriptText }
 import "./web.css";
 def:pub app -> JsxElement {
     has logged_in: bool = jacIsLoggedIn(), email: str = "", password: str = "",
@@ -176,7 +177,7 @@ def:pub app -> JsxElement {
                     <ol className="transcript-list" aria-label="Conversation transcript" aria-live="polite" aria-relevant="additions text">
                         {[<li key={turn.id} className={"transcript-turn " + ("turn-learner" if turn.speaker == "learner" else "turn-partner")}>
                             <span className="speaker-avatar" aria-hidden="true">{"M" if turn.speaker == "learner" else "P"}</span>
-                            <div className="turn-content"><p className="eyebrow">{"Me" if turn.speaker == "learner" else "Partner"}</p><p className="turn-text">{turn.text}</p></div>
+                            <div className="turn-content"><p className="eyebrow">{"Me" if turn.speaker == "learner" else "Partner"}</p><TranscriptText sessionId={session.id} turnId={turn.id} text={turn.text}/></div>
                         </li> for turn in session.turns]}
                     </ol>
                     {session.status == "ended" and <p className="session-ended-note">Conversation ended. The transcript is saved to your account.</p>}

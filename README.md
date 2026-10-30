@@ -15,6 +15,8 @@ The current checkout includes:
 - Authenticated sessions, saved text transcripts, and typed turns.
 - Browser speech recognition with interim text, finalized turns, manual
   speaker selection, and recorded utterance durations.
+- Tap a transcript sentence to translate it into English with Gemini; tap
+  again to return to the original. Translations are kept in the current view.
 - A responsive Pip-styled web interface for sign-in, conversation setup,
   transcripts, speech controls, and typed turns. The design does not add
   the planned language-assistance features.
@@ -22,11 +24,11 @@ The current checkout includes:
   using the same authenticated server endpoints. Its web preview uses typed
   turns only; the HTML feature panels are not ported to mobile.
 
-Live hints, AI-partner responses, translation, coaching reports, mistake
+Live hints, AI-partner responses, coaching reports, mistake
 history, and personalized lessons are planned. `FeaturePanels.jac` is still
 an extension placeholder. The AI-partner selector records a session mode;
-selecting it does not yet generate responses. Gemini configuration exists,
-but the current conversation flow makes no model requests.
+selecting it does not yet generate responses. Translation is sent to Gemini
+only when requested, after participant consent.
 
 See [the project plan](docs/project-plan.md) for scope, milestones, risks,
 and open decisions, and [the architecture](docs/architecture.md) for the
@@ -52,10 +54,9 @@ a turn. Speech input requires a browser exposing `SpeechRecognition` or
 without that API can use typed turns. Actual browser and language support
 still needs runtime verification.
 
-The `.env.example` file contains placeholders for server-side
-`GEMINI_API_KEY` and `GEMINI_MODEL`. Replace the key before implementing or
-trying Gemini features. The current configured model string is
-`gemini/gemini-3.8-flash`; its provider availability has not been verified.
+Set `GEMINI_API_KEY` in `.env` to enable translation. The server defaults to
+`gemini-3.5-flash-lite`; `GEMINI_MODEL` can override it with another
+Flash-Lite model. Restart the server after changing environment variables.
 Never commit real credentials.
 
 ## Native mobile app
@@ -243,7 +244,8 @@ code signing.
 - `components/WebArtwork.jac`: decorative web logo and companion artwork.
 - `endpoints.jac`: authenticated profile, session, and transcript endpoints.
 - `core/models.jac`: learner profile, transcript, session, and usage contracts.
-- `core/ai.jac`: server-only Gemini/byLLM configuration for future features.
+- `core/ai.jac`: server-only Gemini text helper and translation prompt.
+- `components/Translation.jac`: interactive sentence translation in the web transcript.
 - `components/SpeechInput.jac`: browser speech-to-text adapter.
 - `core/speech.jac`: shared locale mapping and speech error messages.
 - `mobile/main.jac`: entry point for the `mobile` app.
@@ -262,7 +264,7 @@ not store raw audio. Speech recognition uses the browser's speech service;
 the consent copy explains that Chrome and Edge send audio to their provider.
 The native app uses the phone's speech service; its consent copy explains
 that Apple or Google may process the audio. The consent flow also covers
-sending conversation text to Gemini for future requested help. Deletion
+sending requested transcript sentences to Gemini for translation. Deletion
 and retention controls are not implemented.
 
 ## Validation status
@@ -295,3 +297,14 @@ These checks do not verify microphone capture, spoken-turn delivery,
 cross-account isolation, native mobile behavior, or model requests. No
 simulator was started for this web change. Follow `AGENTS.md` for further
 validation and record the exact commands and outcomes when it occurs.
+
+### Sentence translation verification (2026-10-30)
+
+`jac check` passed for both app entry points with existing warnings. An
+isolated WSL copy was served with `jac run --dev --host 127.0.0.1 --port
+8010 --api-port 8011 web`. Disposable-account checks covered authentication,
+required consent, transcript ownership, rejected unrelated text, typed turns,
+session completion, and rejection of late turns. A live Gemini 3.5 Flash-Lite
+request translated a synthetic sentence. Browser checks covered individual
+sentence selection, loading, English output, and toggling without a second
+request. Microphone capture and spoken-turn delivery were not tested.
