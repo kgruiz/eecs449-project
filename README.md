@@ -55,8 +55,8 @@ without that API can use typed turns. Actual browser and language support
 still needs runtime verification.
 
 Set `GEMINI_API_KEY` in `.env` to enable translation. The server defaults to
-`gemini-3.5-flash-lite`; `GEMINI_MODEL` can override it with another
-Flash-Lite model. Restart the server after changing environment variables.
+`gemini-3.5-flash-lite` through Jac's byLLM integration. Run `jac install`
+after pulling the change, and restart the server after changing environment variables.
 Never commit real credentials.
 
 ## Native mobile app
@@ -244,7 +244,7 @@ code signing.
 - `components/WebArtwork.jac`: decorative web logo and companion artwork.
 - `endpoints.jac`: authenticated profile, session, and transcript endpoints.
 - `core/models.jac`: learner profile, transcript, session, and usage contracts.
-- `core/ai.jac`: server-only Gemini text helper and translation prompt.
+- `core/ai.jac`: server-only byLLM model and translation prompt.
 - `components/Translation.jac`: interactive sentence translation in the web transcript.
 - `components/SpeechInput.jac`: browser speech-to-text adapter.
 - `core/speech.jac`: shared locale mapping and speech error messages.

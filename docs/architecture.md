@@ -84,7 +84,7 @@ The intended extended flow is:
 Transcript -> requested hint / translation / AI-partner reply -> end
 session -> coaching report -> mistake history and optional practice lessons.
 
-`core/ai.jac` provides a server-only Gemini text helper, defaulting to
+`core/ai.jac` provides a server-only Jac byLLM translation, using
 Gemini 3.5 Flash-Lite. The protected translation endpoint checks ownership,
 consent, and that the selected text belongs to the requested turn before
 sending it to Gemini. Translations are cached in the browser view only;
