@@ -213,11 +213,22 @@ def:pub app -> JsxElement {
                 {session is not None and session.status == "active" and <aside className="card controls-card">
                     <h2>Make room for words.</h2>
                     {voice_enrolled and <p className="muted">Speakers are recognized by voice. Click a speaker name to correct it.</p>}
-                    <label className="field">{"Typed turns are from" if voice_enrolled else "Who is speaking?"}
-                        <select value={speaker} onChange={lambda (e: ChangeEvent) { speaker = e.target.value; spokenDraft = ""; }}>
-                            <option value="partner">Partner</option><option value="learner">Me</option>
-                        </select>
-                    </label>
+                    <fieldset className="speaker-picker">
+                        <legend>{"Typed turns are from" if voice_enrolled else "Who is speaking?"}</legend>
+                        <div className="speaker-segments">
+                            {[<label key={value} className="speaker-option">
+                                <input type="radio" name="conversation-speaker" value={value} checked={speaker == value}
+                                    onChange={lambda (e: ChangeEvent) { speaker = e.target.value; spokenDraft = ""; }}/>
+                                <span className="speaker-option-content">
+                                    <span className={"speaker-choice-avatar " + value} aria-hidden="true">{"M" if value == "learner" else "P"}</span>
+                                    <span>{"Me" if value == "learner" else "Partner"}</span>
+                                    <svg className="speaker-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">
+                                        <path d="m5 12 4 4L19 6"/>
+                                    </svg>
+                                </span>
+                            </label> for value in ["learner", "partner"]]}
+                        </div>
+                    </fieldset>
                     <SpeechInput key={session.id} sessionId={session.id} speaker={speaker}
                         language={session.target_language} voiceEnabled={voice_enrolled}
                         onSessionChange={lambda (updated: SessionView) { session = updated; }}

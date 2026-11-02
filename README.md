@@ -452,3 +452,19 @@ a new mocked structured-word-hint regression. The web/API server started with
 `jac run --dev --host 127.0.0.1 --port 8020 --api-port 8021 web` and was stopped
 after the startup check. The integrated browser/microphone flow and live hint
 quality were not verified. No simulator or live Gemini request was run.
+
+### Speaker selector verification on 11/02/2026
+
+The web speaker dropdown is now a Me/Partner segmented radio group with
+avatars, a selected-state checkmark, and visible keyboard focus. Native radio
+keys work, and switching still clears the spoken hint draft. Voice-enrolled
+sessions retain the Typed turns are from label and automatic spoken attribution.
+
+`jac check` passed for both apps with warnings, `biome check web.css` and
+`jac build --as client web` passed, and `jac test core/hints.jac` passed five
+collected offline tests. An isolated test copy on ports 8020/8021 with simulated
+AI providers verified consent, click selection, arrow-key switching, Me and
+Partner typed-turn attribution, session completion, and the 390px layout with
+no horizontal overflow or browser console errors/warnings. The test server
+was stopped. Live microphone/voice enrollment and Gemini were not exercised;
+no simulator was started.

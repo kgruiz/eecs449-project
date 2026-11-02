@@ -397,7 +397,7 @@ body {
 	font-weight: 650;
 	min-width: 0;
 }
-.pip-app input:not([type="checkbox"]),
+.pip-app input:not([type="checkbox"]):not([type="radio"]),
 .pip-app select,
 .pip-app textarea {
 	width: 100%;
@@ -756,6 +756,94 @@ body {
 .controls-card > h2 {
 	margin: 9px 0 12px;
 }
+.speaker-picker {
+	min-width: 0;
+	margin: 0 0 24px;
+	padding: 0;
+	border: 0;
+}
+.speaker-picker legend {
+	margin-bottom: 10px;
+	padding: 0;
+	color: var(--pip-muted);
+	font-size: 13px;
+	font-weight: 700;
+}
+.speaker-segments {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 4px;
+	padding: 4px;
+	border: 1px solid var(--pip-border);
+	border-radius: 16px;
+	background: #f8f7f3;
+}
+.speaker-option {
+	position: relative;
+	min-width: 0;
+	cursor: pointer;
+}
+.speaker-option input {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	min-height: 0;
+	margin: 0;
+	padding: 0;
+	border: 0;
+	opacity: 0;
+	clip-path: inset(50%);
+}
+.speaker-option-content {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 10px;
+	min-height: 58px;
+	padding: 8px 10px;
+	border: 1px solid transparent;
+	border-radius: 12px;
+	font-size: 14px;
+	font-weight: 700;
+}
+.speaker-option:hover .speaker-option-content {
+	background: #efeee9;
+}
+.speaker-option input:checked + .speaker-option-content {
+	border-color: #9995ff;
+	background: #eeedff;
+	color: var(--pip-blue);
+}
+.speaker-option input:focus-visible + .speaker-option-content {
+	outline: 2px solid var(--pip-blue);
+	outline-offset: 2px;
+}
+.speaker-choice-avatar {
+	display: grid;
+	place-items: center;
+	width: 30px;
+	height: 30px;
+	flex-shrink: 0;
+	border-radius: 50%;
+	font-size: 11px;
+}
+.speaker-choice-avatar.learner {
+	background: #e5e9ff;
+	color: var(--pip-blue);
+}
+.speaker-choice-avatar.partner {
+	background: #fae6d7;
+	color: #946345;
+}
+.speaker-check {
+	width: 16px;
+	height: 16px;
+	flex-shrink: 0;
+	visibility: hidden;
+}
+.speaker-option input:checked + .speaker-option-content .speaker-check {
+	visibility: visible;
+}
 .controls-card > .field {
 	margin-top: 26px;
 }
@@ -1103,7 +1191,7 @@ body {
 
 @media (prefers-reduced-motion: reduce) {
 	.pip-app button,
-	.pip-app input:not([type="checkbox"]),
+	.pip-app input:not([type="checkbox"]):not([type="radio"]),
 	.pip-app select {
 		transition: none;
 	}
