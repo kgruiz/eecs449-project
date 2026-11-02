@@ -247,7 +247,7 @@ body {
 .workspace {
 	width: min(100% - 80px, 1320px);
 	margin: 0 auto;
-	padding: 46px 0 24px;
+	padding: 28px 0 24px;
 }
 .page-heading {
 	margin-bottom: 36px;
@@ -367,7 +367,7 @@ body {
 }
 .card {
 	border: 1px solid var(--pip-border);
-	border-radius: 23px;
+	border-radius: 14px;
 	background: var(--pip-surface);
 	padding: 30px;
 	box-shadow: 0 4px 18px #14213f03;
@@ -559,7 +559,7 @@ body {
 .ready-card {
 	padding: 35px 26px;
 	text-align: center;
-	border-radius: 23px;
+	border-radius: 14px;
 	background: radial-gradient(
 		circle at 50% 23%,
 		#eaf0d7 0,
@@ -713,7 +713,7 @@ body {
 	display: flex;
 	align-items: flex-start;
 	gap: 16px;
-	padding: 24px 0;
+	padding: 14px 0;
 	min-width: 0;
 }
 .speaker-avatar {
@@ -1311,7 +1311,7 @@ body {
 }
 .history-heading h1 {
 	overflow-wrap: anywhere;
-	font-size: clamp(28px, 4vw, 42px);
+	font-size: clamp(26px, 3vw, 32px);
 	margin: 8px 0 12px;
 }
 .history-heading > .button {
@@ -1331,7 +1331,7 @@ body {
 	color: var(--pip-ink);
 	padding: 26px;
 	border: 1px solid var(--pip-border);
-	border-radius: 22px;
+	border-radius: 14px;
 	background: var(--pip-surface, #fffefa);
 	cursor: pointer;
 	overflow-wrap: anywhere;
@@ -1406,7 +1406,7 @@ body {
 	margin: 26px 0 14px;
 }
 .history-workspace .recap-summary {
-	line-height: 1.9;
+	line-height: 1.6;
 	margin-top: 18px;
 	max-width: 75ch;
 }
@@ -1442,4 +1442,39 @@ body {
 	.history-item {
 		padding: 22px;
 	}
+}
+
+.welcome-layout {
+	display: block;
+	max-width: 440px;
+}
+.conversation-layout:has(.setup-card) {
+	display: block;
+	max-width: 760px;
+	margin: 0 auto;
+}
+.setup-card h1,
+.auth-card h1 {
+	font-size: 28px;
+	margin: 0;
+}
+.voice-options {
+	margin-top: 24px;
+	border-top: 1px solid var(--pip-border);
+	padding-top: 16px;
+}
+.voice-options > summary {
+	cursor: pointer;
+	font-size: 13px;
+	font-weight: 600;
+}
+.history-heading {
+	margin-bottom: 20px;
+}
+.history-back {
+	margin-bottom: 8px;
+}
+.history-workspace .coaching-card h2 {
+	font-size: 26px;
+	margin: 0;
 }

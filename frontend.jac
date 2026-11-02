@@ -10,7 +10,7 @@ import from .components.SpeechInput { SpeechInput }
 import from .components.WordHelper { WordHelper }
 import from .components.VoiceSetup { VoiceSetup }
 import from .components.TranscriptDownload { TranscriptDownload }
-import from .components.WebArtwork { BrandMark, PipCompanion }
+import from .components.WebArtwork { BrandMark }
 import from .components.TranscriptScroll { TranscriptScroll }
 import from .components.Conversations { Conversations }
 import "./web.css";
@@ -106,29 +106,11 @@ def:pub app -> JsxElement {
             </div>
         </header>
         <main id="workspace" className="workspace">
-            {session is None and page == "talk" and <div className="page-heading">
-                <p className="eyebrow">Language Assistant</p>
-                <h1>Stay in the conversation.</h1>
-                <p className="page-description">Your words, a little more at home.</p>
-            </div>}
             {error and <p className="error-banner" role="alert">{error}</p>}
             {not logged_in and <div className="welcome-layout">
-                <section className="welcome-story" aria-label="Welcome to Pip">
-                    <div className="companion-scene">
-                        <span className="scene-orbit orbit-outer"/>
-                        <span className="scene-orbit orbit-inner"/>
-                        <span className="scene-spark spark-one">✦</span>
-                        <span className="scene-spark spark-two">✧</span>
-                        <PipCompanion/>
-                        <span className="companion-label">hello, conversation.</span>
-                    </div>
-                    <h2>A little space to find your voice.</h2>
-                    <p>Bring a real conversation into focus. Speak or type, and keep your words together in one transcript.</p>
-                    <div className="privacy-note"><span aria-hidden="true">◎</span><p>Conversation text is saved to your account. Raw audio is never stored by this app.</p></div>
-                </section>
                 <section className="card auth-card">
-                    <p className="eyebrow">Make yourself at home</p>
-                    <h2>Welcome to pip.</h2>
+
+                    <h1>Sign in to Pip</h1>
                     <p className="muted">Sign in or create an account to get started.</p>
                     <div className="form-stack">
                         <label className="field">Email
@@ -144,16 +126,16 @@ def:pub app -> JsxElement {
                         </button>
                         <button className="button button-secondary" disabled={busy} onClick={lambda { authenticate(True); }}>Create account</button>
                     </div>
-                    <p className="form-footnote">A real conversation starts with a little hello.</p>
+
                 </section>
             </div>}
             {logged_in and page == "talk" and <div className="conversation-layout">
                 {(session is None or session.status == "ended") and <section className="card setup-card">
                     <div className="section-heading">
-                        <div><p className="eyebrow">Before you begin</p><h2>Start a conversation</h2></div>
-                        <span className="small-companion"><PipCompanion/></span>
+                        <h1>Start a conversation</h1>
+
                     </div>
-                    <p className="muted">Choose your languages, then make sure everyone is comfortable joining in.</p>
+                    <p className="muted">Choose your languages and confirm participant consent.</p>
                     <div className="field-grid">
                         <label className="field">Native language
                             <input value={native_language} onChange={lambda (e: ChangeEvent) { native_language = e.target.value; }}/>
@@ -182,17 +164,12 @@ def:pub app -> JsxElement {
                     <p className="form-footnote">{"Raw audio is not saved. Speech is transcribed by your browser's speech service (Chrome and Edge send audio to their provider); you can also type turns."
                         + (" Speaker recognition uses each turn's audio once and then discards it." if voice_enrolled else "")}</p>
                     <button className="button button-primary start-button" disabled={busy or not consent} onClick={start}>
-                        {"Starting..." if busy else "Start conversation"}<span aria-hidden="true">↗</span>
+                        {"Starting..." if busy else "Start conversation"}
                     </button>
-                    <VoiceSetup enrolled={voice_enrolled} onChange={lambda (v: bool) { voice_enrolled = v; }}/>
+                    <details className="voice-options"><summary>Speaker recognition (optional)</summary>
+                        <VoiceSetup enrolled={voice_enrolled} onChange={lambda (v: bool) { voice_enrolled = v; }}/>
+                    </details>
                 </section>}
-                {session is None and <aside className="ready-card">
-                    <span className="ready-art"><PipCompanion/></span>
-                    <p className="eyebrow">One conversation at a time</p>
-                    <h2>Be here.<br/>The words can follow.</h2>
-                    <p>Choose who is speaking, then start listening. Prefer to type? That works too.</p>
-                    <div className="ready-detail"><span className="status-dot"/>Your transcript starts when you do.</div>
-                </aside>}
                 {session is not None and <section className="card transcript-card">
                     <div className="transcript-header">
                         <p className="eyebrow">{session.target_language + " · " + session.level}</p>
@@ -203,17 +180,16 @@ def:pub app -> JsxElement {
                             <TranscriptDownload key={"download-" + session.id} session={session}/>
                         </div>
                     </div>
-                    <h2>Your conversation</h2>
+                    <h2>Conversation</h2>
                     {len(session.turns) == 0 and <div className="transcript-empty">
-                        <PipCompanion/>
-                        <h3>{"A little hello goes a long way." if session.status == "active" else "A quiet conversation."}</h3>
+                        <h3>No messages yet</h3>
                         <p>{"Start listening or add a typed turn. Your conversation will appear here." if session.status == "active" else "No turns were added to this session."}</p>
                     </div>}
                     <TranscriptScroll key={session.id} session={session} onSwapSpeaker={swapSpeaker}/>
                     {session.status == "ended" and <p className="session-ended-note">Conversation ended. The transcript is saved to your account.</p>}
                 </section>}
                 {session is not None and session.status == "active" and <aside className="card controls-card">
-                    <h2>Make room for words.</h2>
+                    <h2>Speak or type</h2>
                     {voice_enrolled and <p className="muted">Speakers are recognized by voice. Click a speaker name to correct it.</p>}
                     <fieldset className="speaker-picker">
                         <legend>{"Typed turns are from" if voice_enrolled else "Who is speaking?"}</legend>
@@ -240,7 +216,7 @@ def:pub app -> JsxElement {
                         draft={text if speaker == "learner" and text.strip() else spokenDraft}/>
                     <div className="typed-composer">
                         <label className="field">Or type a turn
-                            <textarea rows={3} value={text} placeholder="A sentence, in your own words..."
+                            <textarea rows={3} value={text} placeholder="Type a message..."
                                 onChange={lambda (e: ChangeEvent) { text = e.target.value; }}/>
                         </label>
                         <div className="composer-actions">
@@ -252,7 +228,7 @@ def:pub app -> JsxElement {
                 </aside>}
             </div>}
             {logged_in and page == "conversations" and <Conversations key={historyId} initialSessionId={historyId} active={session is not None} onTalk={lambda { page = "talk"; }}/>}
-            <footer className="page-footer"><span className="footer-mark" aria-hidden="true">✦</span>A little more present. One conversation at a time.</footer>
+
         </main>
     </div>
 }

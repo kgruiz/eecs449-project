@@ -57,19 +57,19 @@ def:pub Conversations(initialSessionId: str, onTalk: Callable[[], None], active:
     can with exit { requestRef.current = (requestRef.current or 0) + 1; }
     <section className="history-workspace" aria-label="Saved conversations">
         <div className="history-heading">
-            <div><p className="eyebrow">Your words, worth coming back to</p><h1>{"Your conversations" if selected is None else (selected.turns[0].text[:70] if selected.turns else selected.target_language + " conversation")}</h1>
-                <p className="muted">{"Revisit a conversation. Take something into the next one." if selected is None else conversation_date(selected.created_at) + " · " + selected.level}</p></div>
+            <div><h1>{"Conversations" if selected is None else (selected.turns[0].text[:70] if selected.turns else selected.target_language + " conversation")}</h1>
+                {selected is not None and <p className="muted">{selected.target_language + " · " + selected.level + " · " + conversation_date(selected.created_at)}</p>}</div>
             <button className="button button-primary" onClick={onTalk}>{"Return to Talk" if active else "New conversation"}</button>
         </div>
         {error and <div className="error-banner" role="alert"><p>{error}</p><button className="button button-secondary" onClick={lambda { openConversation(requestedId) if requestedId else loadPage(page); }}>Try again</button></div>}
         {opening and <p role="status">Opening conversation…</p>}
         {selected is None and not opening and <div>
             {loading and <p role="status">Loading your conversations…</p>}
-            {not loading and not error and len(items) == 0 and <div className="card history-empty"><span aria-hidden="true">✦</span><h2>A little practice becomes a story.</h2><p>After you finish a conversation in Talk, find its transcript and practice suggestions here.</p><button className="button button-secondary" onClick={onTalk}>{"Return to Talk" if active else "Start a conversation"}</button></div>}
+            {not loading and not error and len(items) == 0 and <div className="card history-empty"><h2>No saved conversations</h2><p>After you finish a conversation in Talk, find its transcript and practice suggestions here.</p><button className="button button-secondary" onClick={onTalk}>{"Return to Talk" if active else "Start a conversation"}</button></div>}
             {not loading and <div className="history-list">{[<button className="history-item" key={item.id} onClick={lambda { openConversation(item.id); }}>
                 <span className="history-item-meta">{item.target_language + " · " + item.level + " · " + conversation_date(item.created_at)}</span>
                 <span className="history-item-title">{item.title}</span><span className="history-item-preview">{item.preview}</span>
-                <span className="history-item-footer">{str(item.turn_count) + (" turn" if item.turn_count == 1 else " turns")}<span>{"Practice ready" if item.has_coaching else "Review conversation"}<span aria-hidden="true"> ↗</span></span></span>
+                <span className="history-item-footer">{str(item.turn_count) + (" turn" if item.turn_count == 1 else " turns")}<span>{"View feedback" if item.has_coaching else "Review conversation"}</span></span>
             </button> for item in items]}</div>}
             <div className="history-pagination">
                 {page > 0 and <button className="button button-secondary" disabled={loading} onClick={lambda { loadPage(page - 1); }}>Previous</button>}
