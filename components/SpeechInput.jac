@@ -5,8 +5,10 @@ import from ..core.models { SessionView }
 import from ..endpoints { append_turn }
 import from ..core.speech { speech_locale, speech_error_message, ROUTINE_SPEECH_ERRORS }
 
+# onDraft receives (speaker, text) for the open utterance, then its final text.
 def:pub SpeechInput(sessionId: str, speaker: str, language: str,
-                    onSessionChange: Callable[[SessionView], None]) -> JsxElement {
+                    onSessionChange: Callable[[SessionView], None],
+                    onDraft: Callable[[str, str], None] | None = None) -> JsxElement {
     has listening: bool = False, interim: str = "", locale: str = speech_locale(language),
         error: str = "";
     has recognitionRef: Ref[any] = Ref(None);
@@ -42,6 +44,9 @@ def:pub SpeechInput(sessionId: str, speaker: str, language: str,
             }
         } finally { drainingRef.current = False; }
     }
+    def reportDraft(who: str, text: str) -> None {
+        if onDraft { onDraft(who, text); }
+    }
     def finalize(text: str) -> None {
         utterance = utteranceRef.current;
         utteranceRef.current = None;
@@ -50,6 +55,7 @@ def:pub SpeechInput(sessionId: str, speaker: str, language: str,
         who = utterance["speaker"] if utterance else speakerRef.current;
         started = utterance["started"] if utterance else Date.now();
         elapsed = (Date.now() - started) / 1000.0;
+        reportDraft(who, text.strip());
         queueRef.current = (queueRef.current or []) + [{"speaker": who, "text": text.strip(),
             "duration": round(elapsed, 2) if elapsed > 0.0 else 0.0}];
         drain();
@@ -73,6 +79,9 @@ def:pub SpeechInput(sessionId: str, speaker: str, language: str,
             utteranceRef.current = {"speaker": speakerRef.current, "started": Date.now()};
         }
         interim = pending;
+        if pending.strip() {
+            reportDraft(utteranceRef.current["speaker"] if utteranceRef.current else speakerRef.current, pending);
+        }
     }
     def handleError(code: str) -> None {
         # Silence and our own aborts are routine; onend restarts if still listening.

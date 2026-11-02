@@ -1,5 +1,6 @@
 """Shared authenticated pipeline. Audio adapters submit finalized turns here."""
-import from .core.models { LearnerProfile, TranscriptTurn, Conversation, SessionView }
+import from .core.models { LearnerProfile, TranscriptTurn, Conversation, SessionView, WordHint }
+import from .core.hints { suggest_next_word }
 import from uuid { uuid4 }
 def profile() -> LearnerProfile {
     profiles = [root -->][?:LearnerProfile];
@@ -57,4 +58,16 @@ def:protect end_conversation(session_id: str) -> SessionView {
 }
 def conversation_context(session: Conversation, limit: int = 12) -> str {
     return "\n".join([f"{turn.speaker}: {turn.text}" for turn in session.turns[-limit:]]);
+}
+# Only the learner's in-progress text is sent; it is not saved as a turn.
+def:protect suggest_word(session_id: str, partial_sentence: str) -> WordHint {
+    session = owned_session(session_id);
+    if session.status != "active" { raise ValueError("Conversation has ended."); }
+    if not session.consent_confirmed { raise ValueError("Participant consent is required."); }
+    partial = partial_sentence.strip();
+    if len(partial) > 500 { raise ValueError("Provide at most 500 characters."); }
+    if not partial and not session.turns { raise ValueError("Start the conversation before asking for a word."); }
+    session.model_requests += 1;
+    return suggest_next_word(partial, conversation_context(session), session.target_language,
+        session.native_language, session.level);
 }
