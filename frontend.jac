@@ -4,6 +4,7 @@ import from .core.models { SessionView }
 import from .endpoints { save_profile, start_conversation, append_turn, end_conversation }
 import from .components.FeaturePanels { FeaturePanels }
 import from .components.SpeechInput { SpeechInput }
+import from .components.TranscriptDownload { TranscriptDownload }
 import from .components.WebArtwork { BrandMark, PipCompanion }
 import "./web.css";
 def:pub app -> JsxElement {
@@ -168,6 +169,7 @@ def:pub app -> JsxElement {
                             <span className="status-dot"/>{"Session active" if session.status == "active" else "Ended"}
                         </span>
                     </div>
+                    <TranscriptDownload key={"download-" + session.id} session={session}/>
                     {len(session.turns) == 0 and <div className="transcript-empty">
                         <PipCompanion/>
                         <h3>{"A little hello goes a long way." if session.status == "active" else "A quiet conversation."}</h3>

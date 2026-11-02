@@ -508,6 +508,11 @@ body {
 .transcript-card {
 	min-height: 510px;
 }
+.transcript-download {
+	display: grid;
+	justify-items: start;
+	gap: 12px;
+}
 .transcript-empty {
 	display: flex;
 	flex-direction: column;
@@ -622,6 +627,9 @@ body {
 	background: #fff0e9;
 	color: #963c30;
 	font-size: 13px;
+}
+.transcript-download .error-banner {
+	margin: 0;
 }
 .speech-panel {
 	display: grid;

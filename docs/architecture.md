@@ -10,6 +10,14 @@ transcript turns -> ended session.
 speaker selection, typed turns, speech input, and session completion.
 `components/FeaturePanels.jac` currently renders a placeholder.
 
+The web transcript section also renders `TranscriptDownload`, which uses
+`core/transcript.jac` to format the displayed `SessionView` as UTF-8 text.
+It sits beneath the conversation heading with the shared secondary-button
+style, works during or after a session, and is disabled until a turn exists.
+Exports include language/CEFR context and speaker-labeled turns in transcript
+order. The browser generates the download locally; no additional endpoint,
+stored copy, or model request is involved. Native export is not implemented.
+
 The web UI uses the Pip visual design through `web.css` and decorative
 `components/WebArtwork.jac` components. The active session layout places
 the transcript beside the existing speech and typed-turn controls, stacking
