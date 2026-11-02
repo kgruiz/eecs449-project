@@ -28,8 +28,8 @@ content while within 48 pixels of the bottom, preserves the reader's position
 when scrolled up, and offers a Latest button to resume following. A resize
 observer also handles translation expansion and viewport changes, and is
 disconnected on unmount. The transcript supports on-demand full-turn
-translation to English. Hints, AI replies, and practice navigation remain
-planned. Speech listening status remains local
+translation to English and next-word suggestions. Full-reply hints, AI replies,
+and practice navigation remain planned. Speech listening status remains local
 to `SpeechInput.jac`; an active session does not imply microphone capture.
 
 `jac.toml` defines `web` (the default app, entry point `main`) and `mobile`
@@ -67,7 +67,7 @@ previous speaker. Recognition attempts to restart after browser silence
 timeouts until stopped. These behaviors are implementation intent and
 still need browser verification.
 
-There is no pause detection. Unsupported browsers fall back to typed turns. The app does not store raw audio; the browser's
+There is no acoustic pause detection. Unsupported browsers fall back to typed turns. The app does not store raw audio; the browser's
 speech service handles transcription.
 
 ## Speaker detection
@@ -106,6 +106,32 @@ the same `endpoints.jac` functions; release builds set `base_url` under
 `core/speech.jac` shares locale and error helpers between both speech adapters.
 These native adapter behaviors still need end-to-end verification.
 
+## Next-word suggestions
+
+`components/WordHelper.jac` (web only) treats the learner as struggling
+when their in-progress sentence stays unchanged for four seconds while
+"Me" is the selected speaker. The in-progress sentence is the typed
+composer text, or else the learner's interim speech that `SpeechInput.jac`
+reports through `onDraft` (then the finalized utterance). With voice enrollment,
+the speaker is unknown during interim speech, so spoken suggestions wait for
+the server-attributed finalized turn instead of using the typed-turn picker. Sentences ending
+in `.`, `!`, or `?` do not trigger, and the learner can turn automatic
+suggestions off or tap "Suggest a word" at any time.
+
+`suggest_word(session_id, partial_sentence)` checks ownership, an active
+session, and consent, then calls `suggest_next_word` in `core/hints.jac`
+with the partial sentence, the last 12 turns, the session languages, and
+CEFR level. It returns a `WordHint` (target-language word plus a short
+native-language meaning) and increments `model_requests`. Drafts and hints
+are never saved as transcript turns. A hint that arrives after the learner
+keeps going is discarded.
+
+Limitations: browsers often finalize speech after a short silence, so a
+pause may be detected on the finalized utterance rather than mid-utterance;
+an unchanged learner utterance can trigger a hint even if it was complete
+but unpunctuated. Suggestion quality, latency, and the mobile client are
+unverified or not implemented.
+
 ## Planned integration points
 
 Future feature modules should share authenticated sessions and transcript
@@ -125,7 +151,7 @@ with hover/focus tooltips. The original remains visible while English appears
 below it with a labeled accent rule. Toggling visibility reuses the cached
 translation; loading and retry states belong to each turn.
 
-Persistent translation caching, hint generation, AI-partner responses, coaching,
+Persistent translation caching, full-reply hint generation, AI-partner responses, coaching,
 mistake history, and lessons are not implemented in this checkout.
 
 ## Limitations
@@ -133,7 +159,7 @@ mistake history, and lessons are not implemented in this checkout.
 Text persists in the user's graph; deletion and retention controls are
 future work. Provider usage/cost accounting, budgets, latency measurement,
 and audio-based pronunciation scoring are also future work. The model
-request field currently has no feature call sites that increment it.
+request field is incremented only by next-word suggestions.
 
 The initial four-PR scaffold merge instructions are historical; use the
 current checkout's files and interfaces as the integration baseline. See

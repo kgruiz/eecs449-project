@@ -435,3 +435,36 @@ start because the local environment lacks the newly declared `numpy` dependency.
 Run `jac install` to install this branch's dependencies before starting the app.
 The integrated browser flow, voice enrollment, and real-microphone speaker
 detection remain unverified. No simulator or live Gemini request was run.
+
+### Next-word hint merge integration on 11/02/2026
+
+Merged `origin/main` into `feat/struggle-word-hint`, keeping translation,
+transcript export/scrolling, voice enrollment, and speaker corrections together
+with word suggestions. Hints use the shared Gemini configuration. With voice
+enrollment, spoken hints wait for the server-attributed finalized turn because
+the interim speaker is unknown; manual-speaker speech still supplies interim
+drafts. Typed hints continue to use the selected speaker.
+
+`jac check` passed for both apps with warnings, `biome check web.css` passed,
+and `jac build --as client web` succeeded. `jac test core/ai.jac` passed four
+offline tests; `jac test core/hints.jac` passed five collected tests including
+a new mocked structured-word-hint regression. The web/API server started with
+`jac run --dev --host 127.0.0.1 --port 8020 --api-port 8021 web` and was stopped
+after the startup check. The integrated browser/microphone flow and live hint
+quality were not verified. No simulator or live Gemini request was run.
+
+### Speaker selector verification on 11/02/2026
+
+The web speaker dropdown is now a Me/Partner segmented radio group with
+avatars, a selected-state checkmark, and visible keyboard focus. Native radio
+keys work, and switching still clears the spoken hint draft. Voice-enrolled
+sessions retain the Typed turns are from label and automatic spoken attribution.
+
+`jac check` passed for both apps with warnings, `biome check web.css` and
+`jac build --as client web` passed, and `jac test core/hints.jac` passed five
+collected offline tests. An isolated test copy on ports 8020/8021 with simulated
+AI providers verified consent, click selection, arrow-key switching, Me and
+Partner typed-turn attribution, session completion, and the 390px layout with
+no horizontal overflow or browser console errors/warnings. The test server
+was stopped. Live microphone/voice enrollment and Gemini were not exercised;
+no simulator was started.

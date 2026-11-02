@@ -13,6 +13,12 @@ obj TranscriptTurn {
     has id: str, speaker: str, text: str, duration_seconds: float = 0.0,
         speaker_source: str = "manual", speaker_score: float | None = None;
 }
+# A suggested next word for a learner who stalls mid-sentence; never stored as a turn.
+obj WordHint {
+    has word: str, meaning: str;
+}
+sem WordHint.word = "One word in the target language (a short fixed phrase only if one word cannot stand alone) that naturally continues the learner's sentence.";
+sem WordHint.meaning = "A gloss of that word in the learner's native language, at most a few words.";
 obj SessionView {
     has id: str, native_language: str, target_language: str, level: str,
         partner_mode: str, status: str, turns: list[TranscriptTurn],

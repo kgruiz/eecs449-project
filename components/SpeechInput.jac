@@ -17,7 +17,8 @@ import from ..core.speech { speech_locale, speech_error_message, ROUTINE_SPEECH_
 glob UTTERANCE_PAD_MS: int = 700, UNTIMED_UTTERANCE_MS: int = 3000;
 
 def:pub SpeechInput(sessionId: str, speaker: str, language: str, voiceEnabled: bool,
-                    onSessionChange: Callable[[SessionView], None]) -> JsxElement {
+                    onSessionChange: Callable[[SessionView], None],
+                    onDraft: Callable[[str, str], None] | None = None) -> JsxElement {
     has listening: bool = False, interim: str = "", locale: str = speech_locale(language),
         error: str = "";
     has recognitionRef: Ref[any] = Ref(None);
@@ -52,11 +53,18 @@ def:pub SpeechInput(sessionId: str, speaker: str, language: str, voiceEnabled: b
                         updated = await append_turn(sessionId, turn["speaker"], turn["text"], turn["duration"]);
                     }
                     onSessionChange(updated);
+                    if turn["voice"] and updated is not None and updated.turns {
+                        detected = updated.turns[-1];
+                        reportDraft(detected.speaker, detected.text);
+                    }
                 } except Exception {
                     error = "Could not save a spoken turn: " + turn["text"];
                 }
             }
         } finally { drainingRef.current = False; }
+    }
+    def reportDraft(who: str, text: str) -> None {
+        if onDraft { onDraft(who, text); }
     }
     def finalize(text: str) -> None {
         utterance = utteranceRef.current;
@@ -72,6 +80,7 @@ def:pub SpeechInput(sessionId: str, speaker: str, language: str, voiceEnabled: b
             begin = (started - UTTERANCE_PAD_MS) if utterance else (now - UNTIMED_UTTERANCE_MS);
             audio = captureRef.current.clip(begin, now);
         }
+        if not voiceEnabled { reportDraft(who, text.strip()); }
         queueRef.current = (queueRef.current or []) + [{"speaker": who, "text": text.strip(),
             "voice": voiceEnabled, "audio": audio,
             "duration": round(elapsed, 2) if elapsed > 0.0 else 0.0}];
@@ -96,6 +105,9 @@ def:pub SpeechInput(sessionId: str, speaker: str, language: str, voiceEnabled: b
             utteranceRef.current = {"speaker": speakerRef.current, "started": Date.now()};
         }
         interim = pending;
+        if pending.strip() and not voiceEnabled {
+            reportDraft(utteranceRef.current["speaker"] if utteranceRef.current else speakerRef.current, pending);
+        }
     }
     def handleError(code: str) -> None {
         # Silence and our own aborts are routine; onend restarts if still listening.

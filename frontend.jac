@@ -7,6 +7,7 @@ import from .endpoints {
     save_profile, start_conversation, append_turn, end_conversation, voice_status, set_turn_speaker
 }
 import from .components.SpeechInput { SpeechInput }
+import from .components.WordHelper { WordHelper }
 import from .components.VoiceSetup { VoiceSetup }
 import from .components.TranscriptDownload { TranscriptDownload }
 import from .components.WebArtwork { BrandMark, PipCompanion }
@@ -17,7 +18,7 @@ def:pub app -> JsxElement {
         native_language: str = "English", target_language: str = "Spanish", level: str = "A2",
         partner_mode: str = "human", consent: bool = False, session: SessionView | None = None,
         speaker: str = "partner", text: str = "", error: str = "", busy: bool = False,
-        voice_enrolled: bool = False;
+        voice_enrolled: bool = False, spokenDraft: str = "";
     async def loadVoice() -> None {
         try { status = await voice_status(); voice_enrolled = status.enrolled; }
         except Exception { voice_enrolled = False; }
@@ -67,9 +68,13 @@ def:pub app -> JsxElement {
         error = ""; busy = True;
         try {
             updated = await append_turn(session.id, speaker, text, 0.0);
-            session = updated; text = "";
+            session = updated; text = ""; spokenDraft = "";
         } except Exception { error = "Could not add this turn."; }
         finally { busy = False; }
+    }
+    # Only the learner's own unfinished speech counts toward struggle detection.
+    def trackSpeech(who: str, spoken: str) -> None {
+        spokenDraft = spoken if who == "learner" else "";
     }
     async def finish() -> None {
         updated: SessionView | None = None;
@@ -208,14 +213,28 @@ def:pub app -> JsxElement {
                 {session is not None and session.status == "active" and <aside className="card controls-card">
                     <h2>Make room for words.</h2>
                     {voice_enrolled and <p className="muted">Speakers are recognized by voice. Click a speaker name to correct it.</p>}
-                    <label className="field">{"Typed turns are from" if voice_enrolled else "Who is speaking?"}
-                        <select value={speaker} onChange={lambda (e: ChangeEvent) { speaker = e.target.value; }}>
-                            <option value="partner">Partner</option><option value="learner">Me</option>
-                        </select>
-                    </label>
+                    <fieldset className="speaker-picker">
+                        <legend>{"Typed turns are from" if voice_enrolled else "Who is speaking?"}</legend>
+                        <div className="speaker-segments">
+                            {[<label key={value} className="speaker-option">
+                                <input type="radio" name="conversation-speaker" value={value} checked={speaker == value}
+                                    onChange={lambda (e: ChangeEvent) { speaker = e.target.value; spokenDraft = ""; }}/>
+                                <span className="speaker-option-content">
+                                    <span className={"speaker-choice-avatar " + value} aria-hidden="true">{"M" if value == "learner" else "P"}</span>
+                                    <span>{"Me" if value == "learner" else "Partner"}</span>
+                                    <svg className="speaker-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">
+                                        <path d="m5 12 4 4L19 6"/>
+                                    </svg>
+                                </span>
+                            </label> for value in ["learner", "partner"]]}
+                        </div>
+                    </fieldset>
                     <SpeechInput key={session.id} sessionId={session.id} speaker={speaker}
                         language={session.target_language} voiceEnabled={voice_enrolled}
-                        onSessionChange={lambda (updated: SessionView) { session = updated; }}/>
+                        onSessionChange={lambda (updated: SessionView) { session = updated; }}
+                        onDraft={trackSpeech}/>
+                    <WordHelper key={"words-" + session.id} sessionId={session.id} learnerSpeaking={speaker == "learner" if text.strip() else bool(spokenDraft)}
+                        draft={text if speaker == "learner" and text.strip() else spokenDraft}/>
                     <div className="typed-composer">
                         <label className="field">Or type a turn
                             <textarea rows={3} value={text} placeholder="A sentence, in your own words..."
