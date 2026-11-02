@@ -135,7 +135,7 @@ def:pub SpeechInput(sessionId: str, speaker: str, language: str,
     <section className="speech-panel" aria-label="Speech to text">
         <div className="speech-status" role="status">
             <span className="speech-indicator" aria-hidden="true">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+                <svg className="speech-mic-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
                     <rect x="9" y="3" width="6" height="11" rx="3"/>
                     <path d="M6 10v2a6 6 0 0 0 12 0v-2M12 18v3m-3 0h6"/>
                 </svg>
@@ -149,7 +149,13 @@ def:pub SpeechInput(sessionId: str, speaker: str, language: str,
             <label className="field">Recognition language <input value={locale} disabled={listening}
                 onChange={lambda (e: ChangeEvent) { locale = e.target.value; }}/></label>
             {listening and <button className="button button-secondary" onClick={stop}>Stop listening</button>}
-            {not listening and <button className="button button-primary" disabled={not locale.strip()} onClick={start}>Start listening</button>}
+            {not listening and <button className="button button-primary" disabled={not locale.strip()} onClick={start}>
+                <svg className="speech-mic-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true" focusable="false">
+                    <rect x="9" y="3" width="6" height="11" rx="3"/>
+                    <path d="M6 10v2a6 6 0 0 0 12 0v-2M12 18v3m-3 0h6"/>
+                </svg>
+                Start listening
+            </button>}
             <p className="interim-text" aria-live="polite">{interim}</p>
         </div>}
         {error and <p className="speech-error" role="alert">{error}</p>}

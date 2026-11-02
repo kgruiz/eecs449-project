@@ -8,12 +8,13 @@ transcript turns -> ended session.
 `main.jac` exposes the client app and imports the shared server endpoints.
 `frontend.jac` handles authentication, profile setup, participant consent,
 speaker selection, typed turns, speech input, and session completion.
-`components/FeaturePanels.jac` currently renders a placeholder.
+`components/FeaturePanels.jac` is an empty extension slot and is not rendered
+in the web conversation view.
 
 The web transcript section also renders `TranscriptDownload`, which uses
 `core/transcript.jac` to format the displayed `SessionView` as UTF-8 text.
-It sits beneath the conversation heading with the shared secondary-button
-style, works during or after a session, and is disabled until a turn exists.
+It sits alongside the session status as a compact download action, works
+during or after a session, and is disabled until a turn exists.
 Exports include language/CEFR context and speaker-labeled turns in transcript
 order. The browser generates the download locally; no additional endpoint,
 stored copy, or model request is involved. Native export is not implemented.
@@ -21,7 +22,7 @@ stored copy, or model request is involved. Native export is not implemented.
 The web UI uses the Pip visual design through `web.css` and decorative
 `components/WebArtwork.jac` components. The active session layout places
 the transcript beside the existing speech and typed-turn controls, stacking
-them at narrow browser widths. The transcript supports on-demand sentence
+them at narrow browser widths. The transcript supports on-demand full-turn
 translation to English. Hints, AI replies, and practice navigation remain
 planned. Speech listening status remains local
 to `SpeechInput.jac`; an active session does not imply microphone capture.
@@ -96,7 +97,10 @@ session -> coaching report -> mistake history and optional practice lessons.
 Gemini 3.5 Flash-Lite. The protected translation endpoint checks ownership,
 consent, and that the selected text belongs to the requested turn before
 sending it to Gemini. Translations are cached in the browser view only;
-the saved transcript remains unchanged.
+the saved transcript remains unchanged. Each turn has an icon-only action
+with hover/focus tooltips. The original remains visible while English appears
+below it with a labeled accent rule. Toggling visibility reuses the cached
+translation; loading and retry states belong to each turn.
 
 Persistent translation caching, hint generation, AI-partner responses, coaching,
 mistake history, and lessons are not implemented in this checkout.

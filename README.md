@@ -18,8 +18,8 @@ The current checkout includes:
   CEFR level, and session status, and is generated locally in the browser.
 - Browser speech recognition with interim text, finalized turns, manual
   speaker selection, and recorded utterance durations.
-- Tap a transcript sentence to translate it into English with Gemini; tap
-  again to return to the original. Translations are kept in the current view.
+- Use the translation icon on a transcript turn to show English beneath
+  the original. Toggle it to hide or reveal the cached translation.
 - A responsive Pip-styled web interface for sign-in, conversation setup,
   transcripts, speech controls, and typed turns. The design does not add
   the planned language-assistance features.
@@ -248,7 +248,7 @@ code signing.
 - `endpoints.jac`: authenticated profile, session, and transcript endpoints.
 - `core/models.jac`: learner profile, transcript, session, and usage contracts.
 - `core/ai.jac`: server-only byLLM model and translation prompt.
-- `components/Translation.jac`: interactive sentence translation in the web transcript.
+- `components/Translation.jac`: per-turn translation controls and bilingual transcript display.
 - `components/SpeechInput.jac`: browser speech-to-text adapter.
 - `components/TranscriptDownload.jac`: local plain-text download in the web UI.
 - `core/transcript.jac`: readable transcript formatting.
@@ -368,3 +368,30 @@ they make no model requests. `jac check` passes both apps with warnings, and
 `jac build --as client web` succeeds. Live Gemini output and browser behavior
 were not retested for this change; the source of the original malformed live
 response has not been confirmed.
+
+### Conversation layout verification on 11/02/2026
+
+The web conversation view uses open transcript rows, icon-only translation
+controls with hover/focus tooltips, and English beneath the original with an
+accent rule. Each action translates the entire turn through the existing
+protected endpoint. Its 4,000-character limit matches the turn-input limit.
+Translations remain local to the current view; downloads retain original text.
+The header, speech controls, and multiline composer use the simplified layout.
+The planned-feature footnote is removed. Recognition language remains a text
+field; native mobile code is unchanged.
+
+- `jac test core/ai.jac`: four offline translation regression tests passed.
+- `jac check`: both apps passed with warnings.
+- `biome check web.css` and `jac build --as client web` passed.
+- Browser QA used an isolated temporary copy served with
+  `jac run --dev --host 127.0.0.1 --port 8020 --api-port 8021 web` and a
+  simulated translation provider. No mock is included in the app source.
+- Verified account creation, consent-gated session creation, empty download
+  state, typed and multiline turns, translation loading, original/English
+  coexistence, keyboard toggle, cached toggling, simulated failure/retry,
+  original-text export, completion, and sign-out. Desktop and 390px layouts
+  were inspected; the narrow viewport had no horizontal overflow. Browser
+  diagnostics reported no warnings or errors.
+
+Live Gemini, microphone capture, and cross-account isolation were not retested.
+No mobile simulator was started. The isolated QA server was stopped afterward.

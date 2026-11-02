@@ -2,7 +2,6 @@
 import from "@jac/runtime" { jacLogin, jacSignup, jacLogout, jacIsLoggedIn, SignupResult }
 import from .core.models { SessionView }
 import from .endpoints { save_profile, start_conversation, append_turn, end_conversation }
-import from .components.FeaturePanels { FeaturePanels }
 import from .components.SpeechInput { SpeechInput }
 import from .components.TranscriptDownload { TranscriptDownload }
 import from .components.WebArtwork { BrandMark, PipCompanion }
@@ -80,11 +79,11 @@ def:pub app -> JsxElement {
             </div>
         </header>
         <main id="workspace" className="workspace">
-            <div className="page-heading">
+            {session is None and <div className="page-heading">
                 <p className="eyebrow">Language Assistant</p>
                 <h1>Stay in the conversation.</h1>
                 <p className="page-description">Your words, a little more at home.</p>
-            </div>
+            </div>}
             {error and <p className="error-banner" role="alert">{error}</p>}
             {not logged_in and <div className="welcome-layout">
                 <section className="welcome-story" aria-label="Welcome to Pip">
@@ -164,13 +163,16 @@ def:pub app -> JsxElement {
                     <div className="ready-detail"><span className="status-dot"/>Your transcript starts when you do.</div>
                 </aside>}
                 {session is not None and <section className="card transcript-card">
-                    <div className="section-heading">
-                        <div><p className="eyebrow">{session.target_language + " · " + session.level}</p><h2>Your conversation</h2></div>
-                        <span className={"status-badge " + ("status-active" if session.status == "active" else "status-ended")}>
-                            <span className="status-dot"/>{"Session active" if session.status == "active" else "Ended"}
-                        </span>
+                    <div className="transcript-header">
+                        <p className="eyebrow">{session.target_language + " · " + session.level}</p>
+                        <div className="transcript-actions">
+                            <span className={"status-badge " + ("status-active" if session.status == "active" else "status-ended")}>
+                                <span className="status-dot"/>{"Active" if session.status == "active" else "Ended"}
+                            </span>
+                            <TranscriptDownload key={"download-" + session.id} session={session}/>
+                        </div>
                     </div>
-                    <TranscriptDownload key={"download-" + session.id} session={session}/>
+                    <h2>Your conversation</h2>
                     {len(session.turns) == 0 and <div className="transcript-empty">
                         <PipCompanion/>
                         <h3>{"A little hello goes a long way." if session.status == "active" else "A quiet conversation."}</h3>
@@ -179,15 +181,13 @@ def:pub app -> JsxElement {
                     <ol className="transcript-list" aria-label="Conversation transcript" aria-live="polite" aria-relevant="additions text">
                         {[<li key={turn.id} className={"transcript-turn " + ("turn-learner" if turn.speaker == "learner" else "turn-partner")}>
                             <span className="speaker-avatar" aria-hidden="true">{"M" if turn.speaker == "learner" else "P"}</span>
-                            <div className="turn-content"><p className="eyebrow">{"Me" if turn.speaker == "learner" else "Partner"}</p><TranscriptText sessionId={session.id} turnId={turn.id} text={turn.text}/></div>
+                            <TranscriptText sessionId={session.id} turnId={turn.id} text={turn.text} speaker={turn.speaker}/>
                         </li> for turn in session.turns]}
                     </ol>
                     {session.status == "ended" and <p className="session-ended-note">Conversation ended. The transcript is saved to your account.</p>}
-                    <FeaturePanels key={session.id} session={session} onSessionChange={lambda (updated: SessionView) { session = updated; }}/>
                 </section>}
                 {session is not None and session.status == "active" and <aside className="card controls-card">
-                    <p className="eyebrow">At your pace</p><h2>Make room for words.</h2>
-                    <p className="muted">Speak naturally, or add a sentence below.</p>
+                    <h2>Make room for words.</h2>
                     <label className="field">Who is speaking?
                         <select value={speaker} onChange={lambda (e: ChangeEvent) { speaker = e.target.value; }}>
                             <option value="partner">Partner</option><option value="learner">Me</option>
@@ -198,14 +198,14 @@ def:pub app -> JsxElement {
                         onSessionChange={lambda (updated: SessionView) { session = updated; }}/>
                     <div className="typed-composer">
                         <label className="field">Or type a turn
-                            <input value={text} placeholder="A sentence, in your own words..."
+                            <textarea rows={3} value={text} placeholder="A sentence, in your own words..."
                                 onChange={lambda (e: ChangeEvent) { text = e.target.value; }}/>
                         </label>
-                        <button className="button button-secondary" disabled={busy or not text.strip()} onClick={addTurn}>
-                            Add turn<span aria-hidden="true">↗</span>
-                        </button>
+                        <div className="composer-actions">
+                            <button className="button button-secondary" disabled={busy or not text.strip()} onClick={addTurn}>Add turn</button>
+                            <button className="button button-end" disabled={busy} onClick={finish}>End conversation</button>
+                        </div>
                     </div>
-                    <button className="button button-end" disabled={busy} onClick={finish}>End conversation</button>
                 </aside>}
             </div>}
             <footer className="page-footer"><span className="footer-mark" aria-hidden="true">✦</span>A little more present. One conversation at a time.</footer>
