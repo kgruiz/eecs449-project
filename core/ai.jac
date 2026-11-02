@@ -4,7 +4,7 @@ import from pathlib { Path }
 import from dotenv { load_dotenv }
 import from jaclang.byllm.lib { Model }
 with entry {
-    load_dotenv(dotenv_path=Path(__file__).resolve().parent.parent / ".env", override=False);
+    load_dotenv(dotenv_path=str(Path(__file__).resolve().parent.parent / ".env"));
     if os.getenv("GEMINI_API_KEY") {
         os.environ["GOOGLE_API_KEY"] = os.environ["GEMINI_API_KEY"];
     }
