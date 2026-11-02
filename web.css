@@ -12,22 +12,60 @@
 	--pip-danger: #b94639;
 }
 
-.sentence-wrap { display: inline; }
-.sentence {
-	border: 0; padding: 0; background: transparent; color: inherit; font: inherit;
-	text-align: left; border-radius: 4px; cursor: pointer;
-	text-decoration: underline; text-decoration-color: #bdc8f5; text-underline-offset: 4px;
+.sentence-wrap {
+	display: inline;
 }
-.sentence:hover { color: var(--pip-blue); text-decoration-color: currentColor; }
+.sentence {
+	border: 0;
+	padding: 0;
+	background: transparent;
+	color: inherit;
+	font: inherit;
+	text-align: left;
+	border-radius: 4px;
+	cursor: pointer;
+	text-decoration: underline;
+	text-decoration-color: #bdc8f5;
+	text-underline-offset: 4px;
+}
+.sentence:hover {
+	color: var(--pip-blue);
+	text-decoration-color: currentColor;
+}
 .sentence-loading {
 	background: linear-gradient(100deg, #9da8c7 20%, #eef1ff 45%, #9da8c7 70%);
-	background-size: 250% 100%; background-clip: text; -webkit-text-fill-color: transparent;
-	animation: translate-shimmer 1.3s linear infinite; cursor: progress;
+	background-size: 250% 100%;
+	background-clip: text;
+	-webkit-text-fill-color: transparent;
+	animation: translate-shimmer 1.3s linear infinite;
+	cursor: progress;
 }
-.translation-error { display: block; color: var(--pip-danger); font-size: 0.8rem; }
-.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
-@keyframes translate-shimmer { to { background-position: -250% 0; } }
-@media (prefers-reduced-motion: reduce) { .sentence-loading { animation: none; } }
+.translation-error {
+	display: block;
+	color: var(--pip-danger);
+	font-size: 0.8rem;
+}
+.sr-only {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	padding: 0;
+	margin: -1px;
+	overflow: hidden;
+	clip: rect(0, 0, 0, 0);
+	white-space: nowrap;
+	border: 0;
+}
+@keyframes translate-shimmer {
+	to {
+		background-position: -250% 0;
+	}
+}
+@media (prefers-reduced-motion: reduce) {
+	.sentence-loading {
+		animation: none;
+	}
+}
 
 * {
 	box-sizing: border-box;
@@ -525,6 +563,11 @@ body {
 .transcript-card {
 	min-height: 510px;
 }
+.transcript-download {
+	display: grid;
+	justify-items: start;
+	gap: 12px;
+}
 .transcript-empty {
 	display: flex;
 	flex-direction: column;
@@ -639,6 +682,9 @@ body {
 	background: #fff0e9;
 	color: #963c30;
 	font-size: 13px;
+}
+.transcript-download .error-banner {
+	margin: 0;
 }
 .speech-panel {
 	display: grid;

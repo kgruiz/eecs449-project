@@ -13,6 +13,9 @@ The current checkout includes:
 - A learner profile with native language, target language, and CEFR level.
 - Participant consent before starting a conversation.
 - Authenticated sessions, saved text transcripts, and typed turns.
+- A web **Download transcript (.txt)** button for active or ended conversations
+  with at least one turn. The UTF-8 file includes speaker labels, languages,
+  CEFR level, and session status, and is generated locally in the browser.
 - Browser speech recognition with interim text, finalized turns, manual
   speaker selection, and recorded utterance durations.
 - Tap a transcript sentence to translate it into English with Gemini; tap
@@ -247,6 +250,8 @@ code signing.
 - `core/ai.jac`: server-only byLLM model and translation prompt.
 - `components/Translation.jac`: interactive sentence translation in the web transcript.
 - `components/SpeechInput.jac`: browser speech-to-text adapter.
+- `components/TranscriptDownload.jac`: local plain-text download in the web UI.
+- `core/transcript.jac`: readable transcript formatting.
 - `core/speech.jac`: shared locale mapping and speech error messages.
 - `mobile/main.jac`: entry point for the `mobile` app.
 - `mobile/ConversationApp.jac`: native authentication and conversation UI.
@@ -276,6 +281,24 @@ under Jac 0.37.23 and that the mobile app reached its sign-in screen in an
 iOS 27 simulator. Those results were not rerun during conflict resolution.
 The author reports no tests, sign-in or session-flow checks, web app runs,
 or Gemini requests. No test suite is currently checked in.
+
+Live native transcription and physical-device conversation flows still need
+verification. Follow `AGENTS.md` when planning validation and record the
+exact commands and outcomes when it occurs.
+
+### Transcript-download validation (2026-10-23)
+
+`jac check` passed for both app entry points with existing warnings. The web
+app was run with Jac 0.37.23 in WSL using a temporary Linux-local copy of the
+changed source: installation on the Windows mount timed out, while
+`jac install` and `jac run --dev web` succeeded in the Linux-local copy.
+Synthetic-account checks covered sign-in, required authentication/consent,
+typed turns, cross-account isolation, ending a session, and rejecting late
+turns. Browser checks confirmed the disabled empty-state button and downloaded
+active/ended UTF-8 files with the correct status, speaker order, accents,
+non-Latin text, and literal markup. The compiled formatter also passed direct
+Node assertions for the same text format. No microphone, native-device, or
+Gemini checks were performed; live speech still needs verification.
 
 ### Web UI verification on 10/23/2026
 
@@ -308,3 +331,24 @@ session completion, and rejection of late turns. A live Gemini 3.5 Flash-Lite
 request translated a synthetic sentence. Browser checks covered individual
 sentence selection, loading, English output, and toggling without a second
 request. Microphone capture and spoken-turn delivery were not tested.
+
+### Transcript download UI integration on 11/02/2026
+
+Merged the Pip web UI into the transcript-download branch. The download
+control now sits beneath the conversation heading, using the shared secondary
+button and error-banner styles. Its state resets for each new session.
+
+- `jac check` passed for both apps under Jac 0.37.23, with warnings.
+- `biome check web.css` and `jac build --as client web` passed.
+- `jac run --dev --host 127.0.0.1 --port 8000 --api-port 8001 web`
+  served the app for browser checks with a disposable local account.
+- Browser checks covered account creation, consent-gated session creation,
+  disabled empty export, Partner/Me typed turns, active and ended downloads,
+  session completion, and sign-out. Downloaded UTF-8 files contained the
+  expected status, speaker order, accents, Chinese text, and line breaks.
+- Inspected desktop and 390px layouts; the narrow layout had no horizontal
+  overflow. After giving the download component a distinct session key,
+  the final browser run reported no console warnings or errors.
+
+Microphone input, native mobile, cross-account isolation, download failure
+handling, and Gemini requests were not retested for this UI integration.
