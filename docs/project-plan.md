@@ -20,7 +20,8 @@ A native mobile conversation UI and speech-recognition adapter have been
 added in PR #10, sharing the web server's endpoints. The author reports an
 iOS simulator launch to sign-in; the conversation flow and native speech
 still need end-to-end verification. Post-conversation recap panels now provide
-transcript-based summaries and practice priorities on web and mobile. Live model quality and native-device behavior remain
+transcript-based summaries and practice priorities on web and mobile. The web app now separates Talk from a saved
+Conversations library with Overview, Transcript, and Practice sections. Live model quality and native-device behavior remain
 unverified.
 
 ## Planned features

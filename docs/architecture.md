@@ -28,8 +28,8 @@ content while within 48 pixels of the bottom, preserves the reader's position
 when scrolled up, and offers a Latest button to resume following. A resize
 observer also handles translation expansion and viewport changes, and is
 disconnected on unmount. The transcript supports on-demand full-turn
-translation to English and next-word suggestions. Full-reply hints, AI replies,
-and practice navigation remain planned. Speech listening status remains local
+translation to English and next-word suggestions. Full-reply hints and AI replies
+remain planned. Saved conversation and practice navigation are implemented on web. Speech listening status remains local
 to `SpeechInput.jac`; an active session does not imply microphone capture.
 
 `jac.toml` defines `web` (the default app, entry point `main`) and `mobile`
@@ -183,3 +183,23 @@ Speech adapters report listening/finalization/save activity so End conversation
 stays disabled until the learner stops listening and outstanding saves finish.
 The server rejects speaker corrections after completion to preserve report evidence.
 Real microphone timing and native-device presentation still require verification.
+
+## Web conversation library
+
+`list_conversations(offset, limit)` traverses only the authenticated caller's
+root and returns bounded `ConversationSummary` records for completed sessions.
+`core/history.jac` sorts by the saved UTC `created_at`, with undated legacy
+sessions last. List records contain opening-turn titles and short previews;
+full transcripts and coaching are fetched with the existing owned-session API.
+New sessions record creation time, while old sessions default to an empty date.
+The UI formats dates in the browser's local timezone.
+
+`frontend.jac` owns Talk state separately from `components/Conversations.jac`.
+Navigating away unmounts live controls only after speech activity has settled,
+while preserving the session and draft in the parent. Completion clears the
+live workspace and opens the ended session in Conversations. Overview and
+Practice share one mounted coaching component, so switching detail sections
+does not regenerate feedback. Transcript has its own view and retains export
+and translation. The completed library is paginated; its page selection is
+local state. Active-session recovery after reload and deep links remain future
+work. Native mobile still uses its existing conversation/recap screen.

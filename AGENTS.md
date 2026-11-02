@@ -19,7 +19,9 @@ reply hints, AI-partner responses, mistake history,
 and lessons are planned, not implemented. Translation and saved post-conversation
 coaching are implemented; coaching uses the shared Gemini configuration and
 requires ended, consented sessions with learner turns. The AI-partner selector only
-records a mode.
+records a mode. The web app has Talk and Conversations navigation; completed
+sessions open to Overview, Transcript, and Practice. History is account-scoped
+and paginated. Native mobile keeps its existing recap layout.
 
 Preserve authenticated ownership checks, participant consent, and the
 shared `append_turn` transcript handoff. Keep raw audio out of persistence

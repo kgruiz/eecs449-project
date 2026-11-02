@@ -12,14 +12,14 @@ import from .components.VoiceSetup { VoiceSetup }
 import from .components.TranscriptDownload { TranscriptDownload }
 import from .components.WebArtwork { BrandMark, PipCompanion }
 import from .components.TranscriptScroll { TranscriptScroll }
-import from .components.CoachingPanel { CoachingPanel }
+import from .components.Conversations { Conversations }
 import "./web.css";
 def:pub app -> JsxElement {
     has logged_in: bool = jacIsLoggedIn(), email: str = "", password: str = "",
         native_language: str = "English", target_language: str = "Spanish", level: str = "A2",
         partner_mode: str = "human", consent: bool = False, session: SessionView | None = None,
         speaker: str = "partner", text: str = "", error: str = "", busy: bool = False,
-        voice_enrolled: bool = False, speechBusy: bool = False, spokenDraft: str = "";
+        page: str = "talk", historyId: str = "", voice_enrolled: bool = False, speechBusy: bool = False, spokenDraft: str = "";
     async def loadVoice() -> None {
         try { status = await voice_status(); voice_enrolled = status.enrolled; }
         except Exception { voice_enrolled = False; }
@@ -51,7 +51,7 @@ def:pub app -> JsxElement {
         finally { busy = False; }
     }
     def logout() -> None {
-        jacLogout(); logged_in = False; session = None; consent = False; voice_enrolled = False;
+        jacLogout(); page = "talk"; historyId = ""; logged_in = False; session = None; consent = False; voice_enrolled = False;
     }
     async def start() -> None {
         created: SessionView | None = None;
@@ -82,7 +82,10 @@ def:pub app -> JsxElement {
         updated: SessionView | None = None;
         if session is None { return; }
         error = ""; busy = True;
-        try { updated = await end_conversation(session.id); session = updated; }
+        try {
+            updated = await end_conversation(session.id); historyId = updated.id;
+            session = None; text = ""; spokenDraft = ""; page = "conversations";
+        }
         except Exception { error = "Could not end this conversation."; }
         finally { busy = False; }
     }
@@ -93,20 +96,17 @@ def:pub app -> JsxElement {
                 <BrandMark/>
                 <span className="wordmark">pip</span>
             </a>
-            {logged_in and <span className="current-page">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">
-                    <path d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.4 8.4 0 0 1 3.8-.9h.5a8.5 8.5 0 0 1 8 8v.5Z"/>
-                    <path d="M8 11.5h.01m4 0h.01m4 0h.01" strokeWidth="2.8"/>
-                </svg>
-                Conversation
-            </span>}
+            {logged_in and <nav className="main-tabs" aria-label="Main navigation">
+                <button className={"main-tab " + ("is-selected" if page == "talk" else "")} aria-pressed={page == "talk"} onClick={lambda { page = "talk"; }}>Talk</button>
+                <button className={"main-tab " + ("is-selected" if page == "conversations" else "")} aria-pressed={page == "conversations"} disabled={busy or speechBusy} onClick={lambda { historyId = ""; page = "conversations"; }}>Conversations</button>
+            </nav>}
             <div className="account-controls">
                 {logged_in and <span className="language-badge">{target_language + " · " + level}</span>}
                 {logged_in and <button className="button button-quiet" onClick={logout}>Sign out</button>}
             </div>
         </header>
         <main id="workspace" className="workspace">
-            {session is None and <div className="page-heading">
+            {session is None and page == "talk" and <div className="page-heading">
                 <p className="eyebrow">Language Assistant</p>
                 <h1>Stay in the conversation.</h1>
                 <p className="page-description">Your words, a little more at home.</p>
@@ -147,8 +147,7 @@ def:pub app -> JsxElement {
                     <p className="form-footnote">A real conversation starts with a little hello.</p>
                 </section>
             </div>}
-            {logged_in and <div className="conversation-layout">
-                {session is not None and session.status == "ended" and <CoachingPanel key={"coaching-" + session.id} session={session}/>}
+            {logged_in and page == "talk" and <div className="conversation-layout">
                 {(session is None or session.status == "ended") and <section className="card setup-card">
                     <div className="section-heading">
                         <div><p className="eyebrow">Before you begin</p><h2>Start a conversation</h2></div>
@@ -246,12 +245,13 @@ def:pub app -> JsxElement {
                         </label>
                         <div className="composer-actions">
                             <button className="button button-secondary" disabled={busy or not text.strip()} onClick={addTurn}>Add turn</button>
-                            {speechBusy and <p className="muted" role="status">Stop listening and wait for your turns to save before ending.</p>}
+                            {speechBusy and <p className="muted" role="status">Stop listening and wait for your turns to save before leaving Talk or ending.</p>}
                             <button className="button button-end" disabled={busy or speechBusy} onClick={finish}>End conversation</button>
                         </div>
                     </div>
                 </aside>}
             </div>}
+            {logged_in and page == "conversations" and <Conversations key={historyId} initialSessionId={historyId} active={session is not None} onTalk={lambda { page = "talk"; }}/>}
             <footer className="page-footer"><span className="footer-mark" aria-hidden="true">✦</span>A little more present. One conversation at a time.</footer>
         </main>
     </div>

@@ -268,6 +268,27 @@ code signing.
 - `docs/architecture.md`: data flow, integration points, and limitations.
 - `docs/project-plan.md`: product goals and indicative delivery plan.
 
+## Web navigation
+
+**Talk** contains conversation setup and the live transcript/controls.
+**Conversations** lists your completed sessions, newest dated sessions first,
+with a title taken from the opening turn, language/level, local date/time,
+turn count, and summary preview. Earlier sessions without timestamps remain
+available and are labeled Earlier conversation. Lists use pages of 20 records.
+
+Opening a conversation shows three sections:
+
+- **Overview:** its summary and what went well.
+- **Transcript:** saved turns, on-demand translations, and text download.
+- **Practice:** evidence-based phrasing improvements and short practice tasks.
+
+Ending a session takes you directly to its Overview. New conversation returns
+to Talk setup. Switching tabs retains an active session, speaker selection, and
+typed draft; stop listening and wait for saves before leaving Talk. Active
+sessions are not shown in the completed library, and active-session recovery
+after a full page reload is not implemented. Tab selection is local UI state,
+not a shareable URL. Native mobile retains its existing recap layout.
+
 ## Conversation recap
 
 Stop listening and wait for pending turns to save, then end the conversation.
@@ -278,7 +299,8 @@ use the session's native language; phrasing follows its target language and CEFR
 Feedback uses text only and does not score pronunciation or acoustic fluency.
 
 Successful reports are saved with the conversation and returned by
-`get_conversation`; repeat requests reuse them. There is no history browser yet.
+`get_conversation`; repeat requests reuse them. The web Conversations tab
+lets you revisit completed sessions and their saved feedback.
 Empty or partner-only sessions do not request feedback. Provider failures keep
 the ended transcript intact and show Retry feedback. Transcripts exceeding
 100,000 serialized characters are rejected rather than silently truncated.
@@ -509,3 +531,24 @@ no simulator was started.
 
 No live Gemini requests, real microphone tests, or native simulator/device runs
 were performed. Native recap rendering and live output quality remain unverified.
+
+### Conversations navigation verification on 11/02/2026
+
+- `jac check` passed both apps with warnings; `biome check web.css` and
+  `jac build --as client web` passed. The list-return bridge needs a type-import
+  alias to avoid duplicate generated class declarations under Jac 0.37.23.
+- `jac test core/history.jac` passed three tests for sorting/filtering, bounded
+  previews, legacy dates, and pagination. Coaching and hints suites passed
+  10 and five collected offline tests respectively (including imported tests).
+- Isolated API QA with simulated AI passed authentication, ownership isolation,
+  completed-only listing, timestamps, pagination, report persistence/reuse,
+  rejection of late turns/corrections, and provider-failure preservation.
+- Browser QA verified an empty library, consent, typed turns, retained drafts
+  and active sessions across tab switches, completion into Overview, separate
+  Transcript/Practice sections, reopening saved feedback, and history after
+  reopening the app. Downloaded text contained the correct ended transcript.
+- A synthetic recognizer verified navigation/completion remain disabled through
+  a delayed final result. Practice at 390px had no horizontal overflow.
+
+The temporary QA copy used simulated AI and speech, not live Gemini or a real
+microphone. No native simulator was started. Native navigation was not changed.
