@@ -198,7 +198,7 @@ def:pub SpeechInput(sessionId: str, speaker: str, language: str, voiceEnabled: b
         stopCapture();
     }
     <section className="speech-panel" aria-label="Speech to text">
-        <div className="speech-status" role="status">
+        {(listening or saving or settling) and <div className="speech-status" role="status">
             <span className="speech-indicator" aria-hidden="true">
                 <svg className="speech-mic-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
                     <rect x="9" y="3" width="6" height="11" rx="3"/>
@@ -206,8 +206,8 @@ def:pub SpeechInput(sessionId: str, speaker: str, language: str, voiceEnabled: b
                 </svg>
             </span>
             <span>{("Listening..." if voiceEnabled
-                else "Listening for " + ("me" if speaker == "learner" else "partner")) if listening else "Ready when you are"}</span>
-        </div>
+                else "Listening for " + ("me" if speaker == "learner" else "partner")) if listening else "Saving spoken turns..."}</span>
+        </div>}
         {not recognitionClass and <p className="muted">
             Live transcription needs a browser with the Web Speech API (Chrome, Edge or Safari). You can still type turns.
         </p>}
