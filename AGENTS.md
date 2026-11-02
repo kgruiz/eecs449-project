@@ -12,10 +12,12 @@ saved transcripts, typed turns, and browser and native speech-to-text adapters.
 `jac.toml` defines a `web` app serving the API and browser UI, and a `mobile`
 app with a native conversation UI. Both use the shared server endpoints;
 the mobile browser preview supports typed turns only.
-`components/FeaturePanels.jac` is a placeholder. Live reply hints,
-AI-partner responses, translation, coaching, mistake history, and lessons
-are planned, not implemented. The AI-partner selector only records a mode.
-`core/ai.jac` contains configuration; the current flow makes no model calls.
+`components/FeaturePanels.jac` is a placeholder. The web app suggests a
+next word when the learner pauses mid-sentence (`components/WordHelper.jac`,
+`suggest_word`), which makes a Gemini call through `core/hints.jac`. Full
+reply hints, AI-partner responses, translation, coaching, mistake history,
+and lessons are planned, not implemented. The AI-partner selector only
+records a mode.
 
 Preserve authenticated ownership checks, participant consent, and the
 shared `append_turn` transcript handoff. Keep raw audio out of persistence

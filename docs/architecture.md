@@ -73,6 +73,30 @@ the same `endpoints.jac` functions; release builds set `base_url` under
 `core/speech.jac` shares locale and error helpers between both speech adapters.
 These native adapter behaviors still need end-to-end verification.
 
+## Next-word suggestions
+
+`components/WordHelper.jac` (web only) treats the learner as struggling
+when their in-progress sentence stays unchanged for four seconds while
+"Me" is the selected speaker. The in-progress sentence is the typed
+composer text, or else the learner's interim speech that `SpeechInput.jac`
+reports through `onDraft` (then the finalized utterance). Sentences ending
+in `.`, `!`, or `?` do not trigger, and the learner can turn automatic
+suggestions off or tap "Suggest a word" at any time.
+
+`suggest_word(session_id, partial_sentence)` checks ownership, an active
+session, and consent, then calls `suggest_next_word` in `core/hints.jac`
+with the partial sentence, the last 12 turns, the session languages, and
+CEFR level. It returns a `WordHint` (target-language word plus a short
+native-language meaning) and increments `model_requests`. Drafts and hints
+are never saved as transcript turns. A hint that arrives after the learner
+keeps going is discarded.
+
+Limitations: browsers often finalize speech after a short silence, so a
+pause may be detected on the finalized utterance rather than mid-utterance;
+an unchanged learner utterance can trigger a hint even if it was complete
+but unpunctuated. Suggestion quality, latency, and the mobile client are
+unverified or not implemented.
+
 ## Planned integration points
 
 Future feature modules should share authenticated sessions and transcript
@@ -84,20 +108,19 @@ Transcript -> requested hint / translation / AI-partner reply -> end
 session -> coaching report -> mistake history and optional practice lessons.
 
 `core/ai.jac` loads server-side environment configuration and creates a
-byLLM model configuration. It is not imported by the current conversation
-flow. Future model calls should use that shared configuration and send
+byLLM model configuration, used by `core/hints.jac`. Future model calls should use that shared configuration and send
 conversation text only as covered by participant consent and the requested
 feature. The configured provider/model still needs availability checks.
 
-Translation caching, hint generation, AI-partner responses, coaching,
-mistake history, and lessons are not implemented in this checkout.
+Translation caching, full-reply hint generation, AI-partner responses,
+coaching, mistake history, and lessons are not implemented in this checkout.
 
 ## Limitations
 
 Text persists in the user's graph; deletion and retention controls are
 future work. Provider usage/cost accounting, budgets, latency measurement,
 and audio-based pronunciation scoring are also future work. The model
-request field currently has no feature call sites that increment it.
+request field is incremented only by next-word suggestions.
 
 The initial four-PR scaffold merge instructions are historical; use the
 current checkout's files and interfaces as the integration baseline. See
