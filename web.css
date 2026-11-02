@@ -1478,3 +1478,12 @@ body {
 	font-size: 26px;
 	margin: 0;
 }
+
+.coaching-footnote {
+	border-top: 1px solid var(--pip-border);
+	margin: 24px 0 0;
+	padding-top: 12px;
+	color: var(--pip-muted);
+	font-size: 11px;
+	line-height: 1.5;
+}

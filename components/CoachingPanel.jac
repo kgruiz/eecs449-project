@@ -30,7 +30,7 @@ def:pub CoachingPanel(session: SessionView, section: str = "overview") -> JsxEle
                 <p>{item.explanation}</p><p><strong>Practice: </strong>{item.practice}</p>
             </article> for item in current.coaching.priorities]}
             </div>
-            <p className="muted">Based on the saved transcript. Speech recognition can make mistakes.</p>
+            <p className="coaching-footnote">Based on the saved transcript. Speech recognition can make mistakes.</p>
         </div>}
     </section>
 }
