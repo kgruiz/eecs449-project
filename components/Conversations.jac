@@ -79,7 +79,7 @@ def:pub Conversations(initialSessionId: str, onTalk: Callable[[], None], active:
         {selected is not None and not opening and <div>
             <button className="button button-quiet history-back" onClick={back}>← All conversations</button>
             <nav className="detail-tabs" aria-label="Conversation sections">
-                {[<button key={value} className={"detail-tab " + ("is-selected" if section == value else "")} aria-pressed={section == value} onClick={lambda { section = value; }}>{value.capitalize()}</button> for value in ["overview", "transcript", "practice"]]}
+                {[<button key={value} className={"detail-tab " + ("is-selected" if section == value else "")} aria-pressed={section == value} onClick={lambda { section = value; }}>{"Practice suggestions" if value == "practice" else value.capitalize()}</button> for value in ["overview", "transcript", "practice"]]}
             </nav>
             <div hidden={section == "transcript"}><CoachingPanel key={selected.id} session={selected} section={section}/></div>
             <div hidden={section != "transcript"} className="card history-transcript">

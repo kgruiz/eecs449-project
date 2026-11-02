@@ -16,6 +16,17 @@ import from ..core.speech { speech_locale, speech_error_message, ROUTINE_SPEECH_
 # and assumed for a final that arrives without any interim result.
 glob UTTERANCE_PAD_MS: int = 700, UNTIMED_UTTERANCE_MS: int = 3000;
 
+glob SPEECH_OPTIONS: list[list[str]] = [
+    ["ar-SA", "Arabic (Saudi Arabia)"], ["zh-CN", "Chinese (China)"],
+    ["nl-NL", "Dutch (Netherlands)"], ["en-US", "English (United States)"],
+    ["en-GB", "English (United Kingdom)"], ["fr-FR", "French (France)"],
+    ["de-DE", "German (Germany)"], ["hi-IN", "Hindi (India)"],
+    ["it-IT", "Italian (Italy)"], ["ja-JP", "Japanese (Japan)"],
+    ["ko-KR", "Korean (South Korea)"], ["pt-BR", "Portuguese (Brazil)"],
+    ["ru-RU", "Russian (Russia)"], ["es-ES", "Spanish (Spain)"],
+    ["es-MX", "Spanish (Mexico)"]
+];
+
 def:pub SpeechInput(sessionId: str, speaker: str, language: str, voiceEnabled: bool,
                     onSessionChange: Callable[[SessionView], None],
                     onDraft: Callable[[str, str], None] | None = None,
@@ -212,8 +223,16 @@ def:pub SpeechInput(sessionId: str, speaker: str, language: str, voiceEnabled: b
             Live transcription needs a browser with the Web Speech API (Chrome, Edge or Safari). You can still type turns.
         </p>}
         {recognitionClass and <div className="speech-controls">
-            <label className="field">Recognition language <input value={locale} disabled={listening}
-                onChange={lambda (e: ChangeEvent) { locale = e.target.value; }}/></label>
+            <label className="field">Speech language
+                <select value={locale} disabled={listening} onChange={lambda (e: ChangeEvent) { locale = e.target.value; }}>
+                    {not any(option[0] == locale for option in SPEECH_OPTIONS) and <option value={locale}>{locale}</option>}
+                    {[<option key={option[0]} value={option[0]}>{option[1]}</option> for option in SPEECH_OPTIONS]}
+                </select>
+            </label>
+            <details className="speech-language-options"><summary>Other language or region</summary>
+                <label className="field">Language code <input value={locale} disabled={listening}
+                    placeholder="For example, fr-CA" onChange={lambda (e: ChangeEvent) { locale = e.target.value; }}/></label>
+            </details>
             {listening and <button className="button button-secondary" onClick={stop}>Stop listening</button>}
             {not listening and <button className="button button-primary" disabled={not locale.strip()} onClick={lambda { start(); }}>
                 <svg className="speech-mic-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true" focusable="false">

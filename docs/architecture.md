@@ -43,8 +43,9 @@ feature panels are not ported to mobile.
 `core/models.jac` defines `LearnerProfile`, `TranscriptTurn`, `Conversation`,
 and `SessionView`. A conversation snapshots the learner's languages and
 CEFR level at creation, stores its turns, and tracks submitted utterance
-seconds and a model-request counter. Selecting an AI partner stores the
-mode but does not yet produce an AI response.
+seconds and a model-request counter. The server accepts an AI-partner mode
+but does not produce AI responses. The web selector disables that option
+and labels it “coming soon”.
 
 Protected endpoints in `endpoints.jac` resolve sessions within the caller's
 root. `append_turn(session_id, speaker, text, duration_seconds)` is the

@@ -30,9 +30,9 @@ The current checkout includes:
 Full-reply hints, AI-partner responses, mistake history, and personalized
 lessons are planned. Web next-word hints and web/mobile post-conversation
 recaps are implemented. `FeaturePanels.jac` is still
-an extension placeholder. The AI-partner selector records a session mode;
-selecting it does not yet generate responses. Translation is sent to Gemini
-only when requested, after participant consent.
+an extension placeholder. The web AI-partner option is disabled and labeled
+“coming soon”; the server still accepts the mode but does not generate replies.
+Translation is sent to Gemini only when requested, after participant consent.
 
 See [the project plan](docs/project-plan.md) for scope, milestones, risks,
 and open decisions, and [the architecture](docs/architecture.md) for the

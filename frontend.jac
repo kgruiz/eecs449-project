@@ -143,18 +143,18 @@ def:pub app -> JsxElement {
                         <label className="field">Learning language
                             <input value={target_language} onChange={lambda (e: ChangeEvent) { target_language = e.target.value; }}/>
                         </label>
-                        <label className="field">CEFR level
-                            <select value={level} onChange={lambda (e: ChangeEvent) { level = e.target.value; }}>
+                        <label className="field">Level
+                            <select aria-describedby="level-help" value={level} onChange={lambda (e: ChangeEvent) { level = e.target.value; }}>
                                 {[<option key={value} value={value}>{value}</option> for value in ["A1", "A2", "B1", "B2", "C1", "C2"]]}
                             </select>
+                            <span className="field-help" id="level-help">CEFR scale: A1–A2 beginner, B1–B2 intermediate, C1–C2 advanced.</span>
                         </label>
                         <label className="field">Partner
                             <select value={partner_mode} onChange={lambda (e: ChangeEvent) { partner_mode = e.target.value; }}>
-                                <option value="human">Real person</option><option value="ai">AI partner (mode only)</option>
+                                <option value="human">Real person</option><option value="ai" disabled>AI partner (coming soon)</option>
                             </select>
                         </label>
                     </div>
-                    {partner_mode == "ai" and <p className="notice">AI partner mode records your choice. Automatic replies are not available yet.</p>}
                     <label className="consent-box"><input type="checkbox" checked={consent}
                         onChange={lambda (e: ChangeEvent) { consent = e.target.checked; }}/>
                         <span>{"All participants agree to live transcription by the browser's speech service, "
@@ -183,13 +183,12 @@ def:pub app -> JsxElement {
                     <h2>Conversation</h2>
                     {len(session.turns) == 0 and <div className="transcript-empty">
                         <h3>No messages yet</h3>
-                        <p>{"Start listening or add a typed turn. Your conversation will appear here." if session.status == "active" else "No turns were added to this session."}</p>
+                        <p>{"Start listening or type a message." if session.status == "active" else "No messages were added to this session."}</p>
                     </div>}
                     <TranscriptScroll key={session.id} session={session} onSwapSpeaker={swapSpeaker}/>
                     {session.status == "ended" and <p className="session-ended-note">Conversation ended. The transcript is saved to your account.</p>}
                 </section>}
                 {session is not None and session.status == "active" and <aside className="card controls-card">
-                    <h2>Speak or type</h2>
                     {voice_enrolled and <p className="muted">Speakers are recognized by voice. Click a speaker name to correct it.</p>}
                     <fieldset className="speaker-picker">
                         <legend>{"Typed turns are from" if voice_enrolled else "Who is speaking?"}</legend>
@@ -215,12 +214,12 @@ def:pub app -> JsxElement {
                     <WordHelper key={"words-" + session.id} sessionId={session.id} learnerSpeaking={speaker == "learner" if text.strip() else bool(spokenDraft)}
                         draft={text if speaker == "learner" and text.strip() else spokenDraft}/>
                     <div className="typed-composer">
-                        <label className="field">Or type a turn
+                        <label className="field">Message
                             <textarea rows={3} value={text} placeholder="Type a message..."
                                 onChange={lambda (e: ChangeEvent) { text = e.target.value; }}/>
                         </label>
                         <div className="composer-actions">
-                            <button className="button button-secondary" disabled={busy or not text.strip()} onClick={addTurn}>Add turn</button>
+                            <button className="button button-secondary" disabled={busy or not text.strip()} onClick={addTurn}>Add message</button>
                             {speechBusy and <p className="muted" role="status">Stop listening and wait for your turns to save before leaving Talk or ending.</p>}
                             <button className="button button-end" disabled={busy or speechBusy} onClick={finish}>End conversation</button>
                         </div>

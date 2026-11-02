@@ -678,11 +678,8 @@ body {
 	flex-direction: column;
 	align-items: center;
 	justify-content: center;
-	min-height: 320px;
-	padding: 28px 22px;
-	margin: 24px 0;
-	border-radius: 18px;
-	background: radial-gradient(circle at 50% 30%, #eaf0d8, #f4f5ec 68%);
+	padding: 32px 16px;
+	margin: 16px 0;
 	text-align: center;
 }
 .transcript-empty .pip-companion {
@@ -937,9 +934,8 @@ body {
 	display: grid;
 	gap: 12px;
 	margin-top: 16px;
-	padding: 18px 20px;
-	border: 1px solid var(--pip-border);
-	border-radius: 16px;
+	padding: 16px 0 0;
+	border-top: 1px solid var(--pip-border);
 }
 .word-helper-heading {
 	display: flex;
@@ -1484,4 +1480,28 @@ body {
 	color: var(--pip-muted);
 	font-size: 11px;
 	line-height: 1.5;
+}
+
+.word-helper-label {
+	font-size: 13px;
+	font-weight: 600;
+}
+.field-help {
+	font-size: 11px;
+	font-weight: 400;
+	line-height: 1.5;
+	color: var(--pip-muted);
+}
+.speech-language-options {
+	font-size: 12px;
+	color: var(--pip-muted);
+}
+.speech-language-options summary {
+	cursor: pointer;
+}
+.speech-language-options .field {
+	margin-top: 10px;
+}
+.detail-tabs {
+	flex-wrap: wrap;
 }

@@ -44,7 +44,7 @@ def:pub WordHelper(sessionId: str, draft: str, learnerSpeaking: bool) -> JsxElem
     }
     <section className="word-helper" aria-label="Word suggestions">
         <div className="word-helper-heading">
-            <p className="eyebrow">Need a word?</p>
+            <p className="word-helper-label">Word suggestions</p>
             <label className="word-helper-toggle">
                 <input type="checkbox" checked={auto} onChange={lambda (e: ChangeEvent) { auto = e.target.checked; }}/>
                 Suggest when I pause
