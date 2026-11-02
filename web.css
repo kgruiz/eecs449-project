@@ -1050,3 +1050,59 @@ body {
 		transition: none;
 	}
 }
+
+/* Voice recognition (speaker detection) */
+.voice-setup {
+	margin-top: 26px;
+	padding-top: 22px;
+	border-top: 1px solid var(--pip-border);
+}
+.voice-setup .form-stack {
+	gap: 14px;
+	margin-top: 12px;
+}
+.voice-setup .consent-box {
+	margin: 0;
+}
+.voice-passage {
+	margin: 0;
+	padding: 16px 18px;
+	border-left: 3px solid var(--pip-blue);
+	border-radius: 0 12px 12px 0;
+	background: white;
+	font:
+		400 1rem / 1.5 Georgia,
+		serif;
+}
+.voice-actions {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 10px;
+}
+.voice-recording {
+	display: inline-flex;
+	align-items: center;
+	font-size: 12px;
+	font-weight: 650;
+}
+.voice-error {
+	color: var(--pip-danger);
+	font-size: 12px;
+}
+.speaker-switch {
+	border: 0;
+	padding: 2px 6px;
+	margin: -2px -6px;
+	border-radius: 6px;
+	background: transparent;
+	cursor: pointer;
+	font-family: inherit;
+}
+.speaker-switch:hover:not(:disabled) {
+	background: #f1f3ec;
+	color: var(--pip-ink);
+}
+.speaker-switch:disabled {
+	cursor: default;
+}

@@ -1,7 +1,8 @@
 """Translate a full turn while keeping the original transcript visible."""
 import from ..endpoints { translate_sentence }
 
-def:pub TranscriptText(sessionId: str, turnId: str, text: str, speaker: str) -> JsxElement {
+def:pub TranscriptText(sessionId: str, turnId: str, text: str, speaker: str,
+                       speakerSource: str, canCorrect: bool, onSpeakerClick: Callable[[], None]) -> JsxElement {
     has english: str = "", showingEnglish: bool = False, loading: bool = False, failed: bool = False;
     has pending: Ref[bool] = Ref(False);
 
@@ -23,7 +24,11 @@ def:pub TranscriptText(sessionId: str, turnId: str, text: str, speaker: str) -> 
     label = "Translating..." if loading else ("Hide translation" if showingEnglish else ("Retry translation" if failed else "Translate to English"));
     <div className="turn-content">
         <div className="turn-heading">
-            <p className="eyebrow">{"Me" if speaker == "learner" else "Partner"}</p>
+            <button type="button" className="eyebrow speaker-switch" disabled={not canCorrect}
+                title="Switch between Me and Partner" onClick={onSpeakerClick}>
+                {("Me" if speaker == "learner" else "Partner")
+                    + (" · guessed" if speakerSource == "turn-taking" else "")}
+            </button>
             <div className="translation-action">
                 <button type="button" className={"translate-button " + ("is-active" if showingEnglish else "")}
                     onClick={toggle} disabled={loading} aria-label={label} aria-expanded={showingEnglish}

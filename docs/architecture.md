@@ -67,9 +67,27 @@ previous speaker. Recognition attempts to restart after browser silence
 timeouts until stopped. These behaviors are implementation intent and
 still need browser verification.
 
-There is no automatic diarization or pause detection. Unsupported browsers
-fall back to typed turns. The app does not store raw audio; the browser's
+There is no pause detection. Unsupported browsers fall back to typed turns. The app does not store raw audio; the browser's
 speech service handles transcription.
+
+## Speaker detection
+
+The learner can optionally enroll a voiceprint by reading a passage
+(`components/VoiceSetup.jac` -> `enroll_voice`). The server keeps only a
+WeSpeaker embedding (`core/voiceprint.py`, sherpa-onnx), never the audio;
+`delete_voice` removes it.
+
+With a voiceprint, `components/audioCapture.js` keeps the last minute of
+microphone PCM in memory. Each finalized utterance's audio (from 700 ms
+before its first interim result to its final result) is sent once as a
+16 kHz WAV to `append_spoken_turn`, which scores it against the voiceprint
+(cosine >= `SPEAKER_MATCH_THRESHOLD`, default 0.5, means learner) and
+discards it. Speech under ~1 s, or a scoring failure, falls back to
+alternating with the previous turn (`speaker_source = "turn-taking"`, shown
+as "guessed"). The learner can click a turn's speaker to correct it
+(`set_turn_speaker`). Typed turns and sessions without a voiceprint use the
+manually selected speaker. An utterance in which both people speak without a
+pause is attributed as a whole.
 
 ## Native mobile speech input
 

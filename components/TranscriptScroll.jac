@@ -1,9 +1,9 @@
 """Bounded transcript viewport that follows new turns until the reader scrolls up."""
 import from react { useEffect }
-import from ..core.models { SessionView }
+import from ..core.models { SessionView, TranscriptTurn }
 import from .Translation { TranscriptText }
 
-def:pub TranscriptScroll(session: SessionView) -> JsxElement {
+def:pub TranscriptScroll(session: SessionView, onSwapSpeaker: Callable[[TranscriptTurn], None]) -> JsxElement {
     has away: bool = False;
     has viewport: Ref[any] = Ref(None), content: Ref[any] = Ref(None);
     has following: Ref[bool] = Ref(True);
@@ -47,7 +47,9 @@ def:pub TranscriptScroll(session: SessionView) -> JsxElement {
             <ol className="transcript-list" ref={content} aria-live="polite" aria-relevant="additions text">
                 {[<li key={turn.id} className={"transcript-turn " + ("turn-learner" if turn.speaker == "learner" else "turn-partner")}>
                     <span className="speaker-avatar" aria-hidden="true">{"M" if turn.speaker == "learner" else "P"}</span>
-                    <TranscriptText sessionId={session.id} turnId={turn.id} text={turn.text} speaker={turn.speaker}/>
+                    <TranscriptText sessionId={session.id} turnId={turn.id} text={turn.text} speaker={turn.speaker}
+                        speakerSource={turn.speaker_source} canCorrect={session.status == "active"}
+                        onSpeakerClick={lambda { onSwapSpeaker(turn); }}/>
                 </li> for turn in session.turns]}
             </ol>
         </div>

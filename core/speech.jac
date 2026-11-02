@@ -10,7 +10,7 @@ glob SPEECH_LOCALES: dict[str, str] = {
 glob SPEECH_ERRORS: dict[str, str] = {
     "not-allowed": "Microphone or speech recognition access was blocked. Allow it in settings to transcribe.",
     "service-not-allowed": "The speech recognition service is unavailable here.",
-    "audio-capture": "No microphone was found.",
+    "audio-capture": "Could not capture audio from the microphone. Check that the app has microphone access (in the Simulator, the Mac must allow it too).",
     "network": "The speech recognition service could not be reached.",
     "language-not-supported": "Speech recognition cannot transcribe that language. Try a code such as es-ES.",
     "interrupted": "Transcription was interrupted by another app, call or alarm.",
@@ -18,6 +18,16 @@ glob SPEECH_ERRORS: dict[str, str] = {
 };
 # Silence timeouts and our own aborts; the adapters restart while still listening.
 glob ROUTINE_SPEECH_ERRORS: list[str] = ["no-speech", "aborted", "speech-timeout"];
+# Transient start failures (the audio session is still settling after the last
+# session) retried with a growing delay before an error is shown.
+glob RETRYABLE_SPEECH_ERRORS: list[str] = ["audio-capture", "busy"];
+glob MAX_SPEECH_RETRIES: int = 3;
+glob RESTART_DELAY_MS: int = 300;
+# Voice enrollment: a passage to read aloud; recording stops itself at the
+# maximum and "Done" unlocks at the minimum (the server needs ~6s of speech).
+glob ENROLL_PASSAGE: str = "I'm practicing a new language by talking with people every day. Some days it feels easy, and other days I forget simple words, but each conversation helps me listen better and speak with more confidence. Today I want to ask good questions and learn something new.";
+glob ENROLL_MIN_SECONDS: int = 10;
+glob ENROLL_MAX_SECONDS: int = 25;
 
 """Map a profile language name to a BCP-47 tag; codes pass through unchanged."""
 def speech_locale(language: str) -> str {

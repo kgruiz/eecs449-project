@@ -249,7 +249,12 @@ code signing.
 - `core/models.jac`: learner profile, transcript, session, and usage contracts.
 - `core/ai.jac`: server-only byLLM model and translation prompt.
 - `components/Translation.jac`: per-turn translation controls and bilingual transcript display.
-- `components/SpeechInput.jac`: browser speech-to-text adapter.
+- `components/SpeechInput.jac`: browser speech-to-text adapter; with a voiceprint
+  enrolled it sends each turn's audio to `append_spoken_turn` for speaker detection.
+- `components/VoiceSetup.jac`, `components/audioCapture.js`: web voice enrollment
+  and in-memory microphone capture for speaker detection.
+- `core/voiceprint.py`: server-side speaker verification (sherpa-onnx WeSpeaker);
+  stores only an embedding, never audio.
 - `components/TranscriptDownload.jac`: local plain-text download in the web UI.
 - `core/transcript.jac`: readable transcript formatting.
 - `core/speech.jac`: shared locale mapping and speech error messages.
@@ -415,3 +420,18 @@ browser layouts retain stacked controls and an independently scrollable list.
   reported no console errors or warnings.
 - No live Gemini request, microphone capture, cross-account isolation check,
   or mobile simulator was run for this change. The test server was stopped.
+
+### Voice-detection merge integration on 11/02/2026
+
+Merged `origin/main` into `voice-detection`, retaining the scrollable transcript,
+translation, and download UI alongside voice enrollment and speaker correction.
+Speaker correction now uses the speaker button in each translated transcript row;
+guessed labels remain visible and corrections remain disabled after completion.
+
+`jac check` passed for both apps with warnings, `jac test core/ai.jac` passed
+all four offline tests, `biome check web.css` passed, and
+`jac build --as client web` succeeded. An isolated browser-QA server could not
+start because the local environment lacks the newly declared `numpy` dependency.
+Run `jac install` to install this branch's dependencies before starting the app.
+The integrated browser flow, voice enrollment, and real-microphone speaker
+detection remain unverified. No simulator or live Gemini request was run.
