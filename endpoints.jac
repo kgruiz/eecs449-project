@@ -1,6 +1,7 @@
 """Shared authenticated pipeline. Audio adapters submit finalized turns here."""
 import from .core.models { LearnerProfile, TranscriptTurn, Conversation, SessionView }
 import from uuid { uuid4 }
+import from .core.ai { translate_to_english }
 def profile() -> LearnerProfile {
     profiles = [root -->][?:LearnerProfile];
     if profiles { return profiles[0]; }
@@ -57,4 +58,16 @@ def:protect end_conversation(session_id: str) -> SessionView {
 }
 def conversation_context(session: Conversation, limit: int = 12) -> str {
     return "\n".join([f"{turn.speaker}: {turn.text}" for turn in session.turns[-limit:]]);
+}
+
+def:protect translate_sentence(session_id: str, turn_id: str, sentence: str) -> str {
+    session = owned_session(session_id);
+    if not session.consent_confirmed { raise ValueError("Participant consent is required."); }
+    if not sentence.strip() or len(sentence) > 4000 { raise ValueError("Invalid sentence."); }
+    for turn in session.turns {
+        if turn.id == turn_id and sentence.strip() in turn.text {
+            return translate_to_english(sentence.strip());
+        }
+    }
+    raise ValueError("Sentence not found in this conversation.");
 }

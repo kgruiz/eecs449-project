@@ -18,6 +18,8 @@ The current checkout includes:
   CEFR level, and session status, and is generated locally in the browser.
 - Browser speech recognition with interim text, finalized turns, manual
   speaker selection, and recorded utterance durations.
+- Use the translation icon on a transcript turn to show English beneath
+  the original. Toggle it to hide or reveal the cached translation.
 - A responsive Pip-styled web interface for sign-in, conversation setup,
   transcripts, speech controls, and typed turns. The design does not add
   the planned language-assistance features.
@@ -25,11 +27,11 @@ The current checkout includes:
   using the same authenticated server endpoints. Its web preview uses typed
   turns only; the HTML feature panels are not ported to mobile.
 
-Live hints, AI-partner responses, translation, coaching reports, mistake
+Live hints, AI-partner responses, coaching reports, mistake
 history, and personalized lessons are planned. `FeaturePanels.jac` is still
 an extension placeholder. The AI-partner selector records a session mode;
-selecting it does not yet generate responses. Gemini configuration exists,
-but the current conversation flow makes no model requests.
+selecting it does not yet generate responses. Translation is sent to Gemini
+only when requested, after participant consent.
 
 See [the project plan](docs/project-plan.md) for scope, milestones, risks,
 and open decisions, and [the architecture](docs/architecture.md) for the
@@ -55,10 +57,9 @@ a turn. Speech input requires a browser exposing `SpeechRecognition` or
 without that API can use typed turns. Actual browser and language support
 still needs runtime verification.
 
-The `.env.example` file contains placeholders for server-side
-`GEMINI_API_KEY` and `GEMINI_MODEL`. Replace the key before implementing or
-trying Gemini features. The current configured model string is
-`gemini/gemini-3.8-flash`; its provider availability has not been verified.
+Set `GEMINI_API_KEY` in `.env` to enable translation. The server defaults to
+`gemini-3.5-flash-lite` through Jac's byLLM integration. Run `jac install`
+after pulling the change, and restart the server after changing environment variables.
 Never commit real credentials.
 
 ## Native mobile app
@@ -246,7 +247,8 @@ code signing.
 - `components/WebArtwork.jac`: decorative web logo and companion artwork.
 - `endpoints.jac`: authenticated profile, session, and transcript endpoints.
 - `core/models.jac`: learner profile, transcript, session, and usage contracts.
-- `core/ai.jac`: server-only Gemini/byLLM configuration for future features.
+- `core/ai.jac`: server-only byLLM model and translation prompt.
+- `components/Translation.jac`: per-turn translation controls and bilingual transcript display.
 - `components/SpeechInput.jac`: browser speech-to-text adapter.
 - `components/TranscriptDownload.jac`: local plain-text download in the web UI.
 - `core/transcript.jac`: readable transcript formatting.
@@ -267,7 +269,7 @@ not store raw audio. Speech recognition uses the browser's speech service;
 the consent copy explains that Chrome and Edge send audio to their provider.
 The native app uses the phone's speech service; its consent copy explains
 that Apple or Google may process the audio. The consent flow also covers
-sending conversation text to Gemini for future requested help. Deletion
+sending requested transcript sentences to Gemini for translation. Deletion
 and retention controls are not implemented.
 
 ## Validation status
@@ -319,6 +321,17 @@ cross-account isolation, native mobile behavior, or model requests. No
 simulator was started for this web change. Follow `AGENTS.md` for further
 validation and record the exact commands and outcomes when it occurs.
 
+### Sentence translation verification (2026-10-30)
+
+`jac check` passed for both app entry points with existing warnings. An
+isolated WSL copy was served with `jac run --dev --host 127.0.0.1 --port
+8010 --api-port 8011 web`. Disposable-account checks covered authentication,
+required consent, transcript ownership, rejected unrelated text, typed turns,
+session completion, and rejection of late turns. A live Gemini 3.5 Flash-Lite
+request translated a synthetic sentence. Browser checks covered individual
+sentence selection, loading, English output, and toggling without a second
+request. Microphone capture and spoken-turn delivery were not tested.
+
 ### Transcript download UI integration on 11/02/2026
 
 Merged the Pip web UI into the transcript-download branch. The download
@@ -339,3 +352,66 @@ button and error-banner styles. Its state resets for each new session.
 
 Microphone input, native mobile, cross-account isolation, download failure
 handling, and Gemini requests were not retested for this UI integration.
+
+### Translation response validation on 11/02/2026
+
+Translation now requests a structured `TranslationResult` and returns its
+`text` field to the browser. Malformed structured output uses byLLM's typed
+output retry/error path, and empty translations raise an error rather than
+being displayed. This addresses the observed tuple-like translation display
+without stripping punctuation from valid translations.
+
+`jac test core/ai.jac` passes four offline regression tests covering text
+extraction, malformed output, punctuation preservation, and empty text. The
+tests replace the provider transport while exercising the real byLLM parsing;
+they make no model requests. `jac check` passes both apps with warnings, and
+`jac build --as client web` succeeds. Live Gemini output and browser behavior
+were not retested for this change; the source of the original malformed live
+response has not been confirmed.
+
+### Conversation layout verification on 11/02/2026
+
+The web conversation view uses open transcript rows, icon-only translation
+controls with hover/focus tooltips, and English beneath the original with an
+accent rule. Each action translates the entire turn through the existing
+protected endpoint. Its 4,000-character limit matches the turn-input limit.
+Translations remain local to the current view; downloads retain original text.
+The header, speech controls, and multiline composer use the simplified layout.
+The planned-feature footnote is removed. Recognition language remains a text
+field; native mobile code is unchanged.
+
+- `jac test core/ai.jac`: four offline translation regression tests passed.
+- `jac check`: both apps passed with warnings.
+- `biome check web.css` and `jac build --as client web` passed.
+- Browser QA used an isolated temporary copy served with
+  `jac run --dev --host 127.0.0.1 --port 8020 --api-port 8021 web` and a
+  simulated translation provider. No mock is included in the app source.
+- Verified account creation, consent-gated session creation, empty download
+  state, typed and multiline turns, translation loading, original/English
+  coexistence, keyboard toggle, cached toggling, simulated failure/retry,
+  original-text export, completion, and sign-out. Desktop and 390px layouts
+  were inspected; the narrow viewport had no horizontal overflow. Browser
+  diagnostics reported no warnings or errors.
+
+Live Gemini, microphone capture, and cross-account isolation were not retested.
+No mobile simulator was started. The isolated QA server was stopped afterward.
+
+### Transcript scrolling verification on 11/02/2026
+
+The web transcript now scrolls inside a bounded card, leaving the header and
+desktop controls outside the scrolling list. New content follows the bottom
+only while the reader is near it; Latest returns to the newest turn. Narrow
+browser layouts retain stacked controls and an independently scrollable list.
+
+- `jac check` passed for both apps with warnings; `jac test core/ai.jac`
+  passed all four offline tests.
+- `biome check web.css` and `jac build --as client web` passed.
+- The isolated test copy was served with `jac run --dev --host 127.0.0.1
+  --port 8020 --api-port 8021 web`, using its simulated translation provider.
+  Browser checks covered sign-in, consent, nine typed turns, following new
+  turns, preserving scroll position while adding a turn, keyboard scrolling,
+  Latest, translation expansion, and session completion. A six-turn session
+  at 390px also scrolled correctly without horizontal overflow. The browser
+  reported no console errors or warnings.
+- No live Gemini request, microphone capture, cross-account isolation check,
+  or mobile simulator was run for this change. The test server was stopped.
