@@ -352,3 +352,19 @@ button and error-banner styles. Its state resets for each new session.
 
 Microphone input, native mobile, cross-account isolation, download failure
 handling, and Gemini requests were not retested for this UI integration.
+
+### Translation response validation on 11/02/2026
+
+Translation now requests a structured `TranslationResult` and returns its
+`text` field to the browser. Malformed structured output uses byLLM's typed
+output retry/error path, and empty translations raise an error rather than
+being displayed. This addresses the observed tuple-like translation display
+without stripping punctuation from valid translations.
+
+`jac test core/ai.jac` passes four offline regression tests covering text
+extraction, malformed output, punctuation preservation, and empty text. The
+tests replace the provider transport while exercising the real byLLM parsing;
+they make no model requests. `jac check` passes both apps with warnings, and
+`jac build --as client web` succeeds. Live Gemini output and browser behavior
+were not retested for this change; the source of the original malformed live
+response has not been confirmed.
