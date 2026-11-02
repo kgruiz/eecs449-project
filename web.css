@@ -1252,3 +1252,18 @@ body {
 .speaker-switch:disabled {
 	cursor: default;
 }
+
+.coaching-card {
+	grid-column: 1 / -1;
+}
+
+.coaching-priority {
+	margin-top: 1rem;
+	padding-top: 1rem;
+	border-top: 1px solid currentColor;
+}
+
+.coaching-priority blockquote {
+	margin: 0;
+	font-style: italic;
+}

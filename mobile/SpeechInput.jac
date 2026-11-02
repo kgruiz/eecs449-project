@@ -6,7 +6,8 @@ import from ..core.models { SessionView }
 import from .theme { styles }
 
 def:pub SpeechInput(sessionId: str, speaker: str, language: str, voiceEnabled: bool,
-                    onSessionChange: Callable[[SessionView], None]) -> JsxElement {
+                    onSessionChange: Callable[[SessionView], None],
+                    onBusyChange: Callable[[bool], None] | None = None) -> JsxElement {
     <View style={styles.card}>
         <Text style={styles.muted}>
             Live transcription runs in the iOS and Android app.

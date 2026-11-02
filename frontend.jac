@@ -12,13 +12,14 @@ import from .components.VoiceSetup { VoiceSetup }
 import from .components.TranscriptDownload { TranscriptDownload }
 import from .components.WebArtwork { BrandMark, PipCompanion }
 import from .components.TranscriptScroll { TranscriptScroll }
+import from .components.CoachingPanel { CoachingPanel }
 import "./web.css";
 def:pub app -> JsxElement {
     has logged_in: bool = jacIsLoggedIn(), email: str = "", password: str = "",
         native_language: str = "English", target_language: str = "Spanish", level: str = "A2",
         partner_mode: str = "human", consent: bool = False, session: SessionView | None = None,
         speaker: str = "partner", text: str = "", error: str = "", busy: bool = False,
-        voice_enrolled: bool = False, spokenDraft: str = "";
+        voice_enrolled: bool = False, speechBusy: bool = False, spokenDraft: str = "";
     async def loadVoice() -> None {
         try { status = await voice_status(); voice_enrolled = status.enrolled; }
         except Exception { voice_enrolled = False; }
@@ -77,6 +78,7 @@ def:pub app -> JsxElement {
         spokenDraft = spoken if who == "learner" else "";
     }
     async def finish() -> None {
+        if speechBusy { return; }
         updated: SessionView | None = None;
         if session is None { return; }
         error = ""; busy = True;
@@ -146,6 +148,7 @@ def:pub app -> JsxElement {
                 </section>
             </div>}
             {logged_in and <div className="conversation-layout">
+                {session is not None and session.status == "ended" and <CoachingPanel key={"coaching-" + session.id} session={session}/>}
                 {(session is None or session.status == "ended") and <section className="card setup-card">
                     <div className="section-heading">
                         <div><p className="eyebrow">Before you begin</p><h2>Start a conversation</h2></div>
@@ -175,7 +178,7 @@ def:pub app -> JsxElement {
                         onChange={lambda (e: ChangeEvent) { consent = e.target.checked; }}/>
                         <span>{"All participants agree to live transcription by the browser's speech service, "
                             + ("sending each spoken turn's audio to our server to recognize who is speaking, " if voice_enrolled else "")
-                            + "saved text, and sending conversation text to Gemini for requested help."}</span>
+                            + "saved text, and sending conversation text to Gemini for language help and an automatic recap after ending."}</span>
                     </label>
                     <p className="form-footnote">{"Raw audio is not saved. Speech is transcribed by your browser's speech service (Chrome and Edge send audio to their provider); you can also type turns."
                         + (" Speaker recognition uses each turn's audio once and then discards it." if voice_enrolled else "")}</p>
@@ -231,6 +234,7 @@ def:pub app -> JsxElement {
                     </fieldset>
                     <SpeechInput key={session.id} sessionId={session.id} speaker={speaker}
                         language={session.target_language} voiceEnabled={voice_enrolled}
+                        onBusyChange={lambda (value: bool) { speechBusy = value; }}
                         onSessionChange={lambda (updated: SessionView) { session = updated; }}
                         onDraft={trackSpeech}/>
                     <WordHelper key={"words-" + session.id} sessionId={session.id} learnerSpeaking={speaker == "learner" if text.strip() else bool(spokenDraft)}
@@ -242,7 +246,8 @@ def:pub app -> JsxElement {
                         </label>
                         <div className="composer-actions">
                             <button className="button button-secondary" disabled={busy or not text.strip()} onClick={addTurn}>Add turn</button>
-                            <button className="button button-end" disabled={busy} onClick={finish}>End conversation</button>
+                            {speechBusy and <p className="muted" role="status">Stop listening and wait for your turns to save before ending.</p>}
+                            <button className="button button-end" disabled={busy or speechBusy} onClick={finish}>End conversation</button>
                         </div>
                     </div>
                 </aside>}

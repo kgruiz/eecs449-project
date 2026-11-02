@@ -18,9 +18,11 @@ glob UTTERANCE_PAD_MS: int = 700, UNTIMED_UTTERANCE_MS: int = 3000;
 
 def:pub SpeechInput(sessionId: str, speaker: str, language: str, voiceEnabled: bool,
                     onSessionChange: Callable[[SessionView], None],
-                    onDraft: Callable[[str, str], None] | None = None) -> JsxElement {
+                    onDraft: Callable[[str, str], None] | None = None,
+                    onBusyChange: Callable[[bool], None] | None = None) -> JsxElement {
     has listening: bool = False, interim: str = "", locale: str = speech_locale(language),
         error: str = "";
+    has saving: bool = False, settling: bool = False;
     has recognitionRef: Ref[any] = Ref(None);
     has listeningRef: Ref[bool] = Ref(False);
     has speakerRef: Ref[str] = Ref(speaker);
@@ -36,12 +38,15 @@ def:pub SpeechInput(sessionId: str, speaker: str, language: str, voiceEnabled: b
     recognitionClass: any = browser.SpeechRecognition or browser.webkitSpeechRecognition;
     speakerRef.current = speaker;
 
+    can with [listening, saving, settling] entry {
+        if onBusyChange { onBusyChange(listening or saving or settling); }
+    }
     # Submit queued turns one at a time so transcript order matches speech order.
     async def drain() -> None {
         updated: SessionView | None = None;
         turn: dict[str, any] = {};
         if drainingRef.current { return; }
-        drainingRef.current = True;
+        drainingRef.current = True; saving = True;
         try {
             while queueRef.current and len(queueRef.current) > 0 {
                 turn = queueRef.current[0];
@@ -61,7 +66,7 @@ def:pub SpeechInput(sessionId: str, speaker: str, language: str, voiceEnabled: b
                     error = "Could not save a spoken turn: " + turn["text"];
                 }
             }
-        } finally { drainingRef.current = False; }
+        } finally { drainingRef.current = False; saving = False; }
     }
     def reportDraft(who: str, text: str) -> None {
         if onDraft { onDraft(who, text); }
@@ -118,14 +123,17 @@ def:pub SpeechInput(sessionId: str, speaker: str, language: str, voiceEnabled: b
         error = speech_error_message(code);
     }
     def handleEnd() -> None {
+        settling = False;
         interim = "";
         utteranceRef.current = None;
         # Browsers end continuous recognition after silence; resume until stopped.
         if listeningRef.current and recognitionRef.current {
+            settling = True;
             try { recognitionRef.current.start(); }
             except Exception {
                 listeningRef.current = False;
                 listening = False;
+                settling = False;
                 error = "Speech recognition stopped. Press Start listening to resume.";
                 stopCapture();
             }
@@ -161,11 +169,13 @@ def:pub SpeechInput(sessionId: str, speaker: str, language: str, voiceEnabled: b
         recognition.onerror = lambda (e: any) { handleError(e.error); };
         recognition.onend = lambda { handleEnd(); };
         recognitionRef.current = recognition;
+        settling = True;
         try { recognition.start(); }
         except Exception {
             listeningRef.current = False;
             listening = False;
             stopCapture();
+            settling = False;
             error = "Could not start speech recognition.";
         }
     }

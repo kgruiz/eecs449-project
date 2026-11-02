@@ -3,6 +3,7 @@ import from .core.models { LearnerProfile, TranscriptTurn, Conversation, Session
 import from .core.voiceprint { enroll, learner_similarity, MATCH_THRESHOLD }
 import from .core.hints { suggest_next_word }
 import from uuid { uuid4 }
+import from .core.coaching { build_report }
 import from .core.ai { translate_to_english }
 def profile() -> LearnerProfile {
     profiles = [root -->][?:LearnerProfile];
@@ -98,6 +99,7 @@ def:protect append_spoken_turn(session_id: str, text: str, duration_seconds: flo
 def:protect set_turn_speaker(session_id: str, turn_id: str, speaker: str) -> SessionView {
     session = owned_session(session_id);
     if speaker not in ["learner", "partner"] { raise ValueError("Unknown speaker."); }
+    if session.status != "active" { raise ValueError("Conversation has ended."); }
     found = False;
     turns: list[TranscriptTurn] = [];
     for turn in session.turns {
@@ -143,4 +145,12 @@ def:protect translate_sentence(session_id: str, turn_id: str, sentence: str) -> 
         }
     }
     raise ValueError("Sentence not found in this conversation.");
+}
+
+# Feedback generation is separate so a provider failure cannot undo completion.
+def:protect conversation_feedback(session_id: str) -> SessionView {
+    session = owned_session(session_id);
+    build_report(session);
+
+    return session.to_view();
 }

@@ -151,7 +151,7 @@ with hover/focus tooltips. The original remains visible while English appears
 below it with a labeled accent rule. Toggling visibility reuses the cached
 translation; loading and retry states belong to each turn.
 
-Persistent translation caching, full-reply hint generation, AI-partner responses, coaching,
+Persistent translation caching, full-reply hint generation, AI-partner responses,
 mistake history, and lessons are not implemented in this checkout.
 
 ## Limitations
@@ -159,9 +159,27 @@ mistake history, and lessons are not implemented in this checkout.
 Text persists in the user's graph; deletion and retention controls are
 future work. Provider usage/cost accounting, budgets, latency measurement,
 and audio-based pronunciation scoring are also future work. The model
-request field is incremented only by next-word suggestions.
+request field is incremented by next-word suggestions and attempted coaching calls.
 
 The initial four-PR scaffold merge instructions are historical; use the
 current checkout's files and interfaces as the integration baseline. See
 [the project plan](project-plan.md) for the indicative schedule and product
 decisions, and [the README](../README.md) for setup and validation status.
+
+## Post-conversation coaching
+
+`core/coaching.jac` uses the shared server-only Gemini model to return a typed
+`CoachingReport`. `conversation_feedback` resolves an owned session and requires
+completion, consent, and learner text before generating a report. It validates
+nonempty fields, list limits, and exact learner-quote/turn-ID matches before saving
+the report on `Conversation`. `SessionView` includes the optional saved report.
+Failed generation leaves the transcript ended and retryable. Successful sequential
+requests return the cached report; there is no distributed in-flight request lock.
+
+Web and mobile `CoachingPanel` components request feedback after completion,
+render summary/strengths/practice priorities, and expose retry on failure. A report
+is not a transcript turn and is not included in the existing text download.
+Speech adapters report listening/finalization/save activity so End conversation
+stays disabled until the learner stops listening and outstanding saves finish.
+The server rejects speaker corrections after completion to preserve report evidence.
+Real microphone timing and native-device presentation still require verification.
