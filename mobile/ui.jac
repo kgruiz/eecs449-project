@@ -25,3 +25,17 @@ def:pub Chip(label: str, selected: bool, onPress: Callable[[], None],
         <Text style={[styles.chipLabel, styles.chipLabelSelected if selected else {}]}>{label}</Text>
     </Pressable>
 }
+
+"""Pull the server's message out of a failed endpoint call, which the client
+runtime reports as 'Function <name> failed: <JSON body>'."""
+def endpoint_error_message(err: any, fallback: str) -> str {
+    text = str(err.message if err and err.message else err) if err else "";
+    start = text.find("{");
+    if start >= 0 {
+        try {
+            body: any = JSON.parse(text[start:]);  # jac:ignore[E1032]
+            if body and body.error and body.error.message { return str(body.error.message); }
+        } except Exception { }
+    }
+    return fallback;
+}

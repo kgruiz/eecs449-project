@@ -1,5 +1,6 @@
 """Shared authenticated pipeline. Audio adapters submit finalized turns here."""
-import from .core.models { LearnerProfile, TranscriptTurn, Conversation, SessionView }
+import from .core.models { LearnerProfile, TranscriptTurn, Conversation, SessionView, VoiceStatus }
+import from .core.voiceprint { enroll, learner_similarity, MATCH_THRESHOLD }
 import from uuid { uuid4 }
 def profile() -> LearnerProfile {
     profiles = [root -->][?:LearnerProfile];
@@ -39,15 +40,74 @@ def:protect start_conversation(consent_confirmed: bool, partner_mode: str = "hum
 def:protect get_conversation(session_id: str) -> SessionView {
     return owned_session(session_id).to_view();
 }
-def:protect append_turn(session_id: str, speaker: str, text: str, duration_seconds: float = 0.0) -> SessionView {
-    session = owned_session(session_id);
+def add_turn(session: Conversation, speaker: str, text: str, duration_seconds: float,
+             speaker_source: str = "manual", speaker_score: float | None = None) -> SessionView {
     if session.status != "active" { raise ValueError("Conversation has ended."); }
     if speaker not in ["learner", "partner"] { raise ValueError("Unknown speaker."); }
     if not text.strip() or len(text) > 4000 { raise ValueError("Provide 1-4000 characters."); }
     if duration_seconds < 0.0 { raise ValueError("Duration cannot be negative."); }
     session.turns = session.turns + [TranscriptTurn(id=str(uuid4()), speaker=speaker,
-        text=text.strip(), duration_seconds=duration_seconds)];
+        text=text.strip(), duration_seconds=duration_seconds, speaker_source=speaker_source,
+        speaker_score=speaker_score)];
     session.audio_seconds += duration_seconds;
+    return session.to_view();
+}
+def:protect append_turn(session_id: str, speaker: str, text: str, duration_seconds: float = 0.0) -> SessionView {
+    return add_turn(owned_session(session_id), speaker, text, duration_seconds);
+}
+def:protect voice_status() -> VoiceStatus {
+    return VoiceStatus(enrolled=len(profile().voiceprint) > 0);
+}
+"""Store the learner's voiceprint from one or more WAV clips of a single
+enrollment (joined in order); the audio itself is discarded."""
+def:protect enroll_voice(audio_clips: list[str], consent_confirmed: bool) -> VoiceStatus {
+    if not consent_confirmed {
+        raise ValueError("Agree to storing a voiceprint to set up voice recognition.");
+    }
+    learner = profile();
+    if not audio_clips or len(audio_clips) > 50 { raise ValueError("Send 1-50 audio clips."); }
+    learner.voiceprint = enroll(audio_clips);
+    return VoiceStatus(enrolled=True);
+}
+def:protect delete_voice() -> VoiceStatus {
+    profile().voiceprint = [];
+    return VoiceStatus(enrolled=False);
+}
+"""Append a spoken turn, attributing it by voice. The WAV is used only for the
+match and never stored. Speech too short to judge alternates with the last turn."""
+def:protect append_spoken_turn(session_id: str, text: str, duration_seconds: float,
+                               audio_b64: str) -> SessionView {
+    session = owned_session(session_id);
+    voiceprint = profile().voiceprint;
+    score: float | None = None;
+    if voiceprint and audio_b64 {
+        # Bad audio or an unavailable model must not lose the turn; fall back below.
+        try { score = learner_similarity(audio_b64, voiceprint); }
+        except Exception { score = None; }
+    }
+    if score is None {
+        last = session.turns[-1].speaker if session.turns else "learner";
+        return add_turn(session, "learner" if last == "partner" else "partner", text,
+            duration_seconds, "turn-taking");
+    }
+    return add_turn(session, "learner" if score >= MATCH_THRESHOLD else "partner", text,
+        duration_seconds, "voice", round(score, 3));
+}
+def:protect set_turn_speaker(session_id: str, turn_id: str, speaker: str) -> SessionView {
+    session = owned_session(session_id);
+    if speaker not in ["learner", "partner"] { raise ValueError("Unknown speaker."); }
+    found = False;
+    turns: list[TranscriptTurn] = [];
+    for turn in session.turns {
+        if turn.id == turn_id {
+            found = True;
+            turns.append(TranscriptTurn(id=turn.id, speaker=speaker, text=turn.text,
+                duration_seconds=turn.duration_seconds, speaker_source="corrected",
+                speaker_score=turn.speaker_score));
+        } else { turns.append(turn); }
+    }
+    if not found { raise ValueError("Turn not found."); }
+    session.turns = turns;
     return session.to_view();
 }
 def:protect end_conversation(session_id: str) -> SessionView {

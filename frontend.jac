@@ -1,16 +1,36 @@
-"""Conversation workspace. Speech-to-text and typed turns share one transcript."""
+"""Conversation workspace. Speech-to-text and typed turns share one transcript.
+With a voiceprint enrolled, the server attributes spoken turns by voice and the
+learner can switch a turn's speaker; otherwise the learner picks who is speaking."""
 import from "@jac/runtime" { jacLogin, jacSignup, jacLogout, jacIsLoggedIn, SignupResult }
-import from .core.models { SessionView }
-import from .endpoints { save_profile, start_conversation, append_turn, end_conversation }
+import from .core.models { SessionView, TranscriptTurn }
+import from .endpoints {
+    save_profile, start_conversation, append_turn, end_conversation, voice_status, set_turn_speaker
+}
 import from .components.FeaturePanels { FeaturePanels }
 import from .components.SpeechInput { SpeechInput }
+import from .components.VoiceSetup { VoiceSetup }
 import from .components.WebArtwork { BrandMark, PipCompanion }
 import "./web.css";
 def:pub app -> JsxElement {
     has logged_in: bool = jacIsLoggedIn(), email: str = "", password: str = "",
         native_language: str = "English", target_language: str = "Spanish", level: str = "A2",
         partner_mode: str = "human", consent: bool = False, session: SessionView | None = None,
-        speaker: str = "partner", text: str = "", error: str = "", busy: bool = False;
+        speaker: str = "partner", text: str = "", error: str = "", busy: bool = False,
+        voice_enrolled: bool = False;
+    async def loadVoice() -> None {
+        try { status = await voice_status(); voice_enrolled = status.enrolled; }
+        except Exception { voice_enrolled = False; }
+    }
+    can with [logged_in] entry { if logged_in { loadVoice(); } }
+    async def swapSpeaker(turn: TranscriptTurn) -> None {
+        updated: SessionView | None = None;
+        if session is None or session.status != "active" { return; }
+        try {
+            updated = await set_turn_speaker(session.id, turn.id,
+                "partner" if turn.speaker == "learner" else "learner");
+            session = updated;
+        } except Exception { error = "Could not change the speaker."; }
+    }
     async def authenticate(register: bool) -> None {
         signup: SignupResult | None = None;
         ok: bool = False;
@@ -28,7 +48,7 @@ def:pub app -> JsxElement {
         finally { busy = False; }
     }
     def logout() -> None {
-        jacLogout(); logged_in = False; session = None; consent = False;
+        jacLogout(); logged_in = False; session = None; consent = False; voice_enrolled = False;
     }
     async def start() -> None {
         created: SessionView | None = None;
@@ -147,12 +167,16 @@ def:pub app -> JsxElement {
                     {partner_mode == "ai" and <p className="notice">AI partner mode records your choice. Automatic replies are not available yet.</p>}
                     <label className="consent-box"><input type="checkbox" checked={consent}
                         onChange={lambda (e: ChangeEvent) { consent = e.target.checked; }}/>
-                        <span>All participants agree to live transcription by the browser's speech service, saved text, and sending conversation text to Gemini for requested help.</span>
+                        <span>{"All participants agree to live transcription by the browser's speech service, "
+                            + ("sending each spoken turn's audio to our server to recognize who is speaking, " if voice_enrolled else "")
+                            + "saved text, and sending conversation text to Gemini for requested help."}</span>
                     </label>
-                    <p className="form-footnote">Raw audio is not saved. Speech is transcribed by your browser's speech service (Chrome and Edge send audio to their provider); you can also type turns.</p>
+                    <p className="form-footnote">{"Raw audio is not saved. Speech is transcribed by your browser's speech service (Chrome and Edge send audio to their provider); you can also type turns."
+                        + (" Speaker recognition uses each turn's audio once and then discards it." if voice_enrolled else "")}</p>
                     <button className="button button-primary start-button" disabled={busy or not consent} onClick={start}>
                         {"Starting..." if busy else "Start conversation"}<span aria-hidden="true">↗</span>
                     </button>
+                    <VoiceSetup enrolled={voice_enrolled} onChange={lambda (v: bool) { voice_enrolled = v; }}/>
                 </section>}
                 {session is None and <aside className="ready-card">
                     <span className="ready-art"><PipCompanion/></span>
@@ -176,7 +200,14 @@ def:pub app -> JsxElement {
                     <ol className="transcript-list" aria-label="Conversation transcript" aria-live="polite" aria-relevant="additions text">
                         {[<li key={turn.id} className={"transcript-turn " + ("turn-learner" if turn.speaker == "learner" else "turn-partner")}>
                             <span className="speaker-avatar" aria-hidden="true">{"M" if turn.speaker == "learner" else "P"}</span>
-                            <div className="turn-content"><p className="eyebrow">{"Me" if turn.speaker == "learner" else "Partner"}</p><p className="turn-text">{turn.text}</p></div>
+                            <div className="turn-content">
+                                <button className="eyebrow speaker-switch" disabled={session.status != "active"}
+                                    title="Switch between Me and Partner" onClick={lambda { swapSpeaker(turn); }}>
+                                    {("Me" if turn.speaker == "learner" else "Partner")
+                                        + (" · guessed" if turn.speaker_source == "turn-taking" else "")}
+                                </button>
+                                <p className="turn-text">{turn.text}</p>
+                            </div>
                         </li> for turn in session.turns]}
                     </ol>
                     {session.status == "ended" and <p className="session-ended-note">Conversation ended. The transcript is saved to your account.</p>}
@@ -184,14 +215,15 @@ def:pub app -> JsxElement {
                 </section>}
                 {session is not None and session.status == "active" and <aside className="card controls-card">
                     <p className="eyebrow">At your pace</p><h2>Make room for words.</h2>
-                    <p className="muted">Speak naturally, or add a sentence below.</p>
-                    <label className="field">Who is speaking?
+                    <p className="muted">{"Speak naturally; speakers are recognized by voice. Click a speaker name in the transcript to switch it."
+                        if voice_enrolled else "Speak naturally, or add a sentence below."}</p>
+                    <label className="field">{"Typed turns are from" if voice_enrolled else "Who is speaking?"}
                         <select value={speaker} onChange={lambda (e: ChangeEvent) { speaker = e.target.value; }}>
                             <option value="partner">Partner</option><option value="learner">Me</option>
                         </select>
                     </label>
                     <SpeechInput key={session.id} sessionId={session.id} speaker={speaker}
-                        language={session.target_language}
+                        language={session.target_language} voiceEnabled={voice_enrolled}
                         onSessionChange={lambda (updated: SessionView) { session = updated; }}/>
                     <div className="typed-composer">
                         <label className="field">Or type a turn

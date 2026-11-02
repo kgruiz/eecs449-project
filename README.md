@@ -244,7 +244,12 @@ code signing.
 - `endpoints.jac`: authenticated profile, session, and transcript endpoints.
 - `core/models.jac`: learner profile, transcript, session, and usage contracts.
 - `core/ai.jac`: server-only Gemini/byLLM configuration for future features.
-- `components/SpeechInput.jac`: browser speech-to-text adapter.
+- `components/SpeechInput.jac`: browser speech-to-text adapter; with a voiceprint
+  enrolled it sends each turn's audio to `append_spoken_turn` for speaker detection.
+- `components/VoiceSetup.jac`, `components/audioCapture.js`: web voice enrollment
+  and in-memory microphone capture for speaker detection.
+- `core/voiceprint.py`: server-side speaker verification (sherpa-onnx WeSpeaker);
+  stores only an embedding, never audio.
 - `core/speech.jac`: shared locale mapping and speech error messages.
 - `mobile/main.jac`: entry point for the `mobile` app.
 - `mobile/ConversationApp.jac`: native authentication and conversation UI.
