@@ -28,8 +28,8 @@ def:pub TranscriptDownload(session: SessionView) -> JsxElement {
         }
     }
 
-    <div>
-        <button disabled={len(session.turns) == 0} onClick={downloadTranscript}>Download transcript (.txt)</button>
-        {error and <p role="alert">{error}</p>}
+    <div className="transcript-download">
+        <button type="button" className="button button-secondary" disabled={len(session.turns) == 0} onClick={downloadTranscript}>Download transcript (.txt)</button>
+        {error and <p className="error-banner" role="alert">{error}</p>}
     </div>
 }

@@ -132,18 +132,26 @@ def:pub SpeechInput(sessionId: str, speaker: str, language: str,
         listeningRef.current = False;
         if recognitionRef.current { recognitionRef.current.abort(); }
     }
-    <section aria-label="Speech to text">
-        {not recognitionClass and <p>
+    <section className="speech-panel" aria-label="Speech to text">
+        <div className="speech-status" role="status">
+            <span className="speech-indicator" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
+                    <rect x="9" y="3" width="6" height="11" rx="3"/>
+                    <path d="M6 10v2a6 6 0 0 0 12 0v-2M12 18v3m-3 0h6"/>
+                </svg>
+            </span>
+            <span>{("Listening for " + ("me" if speaker == "learner" else "partner")) if listening else "Ready when you are"}</span>
+        </div>
+        {not recognitionClass and <p className="muted">
             Live transcription needs a browser with the Web Speech API (Chrome, Edge or Safari). You can still type turns.
         </p>}
-        {recognitionClass and <div>
-            <label>Recognition language <input value={locale} disabled={listening}
+        {recognitionClass and <div className="speech-controls">
+            <label className="field">Recognition language <input value={locale} disabled={listening}
                 onChange={lambda (e: ChangeEvent) { locale = e.target.value; }}/></label>
-            {listening and <button onClick={stop}>Stop listening</button>}
-            {not listening and <button disabled={not locale.strip()} onClick={start}>Start listening</button>}
-            {listening and <p><em>{"Listening for " + ("me" if speaker == "learner" else "partner") + "..."}</em></p>}
-            <p aria-live="polite"><em>{interim}</em></p>
+            {listening and <button className="button button-secondary" onClick={stop}>Stop listening</button>}
+            {not listening and <button className="button button-primary" disabled={not locale.strip()} onClick={start}>Start listening</button>}
+            <p className="interim-text" aria-live="polite">{interim}</p>
         </div>}
-        {error and <p role="alert">{error}</p>}
+        {error and <p className="speech-error" role="alert">{error}</p>}
     </section>
 }

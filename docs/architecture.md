@@ -12,10 +12,18 @@ speaker selection, typed turns, speech input, and session completion.
 
 The web transcript section also renders `TranscriptDownload`, which uses
 `core/transcript.jac` to format the displayed `SessionView` as UTF-8 text.
-It works during or after a session and is disabled until a turn exists.
+It sits beneath the conversation heading with the shared secondary-button
+style, works during or after a session, and is disabled until a turn exists.
 Exports include language/CEFR context and speaker-labeled turns in transcript
 order. The browser generates the download locally; no additional endpoint,
 stored copy, or model request is involved. Native export is not implemented.
+
+The web UI uses the Pip visual design through `web.css` and decorative
+`components/WebArtwork.jac` components. The active session layout places
+the transcript beside the existing speech and typed-turn controls, stacking
+them at narrow browser widths. The design adds no translation, hints,
+AI replies, or practice navigation. Speech listening status remains local
+to `SpeechInput.jac`; an active session does not imply microphone capture.
 
 `jac.toml` defines `web` (the default app, entry point `main`) and `mobile`
 (entry point `mobile.main`). The web app serves the shared API.
