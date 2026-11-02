@@ -1480,9 +1480,7 @@ body {
 }
 
 .coaching-footnote {
-	border-top: 1px solid var(--pip-border);
-	margin: 24px 0 0;
-	padding-top: 12px;
+	margin: 10px 0 0;
 	color: var(--pip-muted);
 	font-size: 11px;
 	line-height: 1.5;
