@@ -24,9 +24,14 @@ react-native-web = "^0.19.13"
 # Native speech recognition; the version line must match the Expo SDK of .jac/mobile-rn.
 [apps.mobile.dependencies.npm.native]
 expo-speech-recognition = "~57.1.1"
+# Reads the temporary per-turn recording for upload (ships with Expo SDK 57).
+expo-file-system = "~57.0.7"
 
 [dependencies]
 python-dotenv = ">=1.0,<2"
+# Speaker verification (core/voiceprint.py); the model downloads on first use.
+sherpa-onnx = "~=2.0"
+numpy = ">=2.0"
 [dependencies.npm]
 react = "^19.2.0"
 react-dom = "^19.2.0"
@@ -50,4 +55,4 @@ watchdog = ">=3.0.0"
 [client]
 
 [byllm.model]
-default_model = "gemini/gemini-3.8-flash"
+default_model = "gemini/gemini-3.5-flash-lite"

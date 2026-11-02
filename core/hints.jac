@@ -1,5 +1,5 @@
 """Server-only next-word suggestions for learners who stall mid-sentence."""
-import from .ai { language_model }
+import from .ai { gemini as language_model }
 import from .models { WordHint }
 
 def suggest_next_word(partial_sentence: str, conversation: str, target_language: str,

@@ -8,13 +8,28 @@ transcript turns -> ended session.
 `main.jac` exposes the client app and imports the shared server endpoints.
 `frontend.jac` handles authentication, profile setup, participant consent,
 speaker selection, typed turns, speech input, and session completion.
-`components/FeaturePanels.jac` currently renders a placeholder.
+`components/FeaturePanels.jac` is an empty extension slot and is not rendered
+in the web conversation view.
+
+The web transcript section also renders `TranscriptDownload`, which uses
+`core/transcript.jac` to format the displayed `SessionView` as UTF-8 text.
+It sits alongside the session status as a compact download action, works
+during or after a session, and is disabled until a turn exists.
+Exports include language/CEFR context and speaker-labeled turns in transcript
+order. The browser generates the download locally; no additional endpoint,
+stored copy, or model request is involved. Native export is not implemented.
 
 The web UI uses the Pip visual design through `web.css` and decorative
 `components/WebArtwork.jac` components. The active session layout places
 the transcript beside the existing speech and typed-turn controls, stacking
-them at narrow browser widths. The design adds no translation, hints,
-AI replies, or practice navigation. Speech listening status remains local
+them at narrow browser widths. `TranscriptScroll.jac` keeps the turn list in a
+bounded, keyboard-focusable scroll region beneath the header. It follows new
+content while within 48 pixels of the bottom, preserves the reader's position
+when scrolled up, and offers a Latest button to resume following. A resize
+observer also handles translation expansion and viewport changes, and is
+disconnected on unmount. The transcript supports on-demand full-turn
+translation to English and next-word suggestions. Full-reply hints, AI replies,
+and practice navigation remain planned. Speech listening status remains local
 to `SpeechInput.jac`; an active session does not imply microphone capture.
 
 `jac.toml` defines `web` (the default app, entry point `main`) and `mobile`
@@ -52,9 +67,27 @@ previous speaker. Recognition attempts to restart after browser silence
 timeouts until stopped. These behaviors are implementation intent and
 still need browser verification.
 
-There is no automatic diarization or pause detection. Unsupported browsers
-fall back to typed turns. The app does not store raw audio; the browser's
+There is no acoustic pause detection. Unsupported browsers fall back to typed turns. The app does not store raw audio; the browser's
 speech service handles transcription.
+
+## Speaker detection
+
+The learner can optionally enroll a voiceprint by reading a passage
+(`components/VoiceSetup.jac` -> `enroll_voice`). The server keeps only a
+WeSpeaker embedding (`core/voiceprint.py`, sherpa-onnx), never the audio;
+`delete_voice` removes it.
+
+With a voiceprint, `components/audioCapture.js` keeps the last minute of
+microphone PCM in memory. Each finalized utterance's audio (from 700 ms
+before its first interim result to its final result) is sent once as a
+16 kHz WAV to `append_spoken_turn`, which scores it against the voiceprint
+(cosine >= `SPEAKER_MATCH_THRESHOLD`, default 0.5, means learner) and
+discards it. Speech under ~1 s, or a scoring failure, falls back to
+alternating with the previous turn (`speaker_source = "turn-taking"`, shown
+as "guessed"). The learner can click a turn's speaker to correct it
+(`set_turn_speaker`). Typed turns and sessions without a voiceprint use the
+manually selected speaker. An utterance in which both people speak without a
+pause is attributed as a whole.
 
 ## Native mobile speech input
 
@@ -79,7 +112,9 @@ These native adapter behaviors still need end-to-end verification.
 when their in-progress sentence stays unchanged for four seconds while
 "Me" is the selected speaker. The in-progress sentence is the typed
 composer text, or else the learner's interim speech that `SpeechInput.jac`
-reports through `onDraft` (then the finalized utterance). Sentences ending
+reports through `onDraft` (then the finalized utterance). With voice enrollment,
+the speaker is unknown during interim speech, so spoken suggestions wait for
+the server-attributed finalized turn instead of using the typed-turn picker. Sentences ending
 in `.`, `!`, or `?` do not trigger, and the learner can turn automatic
 suggestions off or tap "Suggest a word" at any time.
 
@@ -107,13 +142,17 @@ The intended extended flow is:
 Transcript -> requested hint / translation / AI-partner reply -> end
 session -> coaching report -> mistake history and optional practice lessons.
 
-`core/ai.jac` loads server-side environment configuration and creates a
-byLLM model configuration, used by `core/hints.jac`. Future model calls should use that shared configuration and send
-conversation text only as covered by participant consent and the requested
-feature. The configured provider/model still needs availability checks.
+`core/ai.jac` provides a server-only Jac byLLM translation, using
+Gemini 3.5 Flash-Lite. The protected translation endpoint checks ownership,
+consent, and that the selected text belongs to the requested turn before
+sending it to Gemini. Translations are cached in the browser view only;
+the saved transcript remains unchanged. Each turn has an icon-only action
+with hover/focus tooltips. The original remains visible while English appears
+below it with a labeled accent rule. Toggling visibility reuses the cached
+translation; loading and retry states belong to each turn.
 
-Translation caching, full-reply hint generation, AI-partner responses,
-coaching, mistake history, and lessons are not implemented in this checkout.
+Persistent translation caching, full-reply hint generation, AI-partner responses, coaching,
+mistake history, and lessons are not implemented in this checkout.
 
 ## Limitations
 

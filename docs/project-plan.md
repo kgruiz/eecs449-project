@@ -26,8 +26,9 @@ still need end-to-end verification. Coaching panels remain placeholders.
 1. **Live conversation assistance.** Offer short, CEFR-appropriate reply
    hints when requested. Add an AI conversation partner. Explore pause or
    struggle triggers and spoken or headphone delivery after the basic flow.
-2. **Tap-to-translate.** Translate a missed partner sentence or selected
-   transcript turn on request, with cached results within a session.
+2. **Tap-to-translate.** Web transcript sentences can be translated to English
+   on request, with results retained while the transcript view is open.
+   Persistent caching and native mobile presentation remain future work.
 3. **Post-conversation coaching.** Use conversation evidence for grammar
    and vocabulary feedback, mistake history, and personalized practice.
    Pronunciation and audio-based fluency scoring need a separate source of

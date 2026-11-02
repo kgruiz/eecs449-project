@@ -1,9 +1,17 @@
 """Shared contracts; raw audio is never persisted."""
 node LearnerProfile {
     has native_language: str = "English", target_language: str = "Spanish", level: str = "A2";
+    # Speaker embedding from voice enrollment (not audio); empty until enrolled.
+    has voiceprint: list[float] = [];
 }
+obj VoiceStatus {
+    has enrolled: bool;
+}
+"""speaker_source: "manual", "voice" (matched against the voiceprint),
+"turn-taking" (too short to judge) or "corrected" (fixed by the learner)."""
 obj TranscriptTurn {
-    has id: str, speaker: str, text: str, duration_seconds: float = 0.0;
+    has id: str, speaker: str, text: str, duration_seconds: float = 0.0,
+        speaker_source: str = "manual", speaker_score: float | None = None;
 }
 # A suggested next word for a learner who stalls mid-sentence; never stored as a turn.
 obj WordHint {
