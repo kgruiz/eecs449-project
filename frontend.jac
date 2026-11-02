@@ -19,7 +19,7 @@ def:pub app -> JsxElement {
         native_language: str = "English", target_language: str = "Spanish", level: str = "A2",
         partner_mode: str = "human", consent: bool = False, session: SessionView | None = None,
         speaker: str = "partner", text: str = "", error: str = "", busy: bool = False,
-        page: str = "talk", historyId: str = "", voice_enrolled: bool = False, speechBusy: bool = False, spokenDraft: str = "";
+        page: str = "talk", historyId: str = "", levelHelpOpen: bool = False, voice_enrolled: bool = False, speechBusy: bool = False, spokenDraft: str = "";
     async def loadVoice() -> None {
         try { status = await voice_status(); voice_enrolled = status.enrolled; }
         except Exception { voice_enrolled = False; }
@@ -143,12 +143,25 @@ def:pub app -> JsxElement {
                         <label className="field">Learning language
                             <input value={target_language} onChange={lambda (e: ChangeEvent) { target_language = e.target.value; }}/>
                         </label>
-                        <label className="field">Level
-                            <select aria-describedby="level-help" value={level} onChange={lambda (e: ChangeEvent) { level = e.target.value; }}>
+                        <div className="field">
+                            <div className="field-label-row">
+                                <label htmlFor="learner-level">Level</label>
+                                <span className="level-help" onMouseEnter={lambda { levelHelpOpen = True; }} onMouseLeave={lambda { levelHelpOpen = False; }}>
+                                    <button type="button" className="info-button" aria-label="About language levels" aria-describedby="level-help"
+                                        onFocus={lambda { levelHelpOpen = True; }} onBlur={lambda { levelHelpOpen = False; }}
+                                        onClick={lambda { levelHelpOpen = True; }}
+                                        onKeyDown={lambda (e: any) { if e.key == "Escape" { levelHelpOpen = False; } }}>
+                                        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true" focusable="false">
+                                            <circle cx="10" cy="10" r="7.5"/><path d="M10 9v5"/><circle cx="10" cy="6" r="0.6" fill="currentColor"/>
+                                        </svg>
+                                    </button>
+                                    <span className="level-tooltip" id="level-help" role="tooltip" hidden={not levelHelpOpen}>CEFR scale: A1–A2 beginner, B1–B2 intermediate, C1–C2 advanced.</span>
+                                </span>
+                            </div>
+                            <select id="learner-level" value={level} onChange={lambda (e: ChangeEvent) { level = e.target.value; }}>
                                 {[<option key={value} value={value}>{value}</option> for value in ["A1", "A2", "B1", "B2", "C1", "C2"]]}
                             </select>
-                            <span className="field-help" id="level-help">CEFR scale: A1–A2 beginner, B1–B2 intermediate, C1–C2 advanced.</span>
-                        </label>
+                        </div>
                         <label className="field">Partner
                             <select value={partner_mode} onChange={lambda (e: ChangeEvent) { partner_mode = e.target.value; }}>
                                 <option value="human">Real person</option><option value="ai" disabled>AI partner (coming soon)</option>
