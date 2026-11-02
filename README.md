@@ -395,3 +395,23 @@ field; native mobile code is unchanged.
 
 Live Gemini, microphone capture, and cross-account isolation were not retested.
 No mobile simulator was started. The isolated QA server was stopped afterward.
+
+### Transcript scrolling verification on 11/02/2026
+
+The web transcript now scrolls inside a bounded card, leaving the header and
+desktop controls outside the scrolling list. New content follows the bottom
+only while the reader is near it; Latest returns to the newest turn. Narrow
+browser layouts retain stacked controls and an independently scrollable list.
+
+- `jac check` passed for both apps with warnings; `jac test core/ai.jac`
+  passed all four offline tests.
+- `biome check web.css` and `jac build --as client web` passed.
+- The isolated test copy was served with `jac run --dev --host 127.0.0.1
+  --port 8020 --api-port 8021 web`, using its simulated translation provider.
+  Browser checks covered sign-in, consent, nine typed turns, following new
+  turns, preserving scroll position while adding a turn, keyboard scrolling,
+  Latest, translation expansion, and session completion. A six-turn session
+  at 390px also scrolled correctly without horizontal overflow. The browser
+  reported no console errors or warnings.
+- No live Gemini request, microphone capture, cross-account isolation check,
+  or mobile simulator was run for this change. The test server was stopped.

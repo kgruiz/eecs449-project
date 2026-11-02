@@ -622,7 +622,52 @@ body {
 	background: #9599a2;
 }
 .transcript-card {
-	min-height: 510px;
+	display: flex;
+	flex-direction: column;
+	height: clamp(680px, 75dvh, 780px);
+	min-height: 0;
+}
+.transcript-card > h2,
+.transcript-header,
+.session-ended-note {
+	flex-shrink: 0;
+}
+.transcript-scroll-shell {
+	position: relative;
+	flex: 1;
+	min-height: 0;
+	margin-top: 24px;
+}
+.transcript-scroll {
+	height: 100%;
+	overflow-y: auto;
+	overscroll-behavior-y: contain;
+	scrollbar-width: thin;
+	scrollbar-color: #b7b0be transparent;
+	scrollbar-gutter: stable;
+	padding: 0 10px 0 2px;
+}
+.transcript-scroll:focus-visible {
+	outline: 2px solid var(--pip-blue);
+	outline-offset: 3px;
+	border-radius: 8px;
+}
+.latest-button {
+	position: absolute;
+	right: 18px;
+	bottom: 10px;
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	min-height: 40px;
+	padding: 8px 16px;
+	border: 1px solid #d8d5fa;
+	border-radius: 24px;
+	background: #eeecff;
+	color: var(--pip-blue);
+	font-weight: 700;
+	cursor: pointer;
+	box-shadow: 0 2px 8px #19254b0d;
 }
 .transcript-download {
 	position: relative;
@@ -656,6 +701,10 @@ body {
 	padding: 0;
 	margin: 32px 0 0;
 	display: grid;
+}
+.transcript-scroll .transcript-list {
+	margin: 0;
+	padding-bottom: 48px;
 }
 .transcript-list:empty {
 	margin: 0;
@@ -968,6 +1017,7 @@ body {
 		font-size: 1.7rem;
 	}
 	.transcript-card {
+		height: 600px;
 		min-height: 0;
 	}
 	.transcript-empty {

@@ -22,7 +22,12 @@ stored copy, or model request is involved. Native export is not implemented.
 The web UI uses the Pip visual design through `web.css` and decorative
 `components/WebArtwork.jac` components. The active session layout places
 the transcript beside the existing speech and typed-turn controls, stacking
-them at narrow browser widths. The transcript supports on-demand full-turn
+them at narrow browser widths. `TranscriptScroll.jac` keeps the turn list in a
+bounded, keyboard-focusable scroll region beneath the header. It follows new
+content while within 48 pixels of the bottom, preserves the reader's position
+when scrolled up, and offers a Latest button to resume following. A resize
+observer also handles translation expansion and viewport changes, and is
+disconnected on unmount. The transcript supports on-demand full-turn
 translation to English. Hints, AI replies, and practice navigation remain
 planned. Speech listening status remains local
 to `SpeechInput.jac`; an active session does not imply microphone capture.
