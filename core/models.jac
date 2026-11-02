@@ -25,20 +25,24 @@ obj PracticePriority {
 obj CoachingReport {
     has summary: str, strengths: list[str], priorities: list[PracticePriority];
 }
+obj ConversationSummary {
+    has id: str, title: str, target_language: str, level: str, created_at: str,
+        turn_count: int, preview: str, has_coaching: bool;
+}
 obj SessionView {
     has id: str, native_language: str, target_language: str, level: str,
         partner_mode: str, status: str, turns: list[TranscriptTurn],
-        audio_seconds: float, model_requests: int, coaching: CoachingReport | None = None;
+        audio_seconds: float, model_requests: int, coaching: CoachingReport | None = None, created_at: str = "";
 }
 node Conversation {
     has native_language: str, target_language: str, level: str,
         partner_mode: str = "human", consent_confirmed: bool = False,
         status: str = "active", turns: list[TranscriptTurn] = [],
-        audio_seconds: float = 0.0, model_requests: int = 0, coaching: CoachingReport | None = None;
+        audio_seconds: float = 0.0, model_requests: int = 0, coaching: CoachingReport | None = None, created_at: str = "";
     def to_view() -> SessionView {
         return SessionView(id=jid(self), native_language=self.native_language,
             target_language=self.target_language, level=self.level,
             partner_mode=self.partner_mode, status=self.status, turns=self.turns,
-            audio_seconds=self.audio_seconds, model_requests=self.model_requests, coaching=self.coaching);
+            audio_seconds=self.audio_seconds, model_requests=self.model_requests, coaching=self.coaching, created_at=self.created_at);
     }
 }

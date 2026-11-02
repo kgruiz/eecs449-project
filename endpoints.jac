@@ -1,8 +1,10 @@
 """Shared authenticated pipeline. Audio adapters submit finalized turns here."""
-import from .core.models { LearnerProfile, TranscriptTurn, Conversation, SessionView, VoiceStatus, WordHint }
+import from .core.models { LearnerProfile, TranscriptTurn, Conversation, SessionView, VoiceStatus, WordHint, ConversationSummary }
 import from .core.voiceprint { enroll, learner_similarity, MATCH_THRESHOLD }
 import from .core.hints { suggest_next_word }
 import from uuid { uuid4 }
+import from datetime { datetime, timezone }
+import from .core.history { history_page }
 import from .core.coaching { build_report }
 import from .core.ai { translate_to_english }
 def profile() -> LearnerProfile {
@@ -37,7 +39,7 @@ def:protect start_conversation(consent_confirmed: bool, partner_mode: str = "hum
     learner = profile();
     session = root ++> Conversation(native_language=learner.native_language,
         target_language=learner.target_language, level=learner.level,
-        partner_mode=partner_mode, consent_confirmed=True);
+        partner_mode=partner_mode, consent_confirmed=True, created_at=datetime.now(timezone.utc).isoformat());
     return session.to_view();
 }
 def:protect get_conversation(session_id: str) -> SessionView {
@@ -153,4 +155,9 @@ def:protect conversation_feedback(session_id: str) -> SessionView {
     build_report(session);
 
     return session.to_view();
+}
+
+def:protect list_conversations(offset: int, limit: int) -> list[ConversationSummary] {
+
+    return history_page([root -->][?:Conversation], offset, limit);
 }
