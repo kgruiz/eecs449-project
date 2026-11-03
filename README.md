@@ -23,6 +23,9 @@ The current checkout includes:
   speaker selection, and recorded utterance durations.
 - Use the translation icon on a transcript turn to show English beneath
   the original. Toggle it to hide or reveal the cached translation.
+- Web sentence completion can be enabled in the conversation controls. After
+  a learner pauses, possible continuations appear under the current draft;
+  the model may decide no completion is needed.
 - A responsive Pip-styled web interface for sign-in, conversation setup,
   transcripts, speech controls, and typed turns. The design does not add
   the planned language-assistance features.
@@ -61,7 +64,7 @@ a turn. Speech input requires a browser exposing `SpeechRecognition` or
 without that API can use typed turns. Actual browser and language support
 still needs runtime verification.
 
-Set `GEMINI_API_KEY` in `.env` to enable translation, word hints, and coaching. The server defaults to
+Set `GEMINI_API_KEY` in `.env` to enable translation, word hints, sentence completion, and coaching. The server defaults to
 `gemini-3.5-flash-lite` through Jac's byLLM integration. Run `jac install`
 after pulling the change, and restart the server after changing environment variables.
 Never commit real credentials.
@@ -321,6 +324,16 @@ after completion. Deletion
 and retention controls are not implemented.
 
 ## Validation status
+
+### Sentence completion (2026-11-03)
+
+In an isolated WSL copy, `jac check` passed both entry points with warnings,
+and `jac test core/hints.jac` passed seven offline tests. A local endpoint
+check covered authentication, consent, ownership, an active session, and
+rejection after ending. Gemini 3.5 Flash-Lite returned continuations for a
+synthetic incomplete sentence and declined a complete sentence. The web app
+was started on port 8010; real microphone behavior and the visual completion
+flow have not yet been verified end to end.
 
 The initial scaffolds were created without dependency installation, tests,
 compiler checks, app runs, or Gemini requests, at the user's request.

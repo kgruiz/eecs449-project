@@ -23,7 +23,7 @@ def:pub app -> JsxElement {
         native_language: str = "English", target_language: str = "Spanish", level: str = "A2",
         partner_mode: str = "human", consent: bool = False, session: SessionView | None = None,
         speaker: str = "partner", text: str = "", error: str = "", busy: bool = False,
-        page: str = "talk", historyId: str = "", levelHelpOpen: bool = False, voice_enrolled: bool = False, speechBusy: bool = False, spokenDraft: str = "";
+        page: str = "talk", historyId: str = "", levelHelpOpen: bool = False, voice_enrolled: bool = False, speechBusy: bool = False, spokenDraft: str = "", completionEnabled: bool = False;
     async def loadVoice() -> None {
         try { status = await voice_status(); voice_enrolled = status.enrolled; }
         except Exception { voice_enrolled = False; }
@@ -187,11 +187,13 @@ def:pub app -> JsxElement {
                         </div>
                     </div>
                     <h2>Conversation</h2>
-                    {len(session.turns) == 0 and <div className="transcript-empty">
+                    {len(session.turns) == 0 and not (completionEnabled and ((speaker == "learner" and text.strip()) or (not text.strip() and spokenDraft))) and <div className="transcript-empty">
                         <h3>No messages yet</h3>
                         <p>{"Start listening or type a message." if session.status == "active" else "No messages were added to this session."}</p>
                     </div>}
-                    <TranscriptScroll key={session.id} session={session} onSwapSpeaker={swapSpeaker}/>
+                    <TranscriptScroll key={session.id} session={session} onSwapSpeaker={swapSpeaker}
+                        draft={text if speaker == "learner" and text.strip() else (spokenDraft if not text.strip() else "")}
+                        spoken={not bool(text.strip())} completions={completionEnabled and session.status == "active"}/>
                     {session.status == "ended" and <p className="session-ended-note">Conversation ended. The transcript is saved to your account.</p>}
                 </section>}
                 {session is not None and session.status == "active" and <aside className="card controls-card">
@@ -217,6 +219,13 @@ def:pub app -> JsxElement {
                         onDraft={trackSpeech}/>
                     <WordHelper key={"words-" + session.id} sessionId={session.id} learnerSpeaking={speaker == "learner" if text.strip() else bool(spokenDraft)}
                         draft={text if speaker == "learner" and text.strip() else spokenDraft}/>
+                    <section className="completion-settings" aria-label="Sentence completion settings">
+                        <p className="word-helper-label">Sentence completion</p>
+                        <label className="word-helper-toggle">
+                            <input type="checkbox" checked={completionEnabled} onChange={lambda (e: ChangeEvent) { completionEnabled = e.target.checked; }}/>
+                            Suggest completions when I pause
+                        </label>
+                    </section>
                     <div className="typed-composer">
                         <label className="field">Message
                             <textarea rows={3} value={text} placeholder="Type a message..."

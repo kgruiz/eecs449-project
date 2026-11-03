@@ -133,6 +133,25 @@ an unchanged learner utterance can trigger a hint even if it was complete
 but unpunctuated. Suggestion quality, latency, and the mobile client are
 unverified or not implemented.
 
+## Sentence completion
+
+The web conversation controls offer a separate, initially off sentence-completion
+setting. When enabled, an unchanged learner draft triggers a request after four
+seconds. Drafts come from learner typing or the speech adapter's learner draft;
+with voice enrollment, speech waits for speaker attribution. The current draft
+is displayed in the transcript, or associated with the matching saved spoken
+turn. Ranked continuations appear beneath it and disappear when the draft,
+recent conversation, speaker, or setting changes. Late responses are discarded.
+Suggestions and unsent drafts are not stored as turns.
+
+The protected `suggest_completion` endpoint requires an owned, active, consented
+session and a nonempty draft. It sends the transcript history (excluding a
+matching current spoken turn), draft, target language, and level to the shared
+Gemini Flash-Lite model. The structured response decides whether a continuation
+is needed and supplies up to three ordered options. The model is instructed not
+to start a new sentence; the quality of that judgment is not guaranteed. It is
+web-only and uses unchanged recognized text as a pause proxy, not acoustic silence.
+
 ## Planned integration points
 
 Future feature modules should share authenticated sessions and transcript
