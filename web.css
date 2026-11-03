@@ -1596,7 +1596,7 @@ details[open] > summary > .disclosure-chevron {
 	border-radius: 2px;
 	display: block;
 	flex: none;
-	width: 18px;
-	height: 13.5px;
-	background: url("flag-icons/flags/4x3/es.svg") center / contain no-repeat;
+	width: 20px;
+	height: 15px;
+	object-fit: contain;
 }

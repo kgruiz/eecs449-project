@@ -2,6 +2,7 @@
 With a voiceprint enrolled, the server attributes spoken turns by voice and the
 learner can switch a turn's speaker; otherwise the learner picks who is speaking."""
 import from "lucide-react" { Info, Check, ChevronDown, ChevronRight }
+import from "flag-icons/flags/4x3/es.svg" { default as spanishFlag }
 import from "@jac/runtime" { jacLogin, jacSignup, jacLogout, jacIsLoggedIn, SignupResult }
 import from .core.models { SessionView, TranscriptTurn }
 import from .endpoints {
@@ -102,7 +103,7 @@ def:pub app -> JsxElement {
                 <button className={"main-tab " + ("is-selected" if page == "conversations" else "")} aria-pressed={page == "conversations"} disabled={busy or speechBusy} onClick={lambda { historyId = ""; page = "conversations"; }}>Conversations</button>
             </nav>}
             <div className="account-controls">
-                {logged_in and <span className="language-badge">{target_language.strip().lower() in ["spanish", "es", "es-es"] and <span className="language-flag" aria-hidden="true"/>}{target_language + " · " + level}</span>}
+                {logged_in and <span className="language-badge">{target_language.strip().lower() in ["spanish", "es", "es-es"] and <img className="language-flag" src={spanishFlag} alt="" width={20} height={15}/>}{target_language + " · " + level}</span>}
                 {logged_in and <button className="button button-quiet" onClick={logout}>Sign out</button>}
             </div>
         </header>
