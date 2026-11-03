@@ -234,6 +234,11 @@ body {
 	gap: 18px;
 }
 .language-badge {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 7px;
+	line-height: 1.25;
 	border: 1px solid var(--pip-border);
 	border-radius: 100px;
 	padding: 7px 17px;
@@ -1588,10 +1593,9 @@ details[open] > summary > .disclosure-chevron {
 }
 
 .language-flag {
-	display: inline-block;
+	display: block;
+	flex: none;
 	width: 18px;
 	height: 13.5px;
-	margin-right: 7px;
-	vertical-align: -1px;
 	background: url("flag-icons/flags/4x3/es.svg") center / contain no-repeat;
 }
