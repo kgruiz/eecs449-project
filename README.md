@@ -556,3 +556,25 @@ were performed. Native recap rendering and live output quality remain unverified
 
 The temporary QA copy used simulated AI and speech, not live Gemini or a real
 microphone. No native simulator was started. Native navigation was not changed.
+
+### Interactive practice verification on 11/03/2026
+
+The web Practice section now provides phrase comparisons with changed-word
+highlighting, Listen, expandable explanations, typed or spoken answers, and
+Check answer with retry and next/finish controls. Checking sends the answer to
+Gemini; answers and exercise progress are temporary and never appended to the
+saved transcript. Speech recognition produces editable text, not pronunciation
+scores. Playback depends on an available device voice for the selected language.
+
+- `jac check` passed the new practice module, web coaching panel, and endpoints
+  (existing JSX/interface warnings remain).
+- `jac build web -a client` passed.
+- `jac test core/practice.jac` passed seven collected offline tests;
+  `jac test core/coaching.jac` passed ten collected offline tests.
+- `bun test components/practice-diff.test.js` passed three tests; scoped Biome
+  checks passed for the new JavaScript/JSX and CSS.
+- An isolated preview with simulated AI verified correction, successful answers,
+  retry, provider-error text preservation, completion/restart, and editable
+  output from a synthetic speech recognizer. Browser phrase playback started.
+- No live Gemini request, real microphone capture, or native-device run was
+  performed. Model feedback quality still needs live evaluation.

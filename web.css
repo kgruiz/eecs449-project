@@ -1870,3 +1870,131 @@ details[open] > summary > .disclosure-chevron {
 		margin-top: 12px;
 	}
 }
+
+.practice-exercise {
+	margin-top: 24px;
+}
+.practice-count,
+.practice-label {
+	color: var(--pip-muted);
+	font-size: 13px;
+}
+.practice-label {
+	display: block;
+	margin-bottom: 8px;
+}
+.practice-comparison {
+	display: grid;
+	grid-template-columns: 1fr auto 1fr;
+	gap: 24px;
+	align-items: start;
+	margin: 20px 0;
+}
+.history-workspace .practice-comparison p {
+	margin: 0;
+	line-height: 1.6;
+	overflow-wrap: anywhere;
+}
+.practice-comparison-arrow {
+	margin-top: 35px;
+	color: var(--pip-muted);
+}
+.history-workspace .practice-suggestion > p {
+	font-size: 22px;
+}
+.practice-suggestion mark {
+	color: var(--pip-ink);
+	background: #e9edff;
+	border-radius: 3px;
+	text-decoration: underline;
+	text-decoration-color: var(--pip-blue);
+	text-underline-offset: 4px;
+}
+.practice-listen {
+	padding: 6px 0;
+	min-height: 36px;
+	margin-top: 8px;
+	color: var(--pip-blue);
+}
+.practice-why summary {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	cursor: pointer;
+	width: fit-content;
+	padding: 8px 0;
+}
+.practice-why:not([open]) summary svg {
+	transform: rotate(-90deg);
+}
+.history-workspace .practice-why p {
+	max-width: 65ch;
+	margin: 8px 0 16px;
+	line-height: 1.6;
+}
+.practice-answer {
+	margin-top: 20px;
+	padding-top: 20px;
+	border-top: 1px solid var(--pip-border);
+}
+.history-workspace .practice-answer h3 {
+	margin: 0 0 8px;
+	font-size: 22px;
+}
+.history-workspace .practice-answer > p {
+	max-width: 70ch;
+	line-height: 1.6;
+}
+.practice-answer label {
+	display: block;
+	margin: 20px 0 8px;
+	font-weight: 600;
+}
+.practice-answer textarea {
+	width: 100%;
+	min-height: 100px;
+	resize: vertical;
+}
+.practice-actions {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 10px;
+	margin-top: 16px;
+}
+.practice-actions .button {
+	min-height: 42px;
+	padding: 10px 16px;
+}
+.practice-answer .practice-note {
+	font-size: 12px;
+	color: var(--pip-muted);
+	margin-top: 12px;
+}
+.practice-feedback {
+	margin-top: 20px;
+	padding: 20px;
+	border-left: 3px solid var(--pip-blue);
+	background: #f5f6fc;
+	border-radius: 0 8px 8px 0;
+	overflow-wrap: anywhere;
+}
+.history-workspace .practice-feedback p {
+	margin: 10px 0;
+	line-height: 1.6;
+}
+.practice-complete {
+	padding: 24px 0;
+}
+@media (max-width: 600px) {
+	.practice-comparison {
+		grid-template-columns: 1fr;
+		gap: 16px;
+	}
+	.practice-comparison-arrow {
+		display: none;
+	}
+	.practice-feedback {
+		padding: 16px;
+	}
+}

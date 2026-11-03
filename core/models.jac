@@ -46,3 +46,7 @@ node Conversation {
             audio_seconds=self.audio_seconds, model_requests=self.model_requests, coaching=self.coaching, created_at=self.created_at);
     }
 }
+
+obj PracticeFeedback {
+    has outcome: str, feedback: str, corrected_answer: str;
+}

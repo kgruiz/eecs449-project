@@ -33,7 +33,9 @@ unverified.
    on request, with results retained while the transcript view is open.
    Persistent caching and native mobile presentation remain future work.
 3. **Post-conversation coaching.** Saved summaries and evidence-based grammar
-   and vocabulary practice priorities are implemented. Mistake history and
+   and vocabulary practice priorities are implemented. Web practice now supports
+   listening, typed or transcribed answers, and explicit AI answer checks.
+   Mistake history and
    generated lessons remain planned.
    Pronunciation and audio-based fluency scoring need a separate source of
    audio evidence and scoring capability; the saved text alone is insufficient.

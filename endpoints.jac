@@ -1,11 +1,12 @@
 """Shared authenticated pipeline. Audio adapters submit finalized turns here."""
-import from .core.models { LearnerProfile, TranscriptTurn, Conversation, SessionView, VoiceStatus, WordHint, ConversationSummary }
+import from .core.models { LearnerProfile, TranscriptTurn, Conversation, SessionView, VoiceStatus, WordHint, ConversationSummary, PracticeFeedback }
 import from .core.voiceprint { enroll, learner_similarity, MATCH_THRESHOLD }
 import from .core.hints { suggest_next_word }
 import from uuid { uuid4 }
 import from datetime { datetime, timezone }
 import from .core.history { history_page }
 import from .core.coaching { build_report }
+import from .core.practice { check_answer }
 import from .core.ai { translate_to_english }
 def profile() -> LearnerProfile {
     profiles = [root -->][?:LearnerProfile];
@@ -160,4 +161,10 @@ def:protect conversation_feedback(session_id: str) -> SessionView {
 def:protect list_conversations(offset: int, limit: int) -> list[ConversationSummary] {
 
     return history_page([root -->][?:Conversation], offset, limit);
+}
+
+# Practice answers are assessed separately and never appended to the transcript.
+def:protect check_practice_answer(session_id: str, priority_index: int, answer: str) -> PracticeFeedback {
+
+    return check_answer(owned_session(session_id), priority_index, answer);
 }

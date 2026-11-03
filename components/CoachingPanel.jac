@@ -1,5 +1,7 @@
-import from ..core.models { SessionView }
-import from ..endpoints { conversation_feedback }
+import from ..core.models { SessionView, PracticeFeedback as AnswerFeedback }
+import from "./practice-diff.js" { changedWords }
+import from "./practice-exercises.jsx" { PracticeExercises }
+import from ..endpoints { conversation_feedback, check_practice_answer }
 
 def:pub CoachingPanel(session: SessionView, section: str = "overview") -> JsxElement {
     has current: SessionView = session, busy: bool = False, error: str = "";
@@ -9,6 +11,9 @@ def:pub CoachingPanel(session: SessionView, section: str = "overview") -> JsxEle
         try { current = await conversation_feedback(session.id); }
         except Exception { error = "Could not generate feedback. Your transcript is saved. Please try again."; }
         finally { busy = False; }
+    }
+    async def checkAnswer(index: int, answer: str) -> AnswerFeedback {
+        return await check_practice_answer(session.id, index, answer);
     }
     can with entry {
 
@@ -26,10 +31,7 @@ def:pub CoachingPanel(session: SessionView, section: str = "overview") -> JsxEle
                 </div>
                 <div hidden={section != "practice"}>
                 {len(current.coaching.priorities) == 0 and <p>No specific corrections were identified in this transcript.</p>}
-                {[<article className="coaching-priority" key={item.turn_id + item.quote}>
-                    <p className="muted">You said</p><blockquote>{item.quote}</blockquote><p><strong>Try: </strong>{item.suggestion}</p>
-                    <p>{item.explanation}</p><p><strong>Practice: </strong>{item.practice}</p>
-                </article> for item in current.coaching.priorities]}
+                {section == "practice" and len(current.coaching.priorities) > 0 and <PracticeExercises priorities={current.coaching.priorities} language={session.target_language} onCheck={checkAnswer} compareWords={changedWords}/>}
                 </div>
             </div>}
         </div>

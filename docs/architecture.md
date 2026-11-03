@@ -204,3 +204,20 @@ does not regenerate feedback. Transcript has its own view and retains export
 and translation. The completed library is paginated; its page selection is
 local state. Active-session recovery after reload and deep links remain future
 work. Native mobile still uses its existing conversation/recap screen.
+
+## Interactive web practice
+
+`components/practice-exercises.jsx` presents each saved priority as a comparison
+with changed words highlighted, optional browser text-to-speech, and a collapsible
+explanation. Learners type an answer or use browser speech recognition, then edit
+and explicitly check it. Speech playback requires an installed matching voice.
+Leaving the exercise stops playback/capture and discards local practice state.
+
+`check_practice_answer` resolves the authenticated caller's owned session before
+`core/practice.jac` verifies completion, consent, saved priority index, and learner
+quote evidence. The shared server-only Gemini model checks task completion and
+wording, accepting valid alternatives. Outcomes are correct, revise, or unclear;
+revisions require suggested wording. Answers are limited to 2,000 characters.
+Attempts increment model usage but answers/results are not saved as transcript
+turns or persisted as lesson progress. Failures preserve the local answer for
+retry. This does not score pronunciation. Native recap behavior is unchanged.
