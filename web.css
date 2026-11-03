@@ -120,6 +120,11 @@
 * {
 	box-sizing: border-box;
 }
+html,
+body,
+.pip-app * {
+	overscroll-behavior-y: none;
+}
 body {
 	margin: 0;
 	background: var(--pip-bg);
@@ -653,7 +658,6 @@ body {
 .transcript-scroll {
 	height: 100%;
 	overflow-y: auto;
-	overscroll-behavior-y: contain;
 	scrollbar-width: thin;
 	scrollbar-color: #b7b0be transparent;
 	scrollbar-gutter: stable;
