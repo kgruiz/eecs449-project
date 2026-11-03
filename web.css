@@ -1716,3 +1716,22 @@ details[open] > summary > .disclosure-chevron {
 	gap: 12px;
 	margin-top: 24px;
 }
+
+.pip-app input:not([type="checkbox"]):not([type="radio"]):focus,
+.pip-app select:focus,
+.pip-app textarea:focus,
+.pip-app .language-picker-trigger:focus-visible {
+	border-color: var(--pip-blue);
+	outline: 2px solid transparent;
+	outline-offset: 0;
+	box-shadow: 0 0 0 2px #3151ee14;
+}
+
+@media (forced-colors: active) {
+	.pip-app input:not([type="checkbox"]):not([type="radio"]):focus,
+	.pip-app select:focus,
+	.pip-app textarea:focus,
+	.pip-app .language-picker-trigger:focus-visible {
+		outline-color: Highlight;
+	}
+}
