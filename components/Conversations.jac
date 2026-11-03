@@ -57,7 +57,7 @@ def:pub Conversations(initialSessionId: str, onTalk: Callable[[], None], active:
         else { loadPage(0); }
     }
     can with exit { requestRef.current = (requestRef.current or 0) + 1; }
-    <section className="history-workspace" aria-label="Saved conversations">
+    <section className={"history-workspace" + (" history-transcript-view" if selected is not None and not opening and section == "transcript" else "")} aria-label="Saved conversations">
         <div className="history-heading">
             <div><h1>{"Conversations" if selected is None else (selected.turns[0].text[:70] if selected.turns else selected.target_language + " conversation")}</h1>
                 {selected is not None and <p className="muted">{selected.target_language + " · " + selected.level + " · " + conversation_date(selected.created_at)}</p>}</div>
@@ -78,7 +78,7 @@ def:pub Conversations(initialSessionId: str, onTalk: Callable[[], None], active:
                 {more and <button className="button button-secondary" disabled={loading} onClick={lambda { loadPage(page + 1); }}>Next</button>}
             </div>
         </div>}
-        {selected is not None and not opening and <div>
+        {selected is not None and not opening and <div className="history-detail">
             <button className="button button-quiet history-back" onClick={back}><ArrowLeft size={16} strokeWidth={1.75} aria-hidden="true"/>All conversations</button>
             <nav className="detail-tabs" aria-label="Conversation sections">
                 {[<button key={value} className={"detail-tab " + ("is-selected" if section == value else "")} aria-pressed={section == value} onClick={lambda { section = value; }}>{"Practice suggestions" if value == "practice" else value.capitalize()}</button> for value in ["overview", "transcript", "practice"]]}

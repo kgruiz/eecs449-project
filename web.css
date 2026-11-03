@@ -1749,3 +1749,96 @@ details[open] > summary > .disclosure-chevron {
 	cursor: not-allowed;
 	background: transparent;
 }
+
+.pip-app:has(.history-transcript-view) {
+	height: 100dvh;
+	min-height: 0;
+	overflow: hidden;
+	display: flex;
+	flex-direction: column;
+}
+.pip-app:has(.history-transcript-view) > .topbar {
+	flex-shrink: 0;
+}
+.workspace:has(.history-transcript-view) {
+	flex: 1;
+	min-height: 0;
+	display: flex;
+	flex-direction: column;
+	overflow: hidden;
+}
+.history-transcript-view {
+	width: 100%;
+	flex: 1;
+	min-height: 0;
+	display: flex;
+	flex-direction: column;
+}
+.history-transcript-view .history-heading,
+.history-transcript-view .history-back,
+.history-transcript-view .detail-tabs,
+.history-transcript-view .section-heading {
+	flex-shrink: 0;
+}
+.history-transcript-view .history-detail {
+	flex: 1;
+	min-height: 0;
+	display: flex;
+	flex-direction: column;
+}
+.history-transcript-view .history-back {
+	align-self: flex-start;
+}
+.history-transcript-view .history-transcript {
+	flex: 1;
+	min-height: 0;
+	display: flex;
+	flex-direction: column;
+	overflow: hidden;
+}
+.history-transcript-view .history-heading > div {
+	min-width: 0;
+}
+.history-transcript-view .history-heading h1 {
+	display: -webkit-box;
+	-webkit-line-clamp: 2;
+	-webkit-box-orient: vertical;
+	overflow: hidden;
+}
+@media (max-height: 700px), (max-width: 760px) {
+	.workspace:has(.history-transcript-view) {
+		padding-top: 12px;
+		padding-bottom: 12px;
+	}
+	.history-transcript-view .history-heading {
+		flex-direction: row;
+		gap: 12px;
+		margin-bottom: 8px;
+	}
+	.history-transcript-view .history-heading h1 {
+		font-size: 20px;
+		margin: 0 0 4px;
+		-webkit-line-clamp: 1;
+	}
+	.history-transcript-view .history-heading > .button {
+		padding: 8px 12px;
+		font-size: 12px;
+	}
+	.history-transcript-view .detail-tabs {
+		gap: 8px;
+		margin-bottom: 12px;
+	}
+	.history-transcript-view .detail-tab {
+		font-size: 12px;
+		padding: 8px 4px;
+	}
+	.history-transcript-view .history-transcript {
+		padding: 16px;
+	}
+	.history-transcript-view .section-heading {
+		margin-bottom: 0;
+	}
+	.history-transcript-view .transcript-scroll-shell {
+		margin-top: 12px;
+	}
+}
