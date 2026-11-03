@@ -15,7 +15,7 @@ import ptFlag from "flag-icons/flags/4x3/pt.svg";
 import ruFlag from "flag-icons/flags/4x3/ru.svg";
 import saFlag from "flag-icons/flags/4x3/sa.svg";
 import usFlag from "flag-icons/flags/4x3/us.svg";
-import { resolveLanguage } from "./language-picker.jsx";
+import { resolveLanguage } from "./language-options.js";
 
 const flags = {
 	SA: saFlag,

@@ -1634,15 +1634,27 @@ details[open] > summary > .disclosure-chevron {
 	font-size: 14px;
 	font-weight: 400;
 }
-.language-search {
-	display: flex;
+.language-option-label {
+	display: inline-flex;
 	align-items: center;
-	gap: 8px;
+	gap: 10px;
+}
+.language-search {
+	position: relative;
 	padding: 4px 8px;
 }
 .language-search input {
 	width: 100%;
 	min-width: 0;
+	padding-right: 38px;
+}
+.language-search > svg {
+	position: absolute;
+	right: 20px;
+	top: 50%;
+	transform: translateY(-50%);
+	pointer-events: none;
+	color: var(--pip-muted);
 }
 .language-picker [role="listbox"] {
 	max-height: 210px;

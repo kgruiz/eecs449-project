@@ -8,7 +8,8 @@ final result) goes with it to append_spoken_turn, which decides the speaker from
 the learner's voiceprint. Otherwise the turn goes to append_turn with the
 manually selected speaker."""
 import from "lucide-react" { Mic }
-import from "./language-picker.jsx" { ListeningLanguage, resolveLanguage }
+import from "./language-picker.jsx" { ListeningLanguage }
+import from "./language-options.js" { resolveLanguage }
 import from "./audioCapture.js" { createAudioCapture }
 import from ..core.models { SessionView }
 import from ..endpoints { append_turn, append_spoken_turn }

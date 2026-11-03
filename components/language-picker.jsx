@@ -1,38 +1,7 @@
 import { Check, ChevronDown, Search } from "lucide-react";
 import { useEffect, useId, useRef, useState } from "react";
-
-export const languages = [
-	["ar-SA", "Arabic (Saudi Arabia)"],
-	["zh-CN", "Chinese (China)"],
-	["nl-NL", "Dutch (Netherlands)"],
-	["en-US", "English (United States)"],
-	["en-GB", "English (United Kingdom)"],
-	["fr-FR", "French (France)"],
-	["fr-CA", "French (Canada)"],
-	["de-DE", "German (Germany)"],
-	["hi-IN", "Hindi (India)"],
-	["it-IT", "Italian (Italy)"],
-	["ja-JP", "Japanese (Japan)"],
-	["ko-KR", "Korean (South Korea)"],
-	["pt-BR", "Portuguese (Brazil)"],
-	["pt-PT", "Portuguese (Portugal)"],
-	["ru-RU", "Russian (Russia)"],
-	["es-ES", "Spanish (Spain)"],
-	["es-MX", "Spanish (Mexico)"],
-];
-
-export function resolveLanguage(value) {
-	const key = value.trim().toLowerCase();
-	return (
-		languages.find(
-			([code, label]) =>
-				code.toLowerCase() === key || label.toLowerCase() === key,
-		) ||
-		languages.find(
-			([, label]) => label.split(" (")[0].toLowerCase() === key,
-		) || [value, value]
-	);
-}
+import { LanguageFlag } from "./language-flag.jsx";
+import { languages, resolveLanguage } from "./language-options.js";
 
 export function LanguagePicker({ label, value, onChange, disabled = false }) {
 	const id = useId();
@@ -91,7 +60,10 @@ export function LanguagePicker({ label, value, onChange, disabled = false }) {
 					setActive(0);
 				}}
 			>
-				<span id={`${id}-value`}>{selected[1]}</span>
+				<span className="language-option-label" id={`${id}-value`}>
+					<LanguageFlag language={selected[0]} />
+					{selected[1]}
+				</span>
 				<ChevronDown size={16} aria-hidden="true" />
 			</button>
 			{open && (
@@ -158,7 +130,10 @@ export function LanguagePicker({ label, value, onChange, disabled = false }) {
 								onMouseDown={(event) => event.preventDefault()}
 								onClick={() => choose(option)}
 							>
-								{option[1]}
+								<span className="language-option-label">
+									<LanguageFlag language={option[0]} />
+									{option[1]}
+								</span>
 								{selected[0] === option[0] && (
 									<Check size={16} aria-hidden="true" />
 								)}
