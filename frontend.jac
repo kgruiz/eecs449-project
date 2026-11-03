@@ -1,6 +1,7 @@
 """Conversation workspace. Speech-to-text and typed turns share one transcript.
 With a voiceprint enrolled, the server attributes spoken turns by voice and the
 learner can switch a turn's speaker; otherwise the learner picks who is speaking."""
+import from "lucide-react" { Info, Check, ChevronDown, ChevronRight }
 import from "@jac/runtime" { jacLogin, jacSignup, jacLogout, jacIsLoggedIn, SignupResult }
 import from .core.models { SessionView, TranscriptTurn }
 import from .endpoints {
@@ -151,21 +152,19 @@ def:pub app -> JsxElement {
                                         onFocus={lambda { levelHelpOpen = True; }} onBlur={lambda { levelHelpOpen = False; }}
                                         onClick={lambda { levelHelpOpen = True; }}
                                         onKeyDown={lambda (e: any) { if e.key == "Escape" { levelHelpOpen = False; } }}>
-                                        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true" focusable="false">
-                                            <circle cx="10" cy="10" r="7.5"/><path d="M10 9v5"/><circle cx="10" cy="6" r="0.6" fill="currentColor"/>
-                                        </svg>
+                                        <Info size={18} strokeWidth={1.75} aria-hidden="true"/>
                                     </button>
                                     <span className="level-tooltip" id="level-help" role="tooltip" hidden={not levelHelpOpen}>CEFR scale: A1–A2 beginner, B1–B2 intermediate, C1–C2 advanced.</span>
                                 </span>
                             </div>
-                            <select id="learner-level" value={level} onChange={lambda (e: ChangeEvent) { level = e.target.value; }}>
+                            <span className="select-control"><select id="learner-level" value={level} onChange={lambda (e: ChangeEvent) { level = e.target.value; }}>
                                 {[<option key={value} value={value}>{value}</option> for value in ["A1", "A2", "B1", "B2", "C1", "C2"]]}
-                            </select>
+                            </select><ChevronDown className="select-chevron" size={16} strokeWidth={1.75} aria-hidden="true"/></span>
                         </div>
                         <label className="field">Partner
-                            <select value={partner_mode} onChange={lambda (e: ChangeEvent) { partner_mode = e.target.value; }}>
+                            <span className="select-control"><select value={partner_mode} onChange={lambda (e: ChangeEvent) { partner_mode = e.target.value; }}>
                                 <option value="human">Real person</option><option value="ai" disabled>AI partner (coming soon)</option>
-                            </select>
+                            </select><ChevronDown className="select-chevron" size={16} strokeWidth={1.75} aria-hidden="true"/></span>
                         </label>
                     </div>
                     <label className="consent-box"><input type="checkbox" checked={consent}
@@ -179,7 +178,7 @@ def:pub app -> JsxElement {
                     <button className="button button-primary start-button" disabled={busy or not consent} onClick={start}>
                         {"Starting..." if busy else "Start conversation"}
                     </button>
-                    <details className="voice-options"><summary>Speaker recognition (optional)</summary>
+                    <details className="voice-options"><summary><ChevronRight className="disclosure-chevron" size={16} strokeWidth={1.75} aria-hidden="true"/>Speaker recognition (optional)</summary>
                         <VoiceSetup enrolled={voice_enrolled} onChange={lambda (v: bool) { voice_enrolled = v; }}/>
                     </details>
                 </section>}
@@ -212,9 +211,7 @@ def:pub app -> JsxElement {
                                 <span className="speaker-option-content">
                                     <span className={"speaker-choice-avatar " + value} aria-hidden="true">{"M" if value == "learner" else "P"}</span>
                                     <span>{"Me" if value == "learner" else "Partner"}</span>
-                                    <svg className="speaker-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">
-                                        <path d="m5 12 4 4L19 6"/>
-                                    </svg>
+                                    <Check className="speaker-check" size={20} strokeWidth={1.75} aria-hidden="true"/>
                                 </span>
                             </label> for value in ["learner", "partner"]]}
                         </div>

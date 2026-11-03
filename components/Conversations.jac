@@ -1,3 +1,5 @@
+import from "lucide-react" { ArrowLeft }
+
 # The alias avoids a duplicate class name in Jac 0.37.23 list-return bridges.
 import from ..core.models { SessionView, ConversationSummary as HistoryItem, TranscriptTurn }
 import from ..endpoints { list_conversations, get_conversation }
@@ -77,7 +79,7 @@ def:pub Conversations(initialSessionId: str, onTalk: Callable[[], None], active:
             </div>
         </div>}
         {selected is not None and not opening and <div>
-            <button className="button button-quiet history-back" onClick={back}>← All conversations</button>
+            <button className="button button-quiet history-back" onClick={back}><ArrowLeft size={16} strokeWidth={1.75} aria-hidden="true"/>All conversations</button>
             <nav className="detail-tabs" aria-label="Conversation sections">
                 {[<button key={value} className={"detail-tab " + ("is-selected" if section == value else "")} aria-pressed={section == value} onClick={lambda { section = value; }}>{"Practice suggestions" if value == "practice" else value.capitalize()}</button> for value in ["overview", "transcript", "practice"]]}
             </nav>

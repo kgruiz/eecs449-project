@@ -1,4 +1,5 @@
 """Bounded transcript viewport that follows new turns until the reader scrolls up."""
+import from "lucide-react" { ArrowDown }
 import from react { useEffect }
 import from ..core.models { SessionView, TranscriptTurn }
 import from .Translation { TranscriptText }
@@ -54,6 +55,6 @@ def:pub TranscriptScroll(session: SessionView, onSwapSpeaker: Callable[[Transcri
             </ol>
         </div>
         {away and <button type="button" className="latest-button" onClick={latest}
-            aria-label="Scroll to latest turn"><span aria-hidden="true">↓</span> Latest</button>}
+            aria-label="Scroll to latest turn"><ArrowDown size={16} strokeWidth={1.75} aria-hidden="true"/> Latest</button>}
     </div>
 }

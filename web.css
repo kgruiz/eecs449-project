@@ -93,9 +93,7 @@
 .translation-spinner {
 	width: 18px;
 	height: 18px;
-	border: 2px solid #d5daf0;
-	border-top-color: var(--pip-blue);
-	border-radius: 50%;
+	color: var(--pip-blue);
 	animation: translate-spin 800ms linear infinite;
 }
 @keyframes translate-spin {
@@ -415,10 +413,6 @@ body {
 .pip-app select {
 	appearance: none;
 	padding-right: 40px;
-	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16' fill='none' stroke='%23535d6d' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m4 6 4 4 4-4'/%3E%3C/svg%3E");
-	background-repeat: no-repeat;
-	background-position: right 14px center;
-	background-size: 16px 16px;
 }
 .pip-app textarea {
 	resize: vertical;
@@ -1551,4 +1545,44 @@ body {
 	font-size: 12px;
 	font-weight: 400;
 	line-height: 1.5;
+}
+
+.select-control {
+	position: relative;
+	display: block;
+	min-width: 0;
+}
+.select-chevron {
+	position: absolute;
+	right: 14px;
+	top: 50%;
+	transform: translateY(-50%);
+	pointer-events: none;
+	color: #535d6d;
+}
+.select-control:has(select:disabled) .select-chevron {
+	opacity: 0.5;
+}
+.history-back,
+.latest-button {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+}
+.voice-options > summary,
+.speech-language-options > summary {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	list-style: none;
+}
+.voice-options > summary::-webkit-details-marker,
+.speech-language-options > summary::-webkit-details-marker {
+	display: none;
+}
+.disclosure-chevron {
+	flex: none;
+}
+details[open] > summary > .disclosure-chevron {
+	transform: rotate(90deg);
 }

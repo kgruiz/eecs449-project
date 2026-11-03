@@ -7,6 +7,7 @@ memory; each utterance's audio (from its first interim result, padded, to its
 final result) goes with it to append_spoken_turn, which decides the speaker from
 the learner's voiceprint. Otherwise the turn goes to append_turn with the
 manually selected speaker."""
+import from "lucide-react" { Mic, ChevronDown, ChevronRight }
 import from "./audioCapture.js" { createAudioCapture }
 import from ..core.models { SessionView }
 import from ..endpoints { append_turn, append_spoken_turn }
@@ -211,10 +212,7 @@ def:pub SpeechInput(sessionId: str, speaker: str, language: str, voiceEnabled: b
     <section className="speech-panel" aria-label="Speech to text">
         {(listening or saving or settling) and <div className="speech-status" role="status">
             <span className="speech-indicator" aria-hidden="true">
-                <svg className="speech-mic-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
-                    <rect x="9" y="3" width="6" height="11" rx="3"/>
-                    <path d="M6 10v2a6 6 0 0 0 12 0v-2M12 18v3m-3 0h6"/>
-                </svg>
+                <Mic className="speech-mic-icon" size={20} strokeWidth={1.75} aria-hidden="true"/>
             </span>
             <span>{("Listening..." if voiceEnabled
                 else "Listening for " + ("me" if speaker == "learner" else "partner")) if listening else "Saving spoken turns..."}</span>
@@ -224,21 +222,18 @@ def:pub SpeechInput(sessionId: str, speaker: str, language: str, voiceEnabled: b
         </p>}
         {recognitionClass and <div className="speech-controls">
             <label className="field">Speech language
-                <select value={locale} disabled={listening} onChange={lambda (e: ChangeEvent) { locale = e.target.value; }}>
+                <span className="select-control"><select value={locale} disabled={listening} onChange={lambda (e: ChangeEvent) { locale = e.target.value; }}>
                     {not any(option[0] == locale for option in SPEECH_OPTIONS) and <option value={locale}>{locale}</option>}
                     {[<option key={option[0]} value={option[0]}>{option[1]}</option> for option in SPEECH_OPTIONS]}
-                </select>
+                </select><ChevronDown className="select-chevron" size={16} strokeWidth={1.75} aria-hidden="true"/></span>
             </label>
-            <details className="speech-language-options"><summary>Other language or region</summary>
+            <details className="speech-language-options"><summary><ChevronRight className="disclosure-chevron" size={16} strokeWidth={1.75} aria-hidden="true"/>Other language or region</summary>
                 <label className="field">Language code <input value={locale} disabled={listening}
                     placeholder="For example, fr-CA" onChange={lambda (e: ChangeEvent) { locale = e.target.value; }}/></label>
             </details>
             {listening and <button className="button button-secondary" onClick={stop}>Stop listening</button>}
             {not listening and <button className="button button-primary" disabled={not locale.strip()} onClick={lambda { start(); }}>
-                <svg className="speech-mic-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true" focusable="false">
-                    <rect x="9" y="3" width="6" height="11" rx="3"/>
-                    <path d="M6 10v2a6 6 0 0 0 12 0v-2M12 18v3m-3 0h6"/>
-                </svg>
+                <Mic className="speech-mic-icon" size={20} strokeWidth={1.75} aria-hidden="true"/>
                 Start listening
             </button>}
             <p className="interim-text" aria-live="polite">{interim}</p>

@@ -1,4 +1,5 @@
 """Translate a full turn while keeping the original transcript visible."""
+import from "lucide-react" { Languages, LoaderCircle }
 import from ..endpoints { translate_sentence }
 
 def:pub TranscriptText(sessionId: str, turnId: str, text: str, speaker: str,
@@ -33,10 +34,8 @@ def:pub TranscriptText(sessionId: str, turnId: str, text: str, speaker: str,
                 <button type="button" className={"translate-button " + ("is-active" if showingEnglish else "")}
                     onClick={toggle} disabled={loading} aria-label={label} aria-expanded={showingEnglish}
                     aria-controls={"translation-" + turnId}>
-                    {loading and <span className="translation-spinner" aria-hidden="true"/>}
-                    {not loading and <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">
-                        <path d="m5 8 6 6m-7 0 6-6 2-5M2 5h12M7 2v3m7 17 4-10 4 10m-6.5-4h5"/>
-                    </svg>}
+                    {loading and <LoaderCircle className="translation-spinner" size={20} strokeWidth={1.75} aria-hidden="true"/>}
+                    {not loading and <Languages size={20} strokeWidth={1.75} aria-hidden="true"/>}
                 </button>
                 <span className="translation-tooltip" aria-hidden="true">{label}</span>
             </div>
