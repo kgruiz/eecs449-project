@@ -2,13 +2,13 @@
 With a voiceprint enrolled, the server attributes spoken turns by voice and the
 learner can switch a turn's speaker; otherwise the learner picks who is speaking."""
 import from "lucide-react" { Info, Check, ChevronDown, ChevronRight }
-import from "flag-icons/flags/4x3/es.svg" { default as spanishFlag }
+import from "./components/language-flag.jsx" { LanguageFlag }
 import from "@jac/runtime" { jacLogin, jacSignup, jacLogout, jacIsLoggedIn, SignupResult }
 import from .core.models { SessionView, TranscriptTurn }
 import from .endpoints {
     save_profile, start_conversation, append_turn, end_conversation, voice_status, set_turn_speaker
 }
-import from "./components/language-picker.jsx" { LanguagePicker, resolveLanguage }
+import from "./components/language-picker.jsx" { LanguagePicker }
 import from .components.SpeechInput { SpeechInput }
 import from .components.WordHelper { WordHelper }
 import from .components.VoiceSetup { VoiceSetup }
@@ -104,7 +104,7 @@ def:pub app -> JsxElement {
                 <button className={"main-tab " + ("is-selected" if page == "conversations" else "")} aria-pressed={page == "conversations"} disabled={busy or speechBusy} onClick={lambda { historyId = ""; page = "conversations"; }}>Conversations</button>
             </nav>}
             <div className="account-controls">
-                {logged_in and <span className="language-badge">{resolveLanguage(target_language)[0] == "es-ES" and <img className="language-flag" src={spanishFlag} alt="" width={20} height={15}/>}{target_language + " · " + level}</span>}
+                {logged_in and <span className="language-badge"><LanguageFlag language={target_language}/>{target_language + " · " + level}</span>}
                 {logged_in and <button className="button button-quiet" onClick={logout}>Sign out</button>}
             </div>
         </header>
