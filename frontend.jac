@@ -1,14 +1,14 @@
 """Conversation workspace. Speech-to-text and typed turns share one transcript.
 With a voiceprint enrolled, the server attributes spoken turns by voice and the
 learner can switch a turn's speaker; otherwise the learner picks who is speaking."""
-import from "lucide-react" { Info, Check, ChevronDown, ChevronRight }
+import from "lucide-react" { Info, Check, ChevronRight }
 import from "./components/language-flag.jsx" { LanguageFlag }
 import from "@jac/runtime" { jacLogin, jacSignup, jacLogout, jacIsLoggedIn, SignupResult }
 import from .core.models { SessionView, TranscriptTurn }
 import from .endpoints {
     save_profile, start_conversation, append_turn, end_conversation, voice_status, set_turn_speaker
 }
-import from "./components/language-picker.jsx" { LanguagePicker }
+import from "./components/language-picker.jsx" { LanguagePicker, LevelPicker, PartnerPicker }
 import from .components.SpeechInput { SpeechInput }
 import from .components.WordHelper { WordHelper }
 import from .components.VoiceSetup { VoiceSetup }
@@ -155,15 +155,9 @@ def:pub app -> JsxElement {
                                     <span className="level-tooltip" id="level-help" role="tooltip" hidden={not levelHelpOpen}>CEFR scale: A1–A2 beginner, B1–B2 intermediate, C1–C2 advanced.</span>
                                 </span>
                             </div>
-                            <span className="select-control"><select id="learner-level" value={level} onChange={lambda (e: ChangeEvent) { level = e.target.value; }}>
-                                {[<option key={value} value={value}>{value}</option> for value in ["A1", "A2", "B1", "B2", "C1", "C2"]]}
-                            </select><ChevronDown className="select-chevron" size={16} strokeWidth={1.75} aria-hidden="true"/></span>
+                            <LevelPicker value={level} onChange={lambda (value: str) { level = value; }}/>
                         </div>
-                        <label className="field">Partner
-                            <span className="select-control"><select value={partner_mode} onChange={lambda (e: ChangeEvent) { partner_mode = e.target.value; }}>
-                                <option value="human">Real person</option><option value="ai" disabled>AI partner (coming soon)</option>
-                            </select><ChevronDown className="select-chevron" size={16} strokeWidth={1.75} aria-hidden="true"/></span>
-                        </label>
+                        <PartnerPicker value={partner_mode} onChange={lambda (value: str) { partner_mode = value; }}/>
                     </div>
                     <label className="consent-box"><input type="checkbox" checked={consent}
                         onChange={lambda (e: ChangeEvent) { consent = e.target.checked; }}/>

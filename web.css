@@ -1616,6 +1616,10 @@ details[open] > summary > .disclosure-chevron {
 	text-align: left;
 	cursor: pointer;
 }
+.language-picker-trigger > span {
+	display: flex;
+	min-width: 0;
+}
 .language-picker-trigger svg {
 	flex: none;
 }
@@ -1734,4 +1738,14 @@ details[open] > summary > .disclosure-chevron {
 	.pip-app .language-picker-trigger:focus-visible {
 		outline-color: Highlight;
 	}
+}
+
+.language-picker [role="listbox"]:focus-visible {
+	outline: none;
+}
+.language-picker [role="option"][aria-disabled="true"] {
+	color: var(--pip-muted);
+	opacity: 0.6;
+	cursor: not-allowed;
+	background: transparent;
 }
