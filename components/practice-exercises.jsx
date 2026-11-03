@@ -236,7 +236,7 @@ function PracticeExercise({
 				<p>{item.explanation}</p>
 			</div>
 			<div className="practice-comparison">
-				<div>
+				<div className="practice-original">
 					<span className="practice-label">You said</span>
 					<p lang={locale}>{item.quote}</p>
 				</div>
@@ -256,7 +256,7 @@ function PracticeExercise({
 					<p lang={locale}>
 						{compareWords(item.quote, item.suggestion).map((word, wordIndex) =>
 							word.changed ? (
-								<mark key={`${wordIndex}-${word.text}`}>{word.text}</mark>
+								<strong key={`${wordIndex}-${word.text}`}>{word.text}</strong>
 							) : (
 								word.text
 							),
@@ -264,7 +264,7 @@ function PracticeExercise({
 					</p>
 					<button
 						type="button"
-						className="button button-quiet practice-listen"
+						className="button button-secondary practice-listen"
 						onClick={listen}
 						disabled={!canSpeak || listening || busy}
 					>

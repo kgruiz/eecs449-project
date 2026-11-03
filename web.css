@@ -1883,38 +1883,55 @@ details[open] > summary > .disclosure-chevron {
 	display: block;
 	margin-bottom: 8px;
 }
+/* Shared rows keep the arrow aligned with the phrases, independent of playback. */
 .practice-comparison {
 	display: grid;
-	grid-template-columns: 1fr auto 1fr;
-	gap: 24px;
+	grid-template-columns: minmax(0, 1fr) 20px minmax(0, 1fr);
+	grid-template-rows: auto auto auto;
+	column-gap: 24px;
+	row-gap: 12px;
 	align-items: start;
-	margin: 20px 0;
+	margin: 24px 0;
+	padding-top: 24px;
+	border-top: 1px solid var(--pip-border);
+}
+.practice-original,
+.practice-suggestion {
+	display: contents;
+}
+.practice-original > * {
+	grid-column: 1;
+}
+.practice-suggestion > * {
+	grid-column: 3;
+}
+.practice-comparison .practice-label {
+	grid-row: 1;
+	margin: 0;
 }
 .history-workspace .practice-comparison p {
+	grid-row: 2;
 	margin: 0;
+	font-size: 20px;
 	line-height: 1.6;
 	overflow-wrap: anywhere;
 }
 .practice-comparison-arrow {
-	margin-top: 35px;
+	grid-column: 2;
+	grid-row: 2;
+	align-self: center;
 	color: var(--pip-muted);
 }
-.history-workspace .practice-suggestion > p {
-	font-size: 22px;
-}
-.practice-suggestion mark {
-	color: var(--pip-ink);
-	background: #e9edff;
-	border-radius: 3px;
-	text-decoration: underline;
-	text-decoration-color: var(--pip-blue);
-	text-underline-offset: 4px;
-}
 .practice-listen {
-	padding: 6px 0;
-	min-height: 36px;
-	margin-top: 8px;
-	color: var(--pip-blue);
+	grid-row: 3;
+	justify-self: start;
+	padding: 8px 14px;
+	min-height: 40px;
+	gap: 8px;
+}
+.practice-listen:hover:not(:disabled) {
+	background: #f5f5f7;
+	border-color: #cdd0d7;
 }
 .history-workspace .practice-reason h3 {
 	margin: 8px 0;
@@ -1924,7 +1941,7 @@ details[open] > summary > .disclosure-chevron {
 }
 .history-workspace .practice-reason p {
 	max-width: 70ch;
-	margin: 8px 0 24px;
+	margin: 8px 0 0;
 	line-height: 1.6;
 }
 .practice-answer {
@@ -1983,8 +2000,20 @@ details[open] > summary > .disclosure-chevron {
 }
 @media (max-width: 600px) {
 	.practice-comparison {
-		grid-template-columns: 1fr;
-		gap: 16px;
+		display: flex;
+		flex-direction: column;
+		gap: 20px;
+	}
+	.practice-original,
+	.practice-suggestion {
+		display: grid;
+		gap: 8px;
+		width: 100%;
+	}
+	.practice-comparison .practice-original > *,
+	.practice-comparison .practice-suggestion > * {
+		grid-column: auto;
+		grid-row: auto;
 	}
 	.practice-comparison-arrow {
 		display: none;
