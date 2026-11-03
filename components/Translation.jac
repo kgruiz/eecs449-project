@@ -3,7 +3,8 @@ import from "lucide-react" { Languages, LoaderCircle }
 import from ..endpoints { translate_sentence }
 
 def:pub TranscriptText(sessionId: str, turnId: str, text: str, speaker: str,
-                       speakerSource: str, canCorrect: bool, onSpeakerClick: Callable[[], None]) -> JsxElement {
+                       speakerSource: str, canCorrect: bool, onSpeakerClick: Callable[[], None],
+                       completion: JsxElement | None = None) -> JsxElement {
     has english: str = "", showingEnglish: bool = False, loading: bool = False, failed: bool = False;
     has pending: Ref[bool] = Ref(False);
 
@@ -40,7 +41,7 @@ def:pub TranscriptText(sessionId: str, turnId: str, text: str, speaker: str,
                 <span className="translation-tooltip" aria-hidden="true">{label}</span>
             </div>
         </div>
-        <p className="turn-text">{text}</p>
+        <p className="turn-text">{text}{completion}</p>
         <div id={"translation-" + turnId} hidden={not showingEnglish} className="translation-result" lang="en">
             <p className="translation-label">English</p>
             <p className="translation-text">{english}</p>

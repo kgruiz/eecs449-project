@@ -55,15 +55,13 @@ def:pub TranscriptScroll(session: SessionView, onSwapSpeaker: Callable[[Transcri
                     <span className="speaker-avatar" aria-hidden="true">{"M" if turn.speaker == "learner" else "P"}</span>
                     <div className="turn-content"><TranscriptText sessionId={session.id} turnId={turn.id} text={turn.text} speaker={turn.speaker}
                         speakerSource={turn.speaker_source} canCorrect={session.status == "active"}
-                        onSpeakerClick={lambda { onSwapSpeaker(turn); }}/>
-                    {savedDraft and last is not None and turn.id == last.id and <CompletionOptions sessionId={session.id} draft={draft} contextKey={contextKey} enabled={completions}/>}
+                        onSpeakerClick={lambda { onSwapSpeaker(turn); }}
+                        completion={<CompletionOptions sessionId={session.id} draft={draft} contextKey={contextKey} enabled={completions}/> if savedDraft and last is not None and turn.id == last.id else None}/>
                     </div>
                 </li> for turn in session.turns]}
                 {completions and draft.strip() and not savedDraft and <li className="transcript-turn turn-learner draft-turn">
                     <span className="speaker-avatar" aria-hidden="true">M</span>
-                    <div className="turn-content"><p className="eyebrow">Me · in progress</p><p className="turn-text">{draft}</p>
-                        <CompletionOptions sessionId={session.id} draft={draft} contextKey={contextKey} enabled={completions}/>
-                    </div>
+                    <div className="turn-content"><p className="eyebrow">Me · in progress</p><p className="turn-text">{draft}<CompletionOptions sessionId={session.id} draft={draft} contextKey={contextKey} enabled={completions}/></p></div>
                 </li>}
             </ol>
         </div>

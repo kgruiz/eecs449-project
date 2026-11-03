@@ -33,7 +33,10 @@ def:pub CompletionOptions(sessionId: str, draft: str, contextKey: str, enabled: 
         if timer.current { clearTimeout(timer.current); }
     }
 
-    <div className="completion-options" aria-label="Sentence completions" aria-live="polite">
-        {enabled and [<span key={option} className="completion-option">{option}</span> for option in options]}
-    </div>
+    <span className="completion-anchor" aria-live="polite">
+        {enabled and len(options) > 0 and <span className="completion-options" aria-label="Sentence completions">
+            <span className="completion-option">{options[0]}</span>
+            {[<span key={option} className="completion-option">{option}</span> for option in options[1:]]}
+        </span>}
+    </span>
 }
