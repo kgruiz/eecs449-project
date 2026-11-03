@@ -1,8 +1,12 @@
 """Shared authenticated pipeline. Audio adapters submit finalized turns here."""
-import from .core.models { LearnerProfile, TranscriptTurn, Conversation, SessionView, VoiceStatus, WordHint }
+import from .core.models { LearnerProfile, TranscriptTurn, Conversation, SessionView, VoiceStatus, WordHint, ConversationSummary, PracticeFeedback }
 import from .core.voiceprint { enroll, learner_similarity, MATCH_THRESHOLD }
 import from .core.hints { suggest_next_word }
 import from uuid { uuid4 }
+import from datetime { datetime, timezone }
+import from .core.history { history_page }
+import from .core.coaching { build_report }
+import from .core.practice { check_answer }
 import from .core.ai { translate_to_english }
 def profile() -> LearnerProfile {
     profiles = [root -->][?:LearnerProfile];
@@ -36,7 +40,7 @@ def:protect start_conversation(consent_confirmed: bool, partner_mode: str = "hum
     learner = profile();
     session = root ++> Conversation(native_language=learner.native_language,
         target_language=learner.target_language, level=learner.level,
-        partner_mode=partner_mode, consent_confirmed=True);
+        partner_mode=partner_mode, consent_confirmed=True, created_at=datetime.now(timezone.utc).isoformat());
     return session.to_view();
 }
 def:protect get_conversation(session_id: str) -> SessionView {
@@ -98,6 +102,7 @@ def:protect append_spoken_turn(session_id: str, text: str, duration_seconds: flo
 def:protect set_turn_speaker(session_id: str, turn_id: str, speaker: str) -> SessionView {
     session = owned_session(session_id);
     if speaker not in ["learner", "partner"] { raise ValueError("Unknown speaker."); }
+    if session.status != "active" { raise ValueError("Conversation has ended."); }
     found = False;
     turns: list[TranscriptTurn] = [];
     for turn in session.turns {
@@ -143,4 +148,23 @@ def:protect translate_sentence(session_id: str, turn_id: str, sentence: str) -> 
         }
     }
     raise ValueError("Sentence not found in this conversation.");
+}
+
+# Feedback generation is separate so a provider failure cannot undo completion.
+def:protect conversation_feedback(session_id: str) -> SessionView {
+    session = owned_session(session_id);
+    build_report(session);
+
+    return session.to_view();
+}
+
+def:protect list_conversations(offset: int, limit: int) -> list[ConversationSummary] {
+
+    return history_page([root -->][?:Conversation], offset, limit);
+}
+
+# Practice answers are assessed separately and never appended to the transcript.
+def:protect check_practice_answer(session_id: str, priority_index: int, answer: str) -> PracticeFeedback {
+
+    return check_answer(owned_session(session_id), priority_index, answer);
 }

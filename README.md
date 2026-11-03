@@ -11,6 +11,9 @@ The current checkout includes:
 
 - Account creation and sign-in.
 - A learner profile with native language, target language, and CEFR level.
+  Web setup uses searchable language choices such as Spanish (Spain) and
+  Spanish (Mexico). Listening defaults to the learning language; Change opens
+  a language picker with Cancel and Apply, affecting transcription only.
 - Participant consent before starting a conversation.
 - Authenticated sessions, saved text transcripts, and typed turns.
 - A web **Download transcript (.txt)** button for active or ended conversations
@@ -27,11 +30,12 @@ The current checkout includes:
   using the same authenticated server endpoints. Its web preview uses typed
   turns only; the HTML feature panels are not ported to mobile.
 
-Live hints, AI-partner responses, coaching reports, mistake
-history, and personalized lessons are planned. `FeaturePanels.jac` is still
-an extension placeholder. The AI-partner selector records a session mode;
-selecting it does not yet generate responses. Translation is sent to Gemini
-only when requested, after participant consent.
+Full-reply hints, AI-partner responses, mistake history, and personalized
+lessons are planned. Web next-word hints and web/mobile post-conversation
+recaps are implemented. `FeaturePanels.jac` is still
+an extension placeholder. The web AI-partner option is disabled and labeled
+“coming soon”; the server still accepts the mode but does not generate replies.
+Translation is sent to Gemini only when requested, after participant consent.
 
 See [the project plan](docs/project-plan.md) for scope, milestones, risks,
 and open decisions, and [the architecture](docs/architecture.md) for the
@@ -57,7 +61,7 @@ a turn. Speech input requires a browser exposing `SpeechRecognition` or
 without that API can use typed turns. Actual browser and language support
 still needs runtime verification.
 
-Set `GEMINI_API_KEY` in `.env` to enable translation. The server defaults to
+Set `GEMINI_API_KEY` in `.env` to enable translation, word hints, and coaching. The server defaults to
 `gemini-3.5-flash-lite` through Jac's byLLM integration. Run `jac install`
 after pulling the change, and restart the server after changing environment variables.
 Never commit real credentials.
@@ -267,6 +271,44 @@ code signing.
 - `docs/architecture.md`: data flow, integration points, and limitations.
 - `docs/project-plan.md`: product goals and indicative delivery plan.
 
+## Web navigation
+
+**Talk** contains conversation setup and the live transcript/controls.
+**Conversations** lists your completed sessions, newest dated sessions first,
+with a title taken from the opening turn, language/level, local date/time,
+turn count, and summary preview. Earlier sessions without timestamps remain
+available and are labeled Earlier conversation. Lists use pages of 20 records.
+
+Opening a conversation shows three sections:
+
+- **Overview:** its summary and what went well.
+- **Transcript:** saved turns, on-demand translations, and text download.
+- **Practice:** evidence-based phrasing improvements and short practice tasks.
+
+Ending a session takes you directly to its Overview. New conversation returns
+to Talk setup. Switching tabs retains an active session, speaker selection, and
+typed draft; stop listening and wait for saves before leaving Talk. Active
+sessions are not shown in the completed library, and active-session recovery
+after a full page reload is not implemented. Tab selection is local UI state,
+not a shareable URL. Native mobile retains its existing recap layout.
+
+## Conversation recap
+
+Stop listening and wait for pending turns to save, then end the conversation.
+Web and mobile request a recap automatically for sessions with a learner turn.
+The recap includes a summary, up to three strengths, and up to three priorities
+with learner quotes, suggested phrasing, and specific practice tasks. Explanations
+use the session's native language; phrasing follows its target language and CEFR level.
+Feedback uses text only and does not score pronunciation or acoustic fluency.
+
+Successful reports are saved with the conversation and returned by
+`get_conversation`; repeat requests reuse them. The web Conversations tab
+lets you revisit completed sessions and their saved feedback.
+Empty or partner-only sessions do not request feedback. Provider failures keep
+the ended transcript intact and show Retry feedback. Transcripts exceeding
+100,000 serialized characters are rejected rather than silently truncated.
+Speaker corrections must be made before ending the conversation.
+
 ## Data handling
 
 Conversation text is stored in the authenticated user's graph. The app does
@@ -274,7 +316,8 @@ not store raw audio. Speech recognition uses the browser's speech service;
 the consent copy explains that Chrome and Edge send audio to their provider.
 The native app uses the phone's speech service; its consent copy explains
 that Apple or Google may process the audio. The consent flow also covers
-sending requested transcript sentences to Gemini for translation. Deletion
+sending conversation text to Gemini for language help and an automatic recap
+after completion. Deletion
 and retention controls are not implemented.
 
 ## Validation status
@@ -285,7 +328,7 @@ The mobile PR author reports that `jac check` passes for the whole project
 under Jac 0.37.23 and that the mobile app reached its sign-in screen in an
 iOS 27 simulator. Those results were not rerun during conflict resolution.
 The author reports no tests, sign-in or session-flow checks, web app runs,
-or Gemini requests. No test suite is currently checked in.
+or Gemini requests. Offline AI regression tests are now checked in beside the core AI modules.
 
 Live native transcription and physical-device conversation flows still need
 verification. Follow `AGENTS.md` when planning validation and record the
@@ -382,8 +425,9 @@ accent rule. Each action translates the entire turn through the existing
 protected endpoint. Its 4,000-character limit matches the turn-input limit.
 Translations remain local to the current view; downloads retain original text.
 The header, speech controls, and multiline composer use the simplified layout.
-The planned-feature footnote is removed. Recognition language remains a text
-field; native mobile code is unchanged.
+The planned-feature footnote is removed. Recognition language was a text
+field at this validation point; the web now uses the picker described above.
+Native mobile code is unchanged.
 
 - `jac test core/ai.jac`: four offline translation regression tests passed.
 - `jac check`: both apps passed with warnings.
@@ -468,3 +512,84 @@ Partner typed-turn attribution, session completion, and the 390px layout with
 no horizontal overflow or browser console errors/warnings. The test server
 was stopped. Live microphone/voice enrollment and Gemini were not exercised;
 no simulator was started.
+
+### Post-conversation coaching verification on 11/02/2026
+
+- `jac check` passed both apps with warnings under Jac 0.37.23.
+- `jac test core/coaching.jac` passed 10 collected tests (six coaching tests
+  plus four imported translation regressions). `jac test core/hints.jac`
+  passed five collected tests. All provider calls were mocked.
+- `biome check web.css` and `jac build --as client web` passed.
+- An isolated temporary source copy on ports 8020/8021 used simulated coaching
+  and hint providers. API checks passed authentication, consent, ownership,
+  completion requirements, saved-report retrieval/cache reuse, rejection of late
+  turns/speaker changes, empty sessions, and preservation after provider errors.
+- Browser checks covered sign-in, consent, learner typed turns, recap display,
+  simulated failure/retry, and a 390px recap without horizontal overflow.
+  A synthetic speech recognizer verified End remains disabled while listening
+  and awaiting its delayed final result, then enables after the turn is saved.
+- The temporary copy reused the existing project virtual environment because
+  `jac install` failed creating a venv with a bundled-Python symbol error.
+  Hot reload emitted transient Vite reload errors while QA files were copied;
+  a full reload restored the tested flow. QA fixtures are outside the repository.
+
+No live Gemini requests, real microphone tests, or native simulator/device runs
+were performed. Native recap rendering and live output quality remain unverified.
+
+### Conversations navigation verification on 11/02/2026
+
+- `jac check` passed both apps with warnings; `biome check web.css` and
+  `jac build --as client web` passed. The list-return bridge needs a type-import
+  alias to avoid duplicate generated class declarations under Jac 0.37.23.
+- `jac test core/history.jac` passed three tests for sorting/filtering, bounded
+  previews, legacy dates, and pagination. Coaching and hints suites passed
+  10 and five collected offline tests respectively (including imported tests).
+- Isolated API QA with simulated AI passed authentication, ownership isolation,
+  completed-only listing, timestamps, pagination, report persistence/reuse,
+  rejection of late turns/corrections, and provider-failure preservation.
+- Browser QA verified an empty library, consent, typed turns, retained drafts
+  and active sessions across tab switches, completion into Overview, separate
+  Transcript/Practice sections, reopening saved feedback, and history after
+  reopening the app. Downloaded text contained the correct ended transcript.
+- A synthetic recognizer verified navigation/completion remain disabled through
+  a delayed final result. Practice at 390px had no horizontal overflow.
+
+The temporary QA copy used simulated AI and speech, not live Gemini or a real
+microphone. No native simulator was started. Native navigation was not changed.
+
+### Interactive practice verification on 11/03/2026
+
+The web Practice section now provides phrase comparisons with changed-word
+highlighting, Listen, expandable explanations, typed or spoken answers, and
+Check answer with retry and next/finish controls. Checking sends the answer to
+Gemini; answers and exercise progress are temporary and never appended to the
+saved transcript. Speech recognition produces editable text, not pronunciation
+scores. Playback depends on an available device voice for the selected language.
+
+- `jac check` passed the new practice module, web coaching panel, and endpoints
+  (existing JSX/interface warnings remain).
+- `jac build web -a client` passed.
+- `jac test core/practice.jac` passed seven collected offline tests;
+  `jac test core/coaching.jac` passed ten collected offline tests.
+- `bun test components/practice-diff.test.js` passed three tests; scoped Biome
+  checks passed for the new JavaScript/JSX and CSS.
+- An isolated preview with simulated AI verified correction, successful answers,
+  retry, provider-error text preservation, completion/restart, and editable
+  output from a synthetic speech recognizer. Browser phrase playback started.
+- No live Gemini request, real microphone capture, or native-device run was
+  performed. Model feedback quality still needs live evaluation.
+
+### Practice explanations on 11/03/2026
+
+Practice now shows its explanation above the phrase comparison. Newly generated
+feedback labels each priority Correction or Optional improvement and provides a
+specific heading. Optional wording changes must not be presented as mistakes.
+Existing saved reports remain readable with a neutral Practice note label and
+visible explanation; they are not automatically regenerated or classified.
+
+Validation: `jac check core/coaching.jac`, `jac build web -a client`, and scoped
+Biome checks passed. Coaching and practice suites passed 12 and seven collected
+offline tests respectively. An isolated component preview verified corrections,
+optional improvements, legacy feedback, answer/next controls, and a 390px layout
+without horizontal overflow. The preview used fixtures and simulated checking;
+no live model or microphone requests were made.

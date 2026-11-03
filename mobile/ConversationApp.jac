@@ -13,6 +13,7 @@ import from ..endpoints {
 import from .SpeechInput { SpeechInput }
 import from .VoiceSetup { VoiceSetup }
 import from .theme { styles }
+import from .CoachingPanel { CoachingPanel }
 import from .ui { ActionButton, Chip }
 
 def:pub ConversationApp -> JsxElement {
@@ -20,7 +21,7 @@ def:pub ConversationApp -> JsxElement {
         native_language: str = "English", target_language: str = "Spanish",
         consent: bool = False, session: SessionView | None = None,
         speaker: str = "partner", error: str = "", busy: bool = False,
-        voice_enrolled: bool = False;
+        voice_enrolled: bool = False, speechBusy: bool = False;
     can with entry { logged_in = jacIsLoggedIn(); }
     async def loadVoice() -> None {
         try { status = await voice_status(); voice_enrolled = status.enrolled; }
@@ -67,6 +68,7 @@ def:pub ConversationApp -> JsxElement {
         finally { busy = False; }
     }
     async def finish() -> None {
+        if speechBusy { return; }
         updated: SessionView | None = None;
         if session is None { return; }
         error = ""; busy = True;
@@ -108,7 +110,7 @@ def:pub ConversationApp -> JsxElement {
                     <Text style={[styles.text, {"flex": 1}]}>
                         {"All participants agree to live transcription by this device's speech service, "
                             + ("sending each spoken turn's audio to our server to recognize who is speaking, " if voice_enrolled else "")
-                            + "saved text, and sending conversation text to Gemini for requested help."}
+                            + "saved text, and sending conversation text to Gemini for language help and an automatic recap after ending."}
                     </Text>
                 </View>
                 <Text style={styles.muted}>
@@ -147,12 +149,15 @@ def:pub ConversationApp -> JsxElement {
                     </View>)}
                     <SpeechInput key={session.id} sessionId={session.id} speaker={speaker}
                         language={session.target_language} voiceEnabled={voice_enrolled}
+                        onBusyChange={lambda (value: bool) { speechBusy = value; }}
                         onSessionChange={lambda (updated: SessionView) { session = updated; }}/>
-                    <ActionButton label="End conversation" variant="secondary" disabled={busy}
+                    {(<Text style={styles.muted}>Stop listening and wait for your turns to save before ending.</Text>) if speechBusy else <View/>}
+                    <ActionButton label="End conversation" variant="secondary" disabled={busy or speechBusy}
                         onPress={lambda { finish(); }}/>
                 </View>) if session.status == "active" else <View/>}
             </View>) if session is not None else <View/>}
         </View>}
+        {(<CoachingPanel key={"coaching-" + session.id} session={session}/>) if session is not None and session.status == "ended" else <View/>}
     </ScrollView>
     </KeyboardAvoidingView>
 }

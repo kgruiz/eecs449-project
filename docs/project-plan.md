@@ -19,7 +19,10 @@ The Week 7 update lists PR #7 as the merged initial speech-to-text demo.
 A native mobile conversation UI and speech-recognition adapter have been
 added in PR #10, sharing the web server's endpoints. The author reports an
 iOS simulator launch to sign-in; the conversation flow and native speech
-still need end-to-end verification. Coaching panels remain placeholders.
+still need end-to-end verification. Post-conversation recap panels now provide
+transcript-based summaries and practice priorities on web and mobile. The web app now separates Talk from a saved
+Conversations library with Overview, Transcript, and Practice sections. Live model quality and native-device behavior remain
+unverified.
 
 ## Planned features
 
@@ -29,8 +32,11 @@ still need end-to-end verification. Coaching panels remain placeholders.
 2. **Tap-to-translate.** Web transcript sentences can be translated to English
    on request, with results retained while the transcript view is open.
    Persistent caching and native mobile presentation remain future work.
-3. **Post-conversation coaching.** Use conversation evidence for grammar
-   and vocabulary feedback, mistake history, and personalized practice.
+3. **Post-conversation coaching.** Saved summaries and evidence-based grammar
+   and vocabulary practice priorities are implemented. Web practice now supports
+   listening, typed or transcribed answers, and explicit AI answer checks.
+   Mistake history and
+   generated lessons remain planned.
    Pronunciation and audio-based fluency scoring need a separate source of
    audio evidence and scoring capability; the saved text alone is insufficient.
 

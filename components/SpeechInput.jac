@@ -7,10 +7,13 @@ memory; each utterance's audio (from its first interim result, padded, to its
 final result) goes with it to append_spoken_turn, which decides the speaker from
 the learner's voiceprint. Otherwise the turn goes to append_turn with the
 manually selected speaker."""
+import from "lucide-react" { Mic }
+import from "./language-picker.jsx" { ListeningLanguage }
+import from "./language-options.js" { resolveLanguage }
 import from "./audioCapture.js" { createAudioCapture }
 import from ..core.models { SessionView }
 import from ..endpoints { append_turn, append_spoken_turn }
-import from ..core.speech { speech_locale, speech_error_message, ROUTINE_SPEECH_ERRORS }
+import from ..core.speech { speech_error_message, ROUTINE_SPEECH_ERRORS }
 
 # Audio kept before an utterance's first interim result (recognition lags speech),
 # and assumed for a final that arrives without any interim result.
@@ -18,9 +21,11 @@ glob UTTERANCE_PAD_MS: int = 700, UNTIMED_UTTERANCE_MS: int = 3000;
 
 def:pub SpeechInput(sessionId: str, speaker: str, language: str, voiceEnabled: bool,
                     onSessionChange: Callable[[SessionView], None],
-                    onDraft: Callable[[str, str], None] | None = None) -> JsxElement {
-    has listening: bool = False, interim: str = "", locale: str = speech_locale(language),
+                    onDraft: Callable[[str, str], None] | None = None,
+                    onBusyChange: Callable[[bool], None] | None = None) -> JsxElement {
+    has listening: bool = False, interim: str = "", locale: str = resolveLanguage(language)[0],
         error: str = "";
+    has saving: bool = False, settling: bool = False;
     has recognitionRef: Ref[any] = Ref(None);
     has listeningRef: Ref[bool] = Ref(False);
     has speakerRef: Ref[str] = Ref(speaker);
@@ -36,12 +41,15 @@ def:pub SpeechInput(sessionId: str, speaker: str, language: str, voiceEnabled: b
     recognitionClass: any = browser.SpeechRecognition or browser.webkitSpeechRecognition;
     speakerRef.current = speaker;
 
+    can with [listening, saving, settling] entry {
+        if onBusyChange { onBusyChange(listening or saving or settling); }
+    }
     # Submit queued turns one at a time so transcript order matches speech order.
     async def drain() -> None {
         updated: SessionView | None = None;
         turn: dict[str, any] = {};
         if drainingRef.current { return; }
-        drainingRef.current = True;
+        drainingRef.current = True; saving = True;
         try {
             while queueRef.current and len(queueRef.current) > 0 {
                 turn = queueRef.current[0];
@@ -61,7 +69,7 @@ def:pub SpeechInput(sessionId: str, speaker: str, language: str, voiceEnabled: b
                     error = "Could not save a spoken turn: " + turn["text"];
                 }
             }
-        } finally { drainingRef.current = False; }
+        } finally { drainingRef.current = False; saving = False; }
     }
     def reportDraft(who: str, text: str) -> None {
         if onDraft { onDraft(who, text); }
@@ -118,14 +126,17 @@ def:pub SpeechInput(sessionId: str, speaker: str, language: str, voiceEnabled: b
         error = speech_error_message(code);
     }
     def handleEnd() -> None {
+        settling = False;
         interim = "";
         utteranceRef.current = None;
         # Browsers end continuous recognition after silence; resume until stopped.
         if listeningRef.current and recognitionRef.current {
+            settling = True;
             try { recognitionRef.current.start(); }
             except Exception {
                 listeningRef.current = False;
                 listening = False;
+                settling = False;
                 error = "Speech recognition stopped. Press Start listening to resume.";
                 stopCapture();
             }
@@ -161,11 +172,13 @@ def:pub SpeechInput(sessionId: str, speaker: str, language: str, voiceEnabled: b
         recognition.onerror = lambda (e: any) { handleError(e.error); };
         recognition.onend = lambda { handleEnd(); };
         recognitionRef.current = recognition;
+        settling = True;
         try { recognition.start(); }
         except Exception {
             listeningRef.current = False;
             listening = False;
             stopCapture();
+            settling = False;
             error = "Could not start speech recognition.";
         }
     }
@@ -188,28 +201,22 @@ def:pub SpeechInput(sessionId: str, speaker: str, language: str, voiceEnabled: b
         stopCapture();
     }
     <section className="speech-panel" aria-label="Speech to text">
-        <div className="speech-status" role="status">
+        {(listening or saving or settling) and <div className="speech-status" role="status">
             <span className="speech-indicator" aria-hidden="true">
-                <svg className="speech-mic-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
-                    <rect x="9" y="3" width="6" height="11" rx="3"/>
-                    <path d="M6 10v2a6 6 0 0 0 12 0v-2M12 18v3m-3 0h6"/>
-                </svg>
+                <Mic className="speech-mic-icon" size={20} strokeWidth={1.75} aria-hidden="true"/>
             </span>
             <span>{("Listening..." if voiceEnabled
-                else "Listening for " + ("me" if speaker == "learner" else "partner")) if listening else "Ready when you are"}</span>
-        </div>
+                else "Listening for " + ("me" if speaker == "learner" else "partner")) if listening else "Saving spoken turns..."}</span>
+        </div>}
         {not recognitionClass and <p className="muted">
             Live transcription needs a browser with the Web Speech API (Chrome, Edge or Safari). You can still type turns.
         </p>}
         {recognitionClass and <div className="speech-controls">
-            <label className="field">Recognition language <input value={locale} disabled={listening}
-                onChange={lambda (e: ChangeEvent) { locale = e.target.value; }}/></label>
+            <ListeningLanguage value={locale} disabled={listening or saving or settling}
+                onChange={lambda (value: str) { locale = value; }}/>
             {listening and <button className="button button-secondary" onClick={stop}>Stop listening</button>}
             {not listening and <button className="button button-primary" disabled={not locale.strip()} onClick={lambda { start(); }}>
-                <svg className="speech-mic-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" aria-hidden="true" focusable="false">
-                    <rect x="9" y="3" width="6" height="11" rx="3"/>
-                    <path d="M6 10v2a6 6 0 0 0 12 0v-2M12 18v3m-3 0h6"/>
-                </svg>
+                <Mic className="speech-mic-icon" size={20} strokeWidth={1.75} aria-hidden="true"/>
                 Start listening
             </button>}
             <p className="interim-text" aria-live="polite">{interim}</p>

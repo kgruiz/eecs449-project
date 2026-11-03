@@ -28,9 +28,11 @@ import from .theme { styles, C }
 import from .ui { ActionButton }
 
 def:pub SpeechInput(sessionId: str, speaker: str, language: str, voiceEnabled: bool,
-                    onSessionChange: Callable[[SessionView], None]) -> JsxElement {
+                    onSessionChange: Callable[[SessionView], None],
+                    onBusyChange: Callable[[bool], None] | None = None) -> JsxElement {
     has listening: bool = False, interim: str = "", locale: str = speech_locale(language),
         error: str = "", available: bool = True;
+    has saving: bool = False, settling: bool = False;
     has listeningRef: Ref[bool] = Ref(False);
     # True from start() until the module's "end"; a new session must not start before then.
     has activeRef: Ref[bool] = Ref(False);
@@ -61,12 +63,15 @@ def:pub SpeechInput(sessionId: str, speaker: str, language: str, voiceEnabled: b
         } except Exception { data = ""; }
         return data;
     }
+    can with [listening, saving, settling] entry {
+        if onBusyChange { onBusyChange(listening or saving or settling); }
+    }
     # Submit queued turns one at a time so transcript order matches speech order.
     async def drain() -> None {
         updated: SessionView | None = None;
         turn: dict[str, any] = {};
         if drainingRef.current { return; }
-        drainingRef.current = True;
+        drainingRef.current = True; saving = True;
         try {
             while queueRef.current and len(queueRef.current) > 0 {
                 turn = queueRef.current[0];
@@ -83,7 +88,7 @@ def:pub SpeechInput(sessionId: str, speaker: str, language: str, voiceEnabled: b
                     error = "Could not save a spoken turn: " + turn["text"];
                 }
             }
-        } finally { drainingRef.current = False; }
+        } finally { drainingRef.current = False; saving = False; }
     }
     def finalize(text: str) -> None {
         utterance = utteranceRef.current;
@@ -151,7 +156,7 @@ def:pub SpeechInput(sessionId: str, speaker: str, language: str, voiceEnabled: b
     }
     def begin() -> None {
         sessionFinalRef.current = False;
-        activeRef.current = True;
+        activeRef.current = True; settling = True;
         options: dict[str, any] = {"lang": locale.strip(), "interimResults": True,
             "continuous": Platform.OS == "android", "addsPunctuation": True};
         if voiceRef.current {
@@ -169,13 +174,14 @@ def:pub SpeechInput(sessionId: str, speaker: str, language: str, voiceEnabled: b
         if not listeningRef.current or activeRef.current { return; }
         try { begin(); }
         except Exception {
-            activeRef.current = False;
+            activeRef.current = False; settling = False;
             listeningRef.current = False;
             listening = False;
             error = "Speech recognition stopped. Tap Start listening to resume.";
         }
     }
     def handleEnd() -> None {
+        settling = False;
         activeRef.current = False;
         # A session cut off before its final result keeps its last hypothesis.
         if utteranceRef.current { finalize(utteranceRef.current["text"]); }
@@ -195,14 +201,16 @@ def:pub SpeechInput(sessionId: str, speaker: str, language: str, voiceEnabled: b
 
     async def start() -> None {
         permission: any = None;
-        error = "";
+        error = ""; settling = True;
         try {
             permission = await ExpoSpeechRecognitionModule.requestPermissionsAsync();
         } except Exception {
+            settling = False;
             error = "Could not request microphone access.";
             return;
         }
         if not permission.granted {
+            settling = False;
             error = speech_error_message("not-allowed");
             return;
         }
@@ -213,7 +221,7 @@ def:pub SpeechInput(sessionId: str, speaker: str, language: str, voiceEnabled: b
         if activeRef.current { return; }
         try { begin(); }
         except Exception {
-            activeRef.current = False;
+            activeRef.current = False; settling = False;
             listeningRef.current = False;
             listening = False;
             error = "Could not start speech recognition.";

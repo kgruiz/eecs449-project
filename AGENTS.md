@@ -15,9 +15,13 @@ the mobile browser preview supports typed turns only.
 `components/FeaturePanels.jac` is a placeholder. The web app suggests a
 next word when the learner pauses mid-sentence (`components/WordHelper.jac`,
 `suggest_word`), which makes a Gemini call through `core/hints.jac`. Full
-reply hints, AI-partner responses, translation, coaching, mistake history,
-and lessons are planned, not implemented. The AI-partner selector only
-records a mode.
+reply hints, AI-partner responses, mistake history,
+and lessons are planned, not implemented. Translation and saved post-conversation
+coaching are implemented; coaching uses the shared Gemini configuration and
+requires ended, consented sessions with learner turns. The AI-partner selector only
+records a mode. The web app has Talk and Conversations navigation; completed
+sessions open to Overview, Transcript, and Practice. History is account-scoped
+and paginated. Native mobile keeps its existing recap layout.
 
 Preserve authenticated ownership checks, participant consent, and the
 shared `append_turn` transcript handoff. Keep raw audio out of persistence
@@ -63,9 +67,9 @@ When validation is authorized:
 
 Verify authentication, consent, session ownership, typed and spoken turns,
 and session completion when changing the conversation flow. Record actual
-commands, results, and remaining limitations. No test suite is currently
-checked in. Documentation-only changes need documentation checks, not app
-runs or model requests.
+commands, results, and remaining limitations. Offline AI regression tests are
+checked in beside the core AI modules. Documentation-only changes need
+documentation checks, not app runs or model requests.
 
 ## Repository hygiene
 

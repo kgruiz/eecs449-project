@@ -4,7 +4,16 @@ glob SPEECH_LOCALES: dict[str, str] = {
     "arabic": "ar-SA", "chinese": "zh-CN", "mandarin": "zh-CN", "dutch": "nl-NL",
     "english": "en-US", "french": "fr-FR", "german": "de-DE", "hindi": "hi-IN",
     "italian": "it-IT", "japanese": "ja-JP", "korean": "ko-KR", "portuguese": "pt-BR",
-    "russian": "ru-RU", "spanish": "es-ES"
+    "russian": "ru-RU", "spanish": "es-ES",
+    "arabic (saudi arabia)": "ar-SA", "chinese (china)": "zh-CN",
+    "dutch (netherlands)": "nl-NL", "english (united states)": "en-US",
+    "english (united kingdom)": "en-GB", "french (france)": "fr-FR",
+    "french (canada)": "fr-CA", "german (germany)": "de-DE",
+    "hindi (india)": "hi-IN", "italian (italy)": "it-IT",
+    "japanese (japan)": "ja-JP", "korean (south korea)": "ko-KR",
+    "portuguese (brazil)": "pt-BR", "portuguese (portugal)": "pt-PT",
+    "russian (russia)": "ru-RU", "spanish (spain)": "es-ES",
+    "spanish (mexico)": "es-MX"
 };
 # Web Speech API codes; expo-speech-recognition reuses them and adds a few native ones.
 glob SPEECH_ERRORS: dict[str, str] = {

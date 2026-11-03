@@ -28,8 +28,8 @@ content while within 48 pixels of the bottom, preserves the reader's position
 when scrolled up, and offers a Latest button to resume following. A resize
 observer also handles translation expansion and viewport changes, and is
 disconnected on unmount. The transcript supports on-demand full-turn
-translation to English and next-word suggestions. Full-reply hints, AI replies,
-and practice navigation remain planned. Speech listening status remains local
+translation to English and next-word suggestions. Full-reply hints and AI replies
+remain planned. Saved conversation and practice navigation are implemented on web. Speech listening status remains local
 to `SpeechInput.jac`; an active session does not imply microphone capture.
 
 `jac.toml` defines `web` (the default app, entry point `main`) and `mobile`
@@ -43,8 +43,9 @@ feature panels are not ported to mobile.
 `core/models.jac` defines `LearnerProfile`, `TranscriptTurn`, `Conversation`,
 and `SessionView`. A conversation snapshots the learner's languages and
 CEFR level at creation, stores its turns, and tracks submitted utterance
-seconds and a model-request counter. Selecting an AI partner stores the
-mode but does not yet produce an AI response.
+seconds and a model-request counter. The server accepts an AI-partner mode
+but does not produce AI responses. The web selector disables that option
+and labels it “coming soon”.
 
 Protected endpoints in `endpoints.jac` resolve sessions within the caller's
 root. `append_turn(session_id, speaker, text, duration_seconds)` is the
@@ -151,7 +152,7 @@ with hover/focus tooltips. The original remains visible while English appears
 below it with a labeled accent rule. Toggling visibility reuses the cached
 translation; loading and retry states belong to each turn.
 
-Persistent translation caching, full-reply hint generation, AI-partner responses, coaching,
+Persistent translation caching, full-reply hint generation, AI-partner responses,
 mistake history, and lessons are not implemented in this checkout.
 
 ## Limitations
@@ -159,9 +160,69 @@ mistake history, and lessons are not implemented in this checkout.
 Text persists in the user's graph; deletion and retention controls are
 future work. Provider usage/cost accounting, budgets, latency measurement,
 and audio-based pronunciation scoring are also future work. The model
-request field is incremented only by next-word suggestions.
+request field is incremented by next-word suggestions and attempted coaching calls.
 
 The initial four-PR scaffold merge instructions are historical; use the
 current checkout's files and interfaces as the integration baseline. See
 [the project plan](project-plan.md) for the indicative schedule and product
 decisions, and [the README](../README.md) for setup and validation status.
+
+## Post-conversation coaching
+
+`core/coaching.jac` uses the shared server-only Gemini model to return a typed
+`CoachingReport`. `conversation_feedback` resolves an owned session and requires
+completion, consent, and learner text before generating a report. It validates
+nonempty fields, list limits, and exact learner-quote/turn-ID matches before saving
+the report on `Conversation`. `SessionView` includes the optional saved report.
+Failed generation leaves the transcript ended and retryable. Successful sequential
+requests return the cached report; there is no distributed in-flight request lock.
+
+Web and mobile `CoachingPanel` components request feedback after completion,
+render summary/strengths/practice priorities, and expose retry on failure. A report
+is not a transcript turn and is not included in the existing text download.
+Speech adapters report listening/finalization/save activity so End conversation
+stays disabled until the learner stops listening and outstanding saves finish.
+The server rejects speaker corrections after completion to preserve report evidence.
+Real microphone timing and native-device presentation still require verification.
+
+## Web conversation library
+
+`list_conversations(offset, limit)` traverses only the authenticated caller's
+root and returns bounded `ConversationSummary` records for completed sessions.
+`core/history.jac` sorts by the saved UTC `created_at`, with undated legacy
+sessions last. List records contain opening-turn titles and short previews;
+full transcripts and coaching are fetched with the existing owned-session API.
+New sessions record creation time, while old sessions default to an empty date.
+The UI formats dates in the browser's local timezone.
+
+`frontend.jac` owns Talk state separately from `components/Conversations.jac`.
+Navigating away unmounts live controls only after speech activity has settled,
+while preserving the session and draft in the parent. Completion clears the
+live workspace and opens the ended session in Conversations. Overview and
+Practice share one mounted coaching component, so switching detail sections
+does not regenerate feedback. Transcript has its own view and retains export
+and translation. The completed library is paginated; its page selection is
+local state. Active-session recovery after reload and deep links remain future
+work. Native mobile still uses its existing conversation/recap screen.
+
+## Interactive web practice
+
+`components/practice-exercises.jsx` presents each saved priority as a comparison
+with changed words highlighted, optional browser text-to-speech, and a visible
+explanation above the comparison. New priorities include a specific title and
+validated `correction` or `improvement` classification. Optional improvements
+explicitly distinguish valid wording from errors; uncertain transcription is
+described cautiously. Older cached reports retain their explanation and use a
+neutral Practice note label, without guessing a classification or making an
+automatic model request. Learners type an answer or use browser speech recognition, then edit
+and explicitly check it. Speech playback requires an installed matching voice.
+Leaving the exercise stops playback/capture and discards local practice state.
+
+`check_practice_answer` resolves the authenticated caller's owned session before
+`core/practice.jac` verifies completion, consent, saved priority index, and learner
+quote evidence. The shared server-only Gemini model checks task completion and
+wording, accepting valid alternatives. Outcomes are correct, revise, or unclear;
+revisions require suggested wording. Answers are limited to 2,000 characters.
+Attempts increment model usage but answers/results are not saved as transcript
+turns or persisted as lesson progress. Failures preserve the local answer for
+retry. This does not score pronunciation. Native recap behavior is unchanged.
