@@ -120,14 +120,21 @@
 * {
 	box-sizing: border-box;
 }
+body {
+	margin: 0;
+	background: var(--pip-bg);
+}
 html,
 body,
 .pip-app * {
 	overscroll-behavior-y: none;
 }
-body {
-	margin: 0;
-	background: var(--pip-bg);
+html[data-scroll-bounce],
+html[data-scroll-bounce] body {
+	overscroll-behavior-y: auto;
+}
+.pip-app [data-scroll-bounce] {
+	overscroll-behavior-y: contain;
 }
 .pip-app {
 	color: var(--pip-ink);

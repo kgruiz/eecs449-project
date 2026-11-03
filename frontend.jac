@@ -3,6 +3,7 @@ With a voiceprint enrolled, the server attributes spoken turns by voice and the
 learner can switch a turn's speaker; otherwise the learner picks who is speaking."""
 import from "lucide-react" { Info, Check, ChevronRight }
 import from "./components/language-flag.jsx" { LanguageFlag }
+import from "./components/scroll-bounce.jsx" { ScrollBounce }
 import from "@jac/runtime" { jacLogin, jacSignup, jacLogout, jacIsLoggedIn, SignupResult }
 import from .core.models { SessionView, TranscriptTurn }
 import from .endpoints {
@@ -93,6 +94,7 @@ def:pub app -> JsxElement {
         finally { busy = False; }
     }
     <div className="pip-app">
+        <ScrollBounce />
         <a className="skip-link" href="#workspace">Skip to conversation</a>
         <header className="topbar">
             <a className="brand" href="#workspace" aria-label="Pip Language Assistant">
