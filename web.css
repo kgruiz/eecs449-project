@@ -1405,7 +1405,9 @@ html[data-scroll-bounce] body {
 	margin-top: 22px;
 }
 .history-back {
-	margin-bottom: 18px;
+	align-self: flex-start;
+	padding-inline: 0;
+	margin-bottom: 8px;
 }
 .detail-tabs {
 	border-bottom: 1px solid var(--pip-border);
@@ -1490,9 +1492,6 @@ html[data-scroll-bounce] body {
 }
 .history-heading {
 	margin-bottom: 20px;
-}
-.history-back {
-	margin-bottom: 8px;
 }
 .history-workspace .coaching-card h2 {
 	font-size: 26px;
