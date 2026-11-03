@@ -1406,8 +1406,17 @@ html[data-scroll-bounce] body {
 }
 .history-back {
 	align-self: flex-start;
-	padding-inline: 0;
+	min-height: 32px;
+	padding: 4px 0;
+	border: 0;
+	border-radius: 4px;
 	margin-bottom: 8px;
+}
+.history-back:hover {
+	background: transparent;
+	color: var(--pip-ink);
+	text-decoration: underline;
+	text-underline-offset: 3px;
 }
 .detail-tabs {
 	border-bottom: 1px solid var(--pip-border);
