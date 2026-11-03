@@ -1888,22 +1888,30 @@ details[open] > summary > .disclosure-chevron {
 	display: grid;
 	grid-template-columns: minmax(0, 1fr) 20px minmax(0, 1fr);
 	grid-template-rows: auto auto auto;
-	column-gap: 24px;
+	column-gap: 16px;
 	row-gap: 12px;
 	align-items: start;
 	margin: 24px 0;
-	padding-top: 24px;
-	border-top: 1px solid var(--pip-border);
 }
 .practice-original,
 .practice-suggestion {
-	display: contents;
+	display: grid;
+	grid-template-rows: subgrid;
+	grid-row: 1 / 4;
+	min-width: 0;
+	padding: 20px;
+	border: 1px solid var(--pip-border);
+	border-radius: 12px;
+	align-self: stretch;
 }
-.practice-original > * {
+.practice-original {
 	grid-column: 1;
+	background: #f5f5f3;
 }
-.practice-suggestion > * {
+.practice-suggestion {
 	grid-column: 3;
+	background: #f0f3ff;
+	border-color: #dce3fa;
 }
 .practice-comparison .practice-label {
 	grid-row: 1;
@@ -2007,8 +2015,10 @@ details[open] > summary > .disclosure-chevron {
 	.practice-original,
 	.practice-suggestion {
 		display: grid;
-		gap: 8px;
+		grid-template-rows: auto;
+		gap: 12px;
 		width: 100%;
+		padding: 16px;
 	}
 	.practice-comparison .practice-original > *,
 	.practice-comparison .practice-suggestion > * {
