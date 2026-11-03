@@ -578,3 +578,18 @@ scores. Playback depends on an available device voice for the selected language.
   output from a synthetic speech recognizer. Browser phrase playback started.
 - No live Gemini request, real microphone capture, or native-device run was
   performed. Model feedback quality still needs live evaluation.
+
+### Practice explanations on 11/03/2026
+
+Practice now shows its explanation above the phrase comparison. Newly generated
+feedback labels each priority Correction or Optional improvement and provides a
+specific heading. Optional wording changes must not be presented as mistakes.
+Existing saved reports remain readable with a neutral Practice note label and
+visible explanation; they are not automatically regenerated or classified.
+
+Validation: `jac check core/coaching.jac`, `jac build web -a client`, and scoped
+Biome checks passed. Coaching and practice suites passed 12 and seven collected
+offline tests respectively. An isolated component preview verified corrections,
+optional improvements, legacy feedback, answer/next controls, and a 390px layout
+without horizontal overflow. The preview used fixtures and simulated checking;
+no live model or microphone requests were made.

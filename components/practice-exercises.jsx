@@ -1,7 +1,6 @@
 import {
 	ArrowRight,
 	Check,
-	ChevronDown,
 	Mic,
 	RotateCcw,
 	Square,
@@ -225,8 +224,17 @@ function PracticeExercise({
 	return (
 		<article className="practice-exercise">
 			<p className="practice-count">
-				Suggestion {index + 1} of {total}
+				{item.kind === "correction"
+					? "Correction"
+					: item.kind === "improvement"
+						? "Optional improvement"
+						: "Practice note"}{" "}
+				· {index + 1} of {total}
 			</p>
+			<div className="practice-reason">
+				{item.title && <h3>{item.title}</h3>}
+				<p>{item.explanation}</p>
+			</div>
 			<div className="practice-comparison">
 				<div>
 					<span className="practice-label">You said</span>
@@ -238,7 +246,13 @@ function PracticeExercise({
 					aria-hidden="true"
 				/>
 				<div className="practice-suggestion">
-					<span className="practice-label">Try this</span>
+					<span className="practice-label">
+						{item.kind === "correction"
+							? "Correction"
+							: item.kind === "improvement"
+								? "Another way to say it"
+								: "Suggested wording"}
+					</span>
 					<p lang={locale}>
 						{compareWords(item.quote, item.suggestion).map((word, wordIndex) =>
 							word.changed ? (
@@ -266,13 +280,6 @@ function PracticeExercise({
 					)}
 				</div>
 			</div>
-			<details className="practice-why">
-				<summary>
-					<ChevronDown size={16} aria-hidden="true" />
-					Why?
-				</summary>
-				<p>{item.explanation}</p>
-			</details>
 			<form onSubmit={check} className="practice-answer">
 				<h3>Try it yourself</h3>
 				<p id={`${id}-prompt`}>{item.practice}</p>

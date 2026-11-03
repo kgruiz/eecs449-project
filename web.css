@@ -1916,20 +1916,15 @@ details[open] > summary > .disclosure-chevron {
 	margin-top: 8px;
 	color: var(--pip-blue);
 }
-.practice-why summary {
-	display: flex;
-	align-items: center;
-	gap: 8px;
-	cursor: pointer;
-	width: fit-content;
-	padding: 8px 0;
+.history-workspace .practice-reason h3 {
+	margin: 8px 0;
+	font-family: inherit;
+	font-size: 20px;
+	line-height: 1.35;
 }
-.practice-why:not([open]) summary svg {
-	transform: rotate(-90deg);
-}
-.history-workspace .practice-why p {
-	max-width: 65ch;
-	margin: 8px 0 16px;
+.history-workspace .practice-reason p {
+	max-width: 70ch;
+	margin: 8px 0 24px;
 	line-height: 1.6;
 }
 .practice-answer {

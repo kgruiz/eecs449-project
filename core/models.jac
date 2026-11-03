@@ -21,6 +21,7 @@ sem WordHint.word = "One word in the target language (a short fixed phrase only 
 sem WordHint.meaning = "A gloss of that word in the learner's native language, at most a few words.";
 obj PracticePriority {
     has turn_id: str, quote: str, suggestion: str, explanation: str, practice: str;
+    has kind: str = "", title: str = "";
 }
 obj CoachingReport {
     has summary: str, strengths: list[str], priorities: list[PracticePriority];

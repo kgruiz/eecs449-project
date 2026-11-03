@@ -12,7 +12,7 @@ def sample_session() -> Conversation {
 def sample_report() -> CoachingReport {
     return CoachingReport(summary="You discussed going to the park.", strengths=["You used parque appropriately."],
         priorities=[PracticePriority(turn_id="me", quote="Yo ir", suggestion="Yo voy al parque.",
-            explanation="Use voy for the first-person present tense.", practice="Say three places you go using voy a.")]);
+            kind="correction", title="Use voy for yourself", explanation="Use voy for the first-person present tense.", practice="Say three places you go using voy a.")]);
 }
 
 test "coaching parses structured output and saves it once" {
@@ -20,7 +20,7 @@ test "coaching parses structured output and saves it once" {
     response = {"choices": [{"message": {"role": "assistant", "content": json.dumps({
         "summary": "You discussed going to the park.", "strengths": [], "priorities": [{
             "turn_id": "me", "quote": "Yo ir", "suggestion": "Yo voy al parque.",
-            "explanation": "Use voy.", "practice": "Name three places using voy a."}]})}, "finish_reason": "stop"}], "usage": {}};
+            "kind": "correction", "title": "Use voy for yourself", "explanation": "Use voy.", "practice": "Name three places using voy a."}]})}, "finish_reason": "stop"}], "usage": {}};
 
     with patch.object(Model, "model_call_no_stream", return_value=response) as provider {
         first = build_report(session);
@@ -112,5 +112,41 @@ test "coaching rejects malformed structured output" {
     with patch.object(Model, "model_call_no_stream", return_value=response) {
         with testraises(OutputConversionError) { build_report(session); }
         assert session.coaching is None;
+    }
+}
+
+
+test "coaching preserves optional improvements and rejects missing classifications" {
+    session = sample_session();
+    feedback = sample_report();
+    feedback.priorities[0].kind = "improvement";
+
+    with patch(__name__ + ".generate_report", return_value=feedback) {
+        assert build_report(session).priorities[0].kind == "improvement";
+    }
+
+    for kind in ["", "wrong", "title"] {
+        session = sample_session();
+        feedback = sample_report();
+
+        if kind == "title" { feedback.priorities[0].title = " "; }
+        else { feedback.priorities[0].kind = kind; }
+
+        with patch(__name__ + ".generate_report", return_value=feedback) {
+            with testraises(ValueError) { build_report(session); }
+            assert session.coaching is None;
+        }
+    }
+}
+
+test "legacy coaching remains readable without invented classification" {
+    session = sample_session();
+    session.coaching = sample_report();
+    session.coaching.priorities[0].kind = "";
+    session.coaching.priorities[0].title = "";
+
+    with patch(__name__ + ".generate_report") as provider {
+        assert build_report(session).priorities[0].kind == "";
+        assert provider.call_count == 0;
     }
 }

@@ -208,8 +208,13 @@ work. Native mobile still uses its existing conversation/recap screen.
 ## Interactive web practice
 
 `components/practice-exercises.jsx` presents each saved priority as a comparison
-with changed words highlighted, optional browser text-to-speech, and a collapsible
-explanation. Learners type an answer or use browser speech recognition, then edit
+with changed words highlighted, optional browser text-to-speech, and a visible
+explanation above the comparison. New priorities include a specific title and
+validated `correction` or `improvement` classification. Optional improvements
+explicitly distinguish valid wording from errors; uncertain transcription is
+described cautiously. Older cached reports retain their explanation and use a
+neutral Practice note label, without guessing a classification or making an
+automatic model request. Learners type an answer or use browser speech recognition, then edit
 and explicitly check it. Speech playback requires an installed matching voice.
 Leaving the exercise stops playback/capture and discards local practice state.
 
