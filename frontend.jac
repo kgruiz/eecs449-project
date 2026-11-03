@@ -102,7 +102,7 @@ def:pub app -> JsxElement {
                 <button className={"main-tab " + ("is-selected" if page == "conversations" else "")} aria-pressed={page == "conversations"} disabled={busy or speechBusy} onClick={lambda { historyId = ""; page = "conversations"; }}>Conversations</button>
             </nav>}
             <div className="account-controls">
-                {logged_in and <span className="language-badge">{target_language + " · " + level}</span>}
+                {logged_in and <span className="language-badge">{target_language.strip().lower() in ["spanish", "es", "es-es"] and <span aria-hidden="true">🇪🇸 </span>}{target_language + " · " + level}</span>}
                 {logged_in and <button className="button button-quiet" onClick={logout}>Sign out</button>}
             </div>
         </header>
