@@ -1593,6 +1593,7 @@ details[open] > summary > .disclosure-chevron {
 }
 
 .language-flag {
+	border-radius: 2px;
 	display: block;
 	flex: none;
 	width: 18px;
