@@ -1586,3 +1586,12 @@ body {
 details[open] > summary > .disclosure-chevron {
 	transform: rotate(90deg);
 }
+
+.language-flag {
+	display: inline-block;
+	width: 18px;
+	height: 13.5px;
+	margin-right: 7px;
+	vertical-align: -1px;
+	background: url("flag-icons/flags/4x3/es.svg") center / contain no-repeat;
+}
