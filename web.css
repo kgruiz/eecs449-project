@@ -1809,11 +1809,20 @@ details[open] > summary > .disclosure-chevron {
 	align-self: flex-start;
 }
 .history-transcript-view .history-transcript {
-	flex: 1;
+	flex: 0 1 auto;
 	min-height: 0;
 	display: flex;
 	flex-direction: column;
 	overflow: hidden;
+}
+.history-transcript-view .transcript-scroll-shell {
+	flex: 0 1 auto;
+	display: flex;
+	flex-direction: column;
+}
+.history-transcript-view .transcript-scroll {
+	height: auto;
+	min-height: 0;
 }
 .history-transcript-view .history-heading > div {
 	min-width: 0;
