@@ -11,6 +11,9 @@ The current checkout includes:
 
 - Account creation and sign-in.
 - A learner profile with native language, target language, and CEFR level.
+  Web setup uses searchable language choices such as Spanish (Spain) and
+  Spanish (Mexico). Listening defaults to the learning language; Change opens
+  a language picker with Cancel and Apply, affecting transcription only.
 - Participant consent before starting a conversation.
 - Authenticated sessions, saved text transcripts, and typed turns.
 - A web **Download transcript (.txt)** button for active or ended conversations
@@ -422,8 +425,9 @@ accent rule. Each action translates the entire turn through the existing
 protected endpoint. Its 4,000-character limit matches the turn-input limit.
 Translations remain local to the current view; downloads retain original text.
 The header, speech controls, and multiline composer use the simplified layout.
-The planned-feature footnote is removed. Recognition language remains a text
-field; native mobile code is unchanged.
+The planned-feature footnote is removed. Recognition language was a text
+field at this validation point; the web now uses the picker described above.
+Native mobile code is unchanged.
 
 - `jac test core/ai.jac`: four offline translation regression tests passed.
 - `jac check`: both apps passed with warnings.

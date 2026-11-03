@@ -7,32 +7,22 @@ memory; each utterance's audio (from its first interim result, padded, to its
 final result) goes with it to append_spoken_turn, which decides the speaker from
 the learner's voiceprint. Otherwise the turn goes to append_turn with the
 manually selected speaker."""
-import from "lucide-react" { Mic, ChevronDown, ChevronRight }
+import from "lucide-react" { Mic }
+import from "./language-picker.jsx" { ListeningLanguage, resolveLanguage }
 import from "./audioCapture.js" { createAudioCapture }
 import from ..core.models { SessionView }
 import from ..endpoints { append_turn, append_spoken_turn }
-import from ..core.speech { speech_locale, speech_error_message, ROUTINE_SPEECH_ERRORS }
+import from ..core.speech { speech_error_message, ROUTINE_SPEECH_ERRORS }
 
 # Audio kept before an utterance's first interim result (recognition lags speech),
 # and assumed for a final that arrives without any interim result.
 glob UTTERANCE_PAD_MS: int = 700, UNTIMED_UTTERANCE_MS: int = 3000;
 
-glob SPEECH_OPTIONS: list[list[str]] = [
-    ["ar-SA", "Arabic (Saudi Arabia)"], ["zh-CN", "Chinese (China)"],
-    ["nl-NL", "Dutch (Netherlands)"], ["en-US", "English (United States)"],
-    ["en-GB", "English (United Kingdom)"], ["fr-FR", "French (France)"],
-    ["de-DE", "German (Germany)"], ["hi-IN", "Hindi (India)"],
-    ["it-IT", "Italian (Italy)"], ["ja-JP", "Japanese (Japan)"],
-    ["ko-KR", "Korean (South Korea)"], ["pt-BR", "Portuguese (Brazil)"],
-    ["ru-RU", "Russian (Russia)"], ["es-ES", "Spanish (Spain)"],
-    ["es-MX", "Spanish (Mexico)"]
-];
-
 def:pub SpeechInput(sessionId: str, speaker: str, language: str, voiceEnabled: bool,
                     onSessionChange: Callable[[SessionView], None],
                     onDraft: Callable[[str, str], None] | None = None,
                     onBusyChange: Callable[[bool], None] | None = None) -> JsxElement {
-    has listening: bool = False, interim: str = "", locale: str = speech_locale(language),
+    has listening: bool = False, interim: str = "", locale: str = resolveLanguage(language)[0],
         error: str = "";
     has saving: bool = False, settling: bool = False;
     has recognitionRef: Ref[any] = Ref(None);
@@ -221,16 +211,8 @@ def:pub SpeechInput(sessionId: str, speaker: str, language: str, voiceEnabled: b
             Live transcription needs a browser with the Web Speech API (Chrome, Edge or Safari). You can still type turns.
         </p>}
         {recognitionClass and <div className="speech-controls">
-            <label className="field">Speech language
-                <span className="select-control"><select value={locale} disabled={listening} onChange={lambda (e: ChangeEvent) { locale = e.target.value; }}>
-                    {not any(option[0] == locale for option in SPEECH_OPTIONS) and <option value={locale}>{locale}</option>}
-                    {[<option key={option[0]} value={option[0]}>{option[1]}</option> for option in SPEECH_OPTIONS]}
-                </select><ChevronDown className="select-chevron" size={16} strokeWidth={1.75} aria-hidden="true"/></span>
-            </label>
-            <details className="speech-language-options"><summary><ChevronRight className="disclosure-chevron" size={16} strokeWidth={1.75} aria-hidden="true"/>Other language or region</summary>
-                <label className="field">Language code <input value={locale} disabled={listening}
-                    placeholder="For example, fr-CA" onChange={lambda (e: ChangeEvent) { locale = e.target.value; }}/></label>
-            </details>
+            <ListeningLanguage value={locale} disabled={listening or saving or settling}
+                onChange={lambda (value: str) { locale = value; }}/>
             {listening and <button className="button button-secondary" onClick={stop}>Stop listening</button>}
             {not listening and <button className="button button-primary" disabled={not locale.strip()} onClick={lambda { start(); }}>
                 <Mic className="speech-mic-icon" size={20} strokeWidth={1.75} aria-hidden="true"/>
