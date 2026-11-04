@@ -3,10 +3,8 @@ import from "lucide-react" { ArrowDown }
 import from react { useEffect }
 import from ..core.models { SessionView, TranscriptTurn }
 import from .Translation { TranscriptText }
-import from .SentenceCompletion { CompletionOptions }
 
-def:pub TranscriptScroll(session: SessionView, onSwapSpeaker: Callable[[TranscriptTurn], None],
-                         draft: str = "", spoken: bool = False, completions: bool = False) -> JsxElement {
+def:pub TranscriptScroll(session: SessionView, onSwapSpeaker: Callable[[TranscriptTurn], None]) -> JsxElement {
     has away: bool = False;
     has viewport: Ref[any] = Ref(None), content: Ref[any] = Ref(None);
     has following: Ref[bool] = Ref(True);
@@ -44,25 +42,16 @@ def:pub TranscriptScroll(session: SessionView, onSwapSpeaker: Callable[[Transcri
         return lambda { observer.disconnect(); };
     }, []);
 
-    last = session.turns[-1] if session.turns else None;
-    savedDraft = bool(spoken and last is not None and last.speaker == "learner" and last.text.strip() == draft.strip());
-    contextKey = str([(turn.id, turn.speaker, turn.text) for turn in session.turns]);
     <div className="transcript-scroll-shell">
         <div className="transcript-scroll" ref={viewport} onScroll={trackScroll}
             tabIndex={0} role="region" aria-label="Conversation transcript">
             <ol className="transcript-list" ref={content} aria-live="polite" aria-relevant="additions text">
                 {[<li key={turn.id} className={"transcript-turn " + ("turn-learner" if turn.speaker == "learner" else "turn-partner")}>
                     <span className="speaker-avatar" aria-hidden="true">{"M" if turn.speaker == "learner" else "P"}</span>
-                    <div className="turn-content"><TranscriptText sessionId={session.id} turnId={turn.id} text={turn.text} speaker={turn.speaker}
+                    <TranscriptText sessionId={session.id} turnId={turn.id} text={turn.text} speaker={turn.speaker}
                         speakerSource={turn.speaker_source} canCorrect={session.status == "active"}
-                        onSpeakerClick={lambda { onSwapSpeaker(turn); }}
-                        completion={<CompletionOptions sessionId={session.id} draft={draft} contextKey={contextKey} enabled={completions}/> if savedDraft and last is not None and turn.id == last.id else None}/>
-                    </div>
+                        onSpeakerClick={lambda { onSwapSpeaker(turn); }}/>
                 </li> for turn in session.turns]}
-                {completions and draft.strip() and not savedDraft and <li className="transcript-turn turn-learner draft-turn">
-                    <span className="speaker-avatar" aria-hidden="true">M</span>
-                    <div className="turn-content"><p className="eyebrow">Me · in progress</p><p className="turn-text">{draft}<CompletionOptions sessionId={session.id} draft={draft} contextKey={contextKey} enabled={completions}/></p></div>
-                </li>}
             </ol>
         </div>
         {away and <button type="button" className="latest-button" onClick={latest}

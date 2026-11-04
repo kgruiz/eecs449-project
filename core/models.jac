@@ -17,11 +17,6 @@ obj TranscriptTurn {
 obj WordHint {
     has word: str, meaning: str;
 }
-obj SentenceCompletion {
-    has needed: bool, options: list[str];
-}
-sem SentenceCompletion.needed = "True only if the learner's current sentence is incomplete and can naturally be continued.";
-sem SentenceCompletion.options = "Up to three different short continuations, ordered from most to least likely. Empty when no completion is needed.";
 sem WordHint.word = "One word in the target language (a short fixed phrase only if one word cannot stand alone) that naturally continues the learner's sentence.";
 sem WordHint.meaning = "A gloss of that word in the learner's native language, at most a few words.";
 obj PracticePriority {
