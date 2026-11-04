@@ -1,7 +1,7 @@
 """Shared authenticated pipeline. Audio adapters submit finalized turns here."""
-import from .core.models { LearnerProfile, TranscriptTurn, Conversation, SessionView, VoiceStatus, WordHint, ConversationSummary, PracticeFeedback }
+import from .core.models { LearnerProfile, TranscriptTurn, Conversation, SessionView, VoiceStatus, WordHint, SentenceCompletion, ConversationSummary, PracticeFeedback }
 import from .core.voiceprint { enroll, learner_similarity, MATCH_THRESHOLD }
-import from .core.hints { suggest_next_word }
+import from .core.hints { suggest_next_word, complete_sentence }
 import from uuid { uuid4 }
 import from datetime { datetime, timezone }
 import from .core.history { history_page }
@@ -136,6 +136,30 @@ def:protect suggest_word(session_id: str, partial_sentence: str) -> WordHint {
     session.model_requests += 1;
     return suggest_next_word(partial, conversation_context(session), session.target_language,
         session.native_language, session.level);
+}
+
+def:protect suggest_completion(session_id: str, partial_sentence: str) -> SentenceCompletion {
+    session = owned_session(session_id);
+    if session.status != "active" { raise ValueError("Conversation has ended."); }
+    if not session.consent_confirmed { raise ValueError("Participant consent is required."); }
+    partial = partial_sentence.strip();
+    if not partial or len(partial) > 500 { raise ValueError("Provide 1-500 characters."); }
+    turns = session.turns;
+    # The speech adapter may already have saved this exact utterance.
+    if turns and turns[-1].speaker == "learner" and turns[-1].text.strip() == partial {
+        turns = turns[:-1];
+    }
+    context = "\n".join([f"{turn.speaker}: {turn.text}" for turn in turns]);
+    session.model_requests += 1;
+    result = complete_sentence(partial, context, session.target_language, session.level);
+    options: list[str] = [];
+    if result.needed {
+        for option in result.options[:3] {
+            cleaned = option.strip();
+            if cleaned and len(cleaned) <= 160 and cleaned not in options { options.append(cleaned); }
+        }
+    }
+    return SentenceCompletion(needed=bool(options), options=options);
 }
 
 def:protect translate_sentence(session_id: str, turn_id: str, sentence: str) -> str {
