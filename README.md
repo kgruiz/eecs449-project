@@ -10,6 +10,16 @@ conversation.
 The current checkout includes:
 
 - Account creation and sign-in.
+- Web onboarding after signup collects a display name, languages, and CEFR
+  level. Progress is saved between steps. Existing profiles skip onboarding;
+  their preferences and display name can be edited from the account menu.
+- A responsive web Home shows recent completed conversations and an entry
+  point to start a conversation. Mobile widths use a bottom navigation with a
+  central new-conversation action; active sessions remain available when
+  navigating away. This is responsive web UI, not an installable PWA yet.
+- A completed, consented conversation can receive one topic emoji from Gemini;
+  a neutral icon is used when the provider is unavailable or for older records.
+  The topic request uses up to the last 12 turns and is separate from coaching.
 - A learner profile with native language, target language, and CEFR level.
   Web setup uses searchable language choices such as Spanish (Spain) and
   Spanish (Mexico). Listening defaults to the learning language; Change opens
@@ -273,7 +283,8 @@ code signing.
 
 ## Web navigation
 
-**Talk** contains conversation setup and the live transcript/controls.
+**Home** offers conversation setup and recent completed conversations. The
+new-conversation action opens the live transcript and controls.
 **Conversations** lists your completed sessions, newest dated sessions first,
 with a title taken from the opening turn, language/level, local date/time,
 turn count, and summary preview. Earlier sessions without timestamps remain
@@ -321,6 +332,27 @@ after completion. Deletion
 and retention controls are not implemented.
 
 ## Validation status
+
+### Web onboarding and Home (2026-11-13)
+
+In a temporary WSL copy with Jac 0.37.23, `jac check frontend.jac
+endpoints.jac components/Onboarding.jac components/Home.jac core/emoji.jac`
+passed with warnings. `jac test core/emoji.jac`, `jac test core/history.jac`,
+and `jac test endpoints.jac` passed 6, 3, and 24 collected tests respectively;
+provider calls were mocked or avoided. Browser checks with disposable accounts
+covered signup, saved onboarding progress after reload, profile completion,
+consent gating, a partner typed turn, retaining an active conversation while
+navigating, ending, opening a recent conversation, and an empty home for a
+second account. Mobile screenshots were compared at 390- and 320-pixel
+viewport settings, including sign-in, onboarding, and Home. Language search
+and selection were checked. The browser's reported document width did not
+exceed its viewport during the narrow language-screen check.
+
+Real microphone capture, cross-account access by direct session ID, live Gemini
+emoji generation and quality, and native-device flows were not verified. The
+local preview had no Gemini credentials. Emoji generation can add latency to
+ending a conversation; failure leaves the transcript saved and uses a neutral
+icon. This work does not add installable PWA support.
 
 The initial scaffolds were created without dependency installation, tests,
 compiler checks, app runs, or Gemini requests, at the user's request.

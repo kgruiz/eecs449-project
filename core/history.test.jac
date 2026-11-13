@@ -28,6 +28,9 @@ test "history bounds records and does not expose complete transcripts" {
     assert len(item.preview) == 180;
     assert item.turn_count == 1;
     assert item.has_coaching;
+    assert item.emoji == "💬";
+    session.emoji = "☕";
+    assert conversation_summary(session).emoji == "☕";
     session.turns = [];
     assert conversation_summary(session).title == "Spanish conversation";
 }

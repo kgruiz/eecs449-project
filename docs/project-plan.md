@@ -2,6 +2,10 @@
 
 ## Goal
 
+The web experience includes resumable profile onboarding and a responsive
+Home with recent conversations and mobile bottom navigation. Installable PWA
+support remains future work. See the README for validation and limitations.
+
 Help language learners participate in real conversations and learn from
 what went wrong. Provide support during a conversation and targeted
 practice afterward, using one shared speech and transcript pipeline.

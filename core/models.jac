@@ -1,11 +1,17 @@
 """Shared contracts; raw audio is never persisted."""
 node LearnerProfile {
     has native_language: str = "English", target_language: str = "Spanish", level: str = "A2";
+    # Existing profiles predate onboarding and should continue to work.
+    has display_name: str = "", onboarding_completed: bool = True, onboarding_step: int = 0;
     # Speaker embedding from voice enrollment (not audio); empty until enrolled.
     has voiceprint: list[float] = [];
 }
 obj VoiceStatus {
     has enrolled: bool;
+}
+obj ProfileView {
+    has native_language: str, target_language: str, level: str,
+        display_name: str, onboarding_completed: bool, onboarding_step: int;
 }
 """speaker_source: "manual", "voice" (matched against the voiceprint),
 "turn-taking" (legacy guessed attribution) or "corrected" (fixed by the learner)."""
@@ -28,7 +34,7 @@ obj CoachingReport {
 }
 obj ConversationSummary {
     has id: str, title: str, target_language: str, level: str, created_at: str,
-        turn_count: int, preview: str, has_coaching: bool;
+        turn_count: int, preview: str, has_coaching: bool, emoji: str = "💬";
 }
 obj SessionView {
     has id: str, native_language: str, target_language: str, level: str,
@@ -39,7 +45,7 @@ node Conversation {
     has native_language: str, target_language: str, level: str,
         partner_mode: str = "human", consent_confirmed: bool = False,
         status: str = "active", turns: list[TranscriptTurn] = [],
-        audio_seconds: float = 0.0, model_requests: int = 0, coaching: CoachingReport | None = None, created_at: str = "";
+        audio_seconds: float = 0.0, model_requests: int = 0, coaching: CoachingReport | None = None, created_at: str = "", emoji: str = "";
     def to_view() -> SessionView {
         return SessionView(id=jid(self), native_language=self.native_language,
             target_language=self.target_language, level=self.level,

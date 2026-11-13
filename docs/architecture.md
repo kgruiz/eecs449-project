@@ -188,6 +188,23 @@ Real microphone timing and native-device presentation still require verification
 
 ## Web conversation library
 
+Web onboarding stores a display name, progress, and completion flag alongside
+the existing language and level profile. New accounts can resume at their last
+completed step; existing profiles default to complete. The profile view sent
+to the browser excludes the stored voiceprint. Home uses the account-scoped
+history endpoint to show the three most recent completed conversations, and
+opens the existing detail view. At narrow widths a bottom bar provides Home,
+new conversation, and Conversations. Account settings are in the initial
+menu. Active in-memory sessions retain the existing navigation protections.
+
+After completion the web client asks the protected decoration endpoint for a
+topic emoji. It requires an owned, ended, consented session and sends at most
+the last 12 turns (bounded to 12,000 characters) to the shared Gemini model.
+Only an allowlisted emoji is saved. Missing credentials, invalid output, old
+sessions, and provider errors use a neutral display fallback; the transcript
+remains available. Decoration completes before the recap view requests coaching
+to avoid overlapping writes. Native mobile does not request decoration.
+
 `list_conversations(offset, limit)` traverses only the authenticated caller's
 root and returns bounded `ConversationSummary` records for completed sessions.
 `core/history.jac` sorts by the saved UTC `created_at`, with undated legacy

@@ -1,5 +1,5 @@
 """Shared authenticated pipeline. Audio adapters submit finalized turns here."""
-import from .core.models { LearnerProfile, TranscriptTurn, Conversation, SessionView, VoiceStatus, WordHint, ConversationSummary, PracticeFeedback }
+import from .core.models { LearnerProfile, ProfileView, TranscriptTurn, Conversation, SessionView, VoiceStatus, WordHint, ConversationSummary, PracticeFeedback }
 import from .core.voiceprint { enroll, learner_similarity, MATCH_THRESHOLD }
 import from .core.hints { suggest_next_word }
 import from uuid { uuid4 }
@@ -8,6 +8,8 @@ import from .core.history { history_page }
 import from .core.coaching { build_report }
 import from .core.practice { check_answer }
 import from .core.ai { translate_to_english }
+import from .core.emoji { choose_conversation_emoji }
+import os;
 def profile() -> LearnerProfile {
     profiles = [root -->][?:LearnerProfile];
     if profiles { return profiles[0]; }
@@ -31,6 +33,34 @@ def:protect save_profile(native_language: str, target_language: str, level: str)
     learner.target_language = target_language.strip();
     learner.level = level;
     return learner;
+}
+def profile_view(learner: LearnerProfile) -> ProfileView {
+    return ProfileView(native_language=learner.native_language, target_language=learner.target_language,
+        level=learner.level, display_name=learner.display_name,
+        onboarding_completed=learner.onboarding_completed, onboarding_step=learner.onboarding_step);
+}
+def:protect get_profile() -> ProfileView {
+    profiles = [root -->][?:LearnerProfile];
+    if profiles { return profile_view(profiles[0]); }
+    return profile_view(LearnerProfile(onboarding_completed=False));
+}
+
+def:protect complete_onboarding(display_name: str, native_language: str, target_language: str, level: str) -> ProfileView {
+    name = display_name.strip();
+    if not name or len(name) > 80 { raise ValueError("Enter a name of up to 80 characters."); }
+    learner = save_profile(native_language, target_language, level);
+    learner.display_name = name;
+    learner.onboarding_completed = True;
+    return profile_view(learner);
+}
+def:protect save_onboarding_draft(display_name: str, native_language: str, target_language: str, level: str, step: int) -> ProfileView {
+    if len(display_name.strip()) > 80 or step < 0 or step > 5 { raise ValueError("Invalid onboarding progress."); }
+    profiles = [root -->][?:LearnerProfile];
+    learner = profiles[0] if profiles else root ++> LearnerProfile(onboarding_completed=False);
+    if learner.onboarding_completed { return profile_view(learner); }
+    learner.display_name = display_name.strip(); learner.native_language = native_language;
+    learner.target_language = target_language; learner.level = level; learner.onboarding_step = step;
+    return profile_view(learner);
 }
 def:protect start_conversation(consent_confirmed: bool, partner_mode: str = "human") -> SessionView {
     if not consent_confirmed {
@@ -62,7 +92,8 @@ def:protect append_turn(session_id: str, speaker: str, text: str, duration_secon
     return add_turn(owned_session(session_id), speaker, text, duration_seconds);
 }
 def:protect voice_status() -> VoiceStatus {
-    return VoiceStatus(enrolled=len(profile().voiceprint) > 0);
+    profiles = [root -->][?:LearnerProfile];
+    return VoiceStatus(enrolled=bool(profiles) and len(profiles[0].voiceprint) > 0);
 }
 """Store the learner's voiceprint from one or more WAV clips of a single
 enrollment (joined in order); the audio itself is discarded."""
@@ -119,6 +150,13 @@ def:protect end_conversation(session_id: str) -> SessionView {
     session = owned_session(session_id);
     session.status = "ended";
     return session.to_view();
+}
+def:protect decorate_conversation(session_id: str) -> None {
+    session = owned_session(session_id);
+    if session.status != "ended" or not session.consent_confirmed { raise ValueError("A completed, consented conversation is required."); }
+    if session.emoji or not session.turns { return; }
+    if os.getenv("GEMINI_API_KEY") { session.model_requests += 1; }
+    session.emoji = choose_conversation_emoji(conversation_context(session));
 }
 def conversation_context(session: Conversation, limit: int = 12) -> str {
     return "\n".join([f"{turn.speaker}: {turn.text}" for turn in session.turns[-limit:]]);
