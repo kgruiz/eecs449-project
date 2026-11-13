@@ -137,16 +137,17 @@ def:pub ConversationApp -> JsxElement {
                  </Pressable> for turn in session.turns]}
                 {(<View style={{"gap": 12}}>
                     {(<Text style={styles.muted}>
-                        Speakers are recognized by voice. Tap a turn to switch its speaker.
-                    </Text>) if voice_enrolled else (<View style={{"gap": 12}}>
-                        <Text style={styles.label}>Who is speaking?</Text>
+                        Speakers are recognized by voice. If recognition is unavailable or uncertain, your selection below is used. Tap a turn to correct it.
+                    </Text>) if voice_enrolled else <View/>}
+                    <View style={{"gap": 12}}>
+                        <Text style={styles.label}>{"Speaker if voice recognition is unavailable" if voice_enrolled else "Who is speaking?"}</Text>
                         <View style={styles.row} accessibilityRole="radiogroup">
                             <Chip label="Partner" selected={speaker == "partner"}
                                 onPress={lambda { speaker = "partner"; }}/>
                             <Chip label="Me" selected={speaker == "learner"}
                                 onPress={lambda { speaker = "learner"; }}/>
                         </View>
-                    </View>)}
+                    </View>
                     <SpeechInput key={session.id} sessionId={session.id} speaker={speaker}
                         language={session.target_language} voiceEnabled={voice_enrolled}
                         onBusyChange={lambda (value: bool) { speechBusy = value; }}

@@ -24,6 +24,8 @@ def:pub app -> JsxElement {
         partner_mode: str = "human", consent: bool = False, session: SessionView | None = None,
         speaker: str = "partner", text: str = "", error: str = "", busy: bool = False,
         page: str = "talk", historyId: str = "", levelHelpOpen: bool = False, voice_enrolled: bool = False, speechBusy: bool = False, spokenDraft: str = "";
+    has returnDialogRef: Ref[any] = Ref(None);
+
     async def loadVoice() -> None {
         try { status = await voice_status(); voice_enrolled = status.enrolled; }
         except Exception { voice_enrolled = False; }
@@ -81,14 +83,32 @@ def:pub app -> JsxElement {
     def trackSpeech(who: str, spoken: str) -> None {
         spokenDraft = spoken if who == "learner" else "";
     }
-    async def finish() -> None {
-        if speechBusy { return; }
+    def returnToSetup() -> None {
+
+        if busy or speechBusy { return; }
+
+        if session is not None and session.status == "active" {
+            error = "";
+
+            if returnDialogRef.current { returnDialogRef.current.showModal(); }
+        } else {
+            historyId = ""; page = "talk";
+        }
+    }
+
+    async def finish(returnToSetup: bool = False) -> None {
+        if busy or speechBusy { return; }
         updated: SessionView | None = None;
         if session is None { return; }
         error = ""; busy = True;
         try {
             updated = await end_conversation(session.id); historyId = updated.id;
-            session = None; text = ""; spokenDraft = ""; page = "conversations";
+            session = None; text = ""; spokenDraft = "";
+
+            if returnToSetup {
+                historyId = ""; page = "talk"; consent = False;
+                if returnDialogRef.current { returnDialogRef.current.close(); }
+            } else { page = "conversations"; }
         }
         except Exception { error = "Could not end this conversation."; }
         finally { busy = False; }
@@ -97,7 +117,9 @@ def:pub app -> JsxElement {
         <ScrollBounce />
         <a className="skip-link" href="#workspace">Skip to conversation</a>
         <header className="topbar">
-            <a className="brand" href="#workspace" aria-label="Pip Language Assistant">
+            <a className="brand" href="#workspace" aria-label="Pip Language Assistant"
+                aria-disabled={busy or speechBusy}
+                onClick={lambda (event: any) { event.preventDefault(); returnToSetup(); }}>
                 <BrandMark/>
                 <span className="wordmark">pip</span>
             </a>
@@ -195,9 +217,9 @@ def:pub app -> JsxElement {
                     {session.status == "ended" and <p className="session-ended-note">Conversation ended. The transcript is saved to your account.</p>}
                 </section>}
                 {session is not None and session.status == "active" and <aside className="card controls-card">
-                    {voice_enrolled and <p className="muted">Speakers are recognized by voice. Click a speaker name to correct it.</p>}
+                    {voice_enrolled and <p className="muted">Speakers are recognized by voice. If recognition is unavailable or uncertain, the selected speaker below is used. Click a speaker name to correct it.</p>}
                     <fieldset className="speaker-picker">
-                        <legend>{"Typed turns are from" if voice_enrolled else "Who is speaking?"}</legend>
+                        <legend>{"Speaker for typed turns and voice fallback" if voice_enrolled else "Who is speaking?"}</legend>
                         <div className="speaker-segments">
                             {[<label key={value} className="speaker-option">
                                 <input type="radio" name="conversation-speaker" value={value} checked={speaker == value}
@@ -225,13 +247,28 @@ def:pub app -> JsxElement {
                         <div className="composer-actions">
                             <button className="button button-secondary" disabled={busy or not text.strip()} onClick={addTurn}>Add message</button>
                             {speechBusy and <p className="muted" role="status">Stop listening and wait for your turns to save before leaving Talk or ending.</p>}
-                            <button className="button button-end" disabled={busy or speechBusy} onClick={finish}>End conversation</button>
+                            <button className="button button-end" disabled={busy or speechBusy} onClick={lambda { finish(False); }}>End conversation</button>
+                            <button className="button button-quiet" disabled={busy or speechBusy}
+                                onClick={returnToSetup}>Return to setup</button>
                         </div>
                     </div>
                 </aside>}
             </div>}
             {logged_in and page == "conversations" and <Conversations key={historyId} initialSessionId={historyId} active={session is not None} onTalk={lambda { page = "talk"; }}/>}
 
+            <dialog ref={returnDialogRef} className="language-dialog" aria-labelledby="return-setup-title"
+                aria-describedby="return-setup-description" onCancel={lambda (event: any) { if busy { event.preventDefault(); } }}>
+                <h2 id="return-setup-title">Return to setup?</h2>
+                <p id="return-setup-description">End and save this conversation before starting another. You can find it in Conversations.</p>
+                {text.strip() and <p className="muted">Your unsent message will not be included. Choose Keep talking to add it first.</p>}
+                {error and <p role="alert">{error}</p>}
+                <div className="language-dialog-actions">
+                    <button className="button button-secondary" autoFocus={True} disabled={busy}
+                        onClick={lambda { if returnDialogRef.current { returnDialogRef.current.close(); } }}>Keep talking</button>
+                    <button className="button button-primary" disabled={busy or speechBusy}
+                        onClick={lambda { finish(True); }}>{"Saving..." if busy else "End and return to setup"}</button>
+                </div>
+            </dialog>
         </main>
     </div>
 }

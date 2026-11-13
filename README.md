@@ -593,3 +593,47 @@ offline tests respectively. An isolated component preview verified corrections,
 optional improvements, legacy feedback, answer/next controls, and a 390px layout
 without horizontal overflow. The preview used fixtures and simulated checking;
 no live model or microphone requests were made.
+
+### Manual speaker fallback on 11/13/2026
+
+When voice identification is unavailable or uncertain, spoken turns use the
+Me/Partner selection captured when the utterance began, rather than alternating
+speakers. Both web and native mobile keep the manual picker visible with voice
+enrollment. Successful voice matches still override that fallback. Older clients
+that omit the fallback receive an error on an uncertain match instead of a guess.
+
+Validation: `jac test endpoints.jac` passed 22 collected offline tests, including
+short/missing audio, model failure, absent enrollment, successful voice matching,
+invalid fallback selection, and ended-session rejection. Scoped `jac check` passed
+for the endpoints and changed web/native components with warnings; the web client
+build passed. No mobile simulator, physical-device test, or live model request was
+performed. Real microphone timing still needs verification.
+
+### Return to setup on 11/13/2026
+
+The active web conversation has a separate **Return to setup** button. Its dialog
+provides **Keep talking** and **End and return to setup**. Canceling preserves the
+session and draft; confirming ends and saves the session before clearing the live
+workspace and returning to setup with consent unchecked. The dialog warns about
+unsent typed text and stays open on failure for retry. The action is disabled while
+speech or a save is in progress. Clicking the Pip logo uses the same dialog and
+guards during an active conversation; otherwise it returns to Talk setup. The
+ordinary **End conversation** action still opens Overview; returning to setup leaves feedback
+available to generate when the saved conversation is opened later.
+
+Validation: `jac check frontend.jac` and `jac build web -a client` passed (checker
+warnings remain). Browser checks against a local web server with disposable
+accounts verified the consent gate, typed-turn saving, initial dialog focus,
+cancellation preserving the draft/session, a simulated end-request failure and
+successful retry, saved-history access, and ordinary completion to Overview.
+A synthetic recognizer verified that exit controls stay disabled while listening
+and unlock after the final spoken turn saves. Unauthenticated access was rejected;
+a second account could neither read nor end the first account's session. These
+checks used partner-only turns and made no Gemini requests. No simulator or real
+microphone was used; real-device timing remains unverified.
+
+Logo follow-up validation: scoped `jac check frontend.jac` and the web client
+build passed. Local browser checks verified logo-triggered confirmation, draft
+preservation on cancel, completion to setup with consent reset, blocking during
+synthetic speech recognition, and direct return from history without an active
+session. No simulator, real microphone, or Gemini request was used.

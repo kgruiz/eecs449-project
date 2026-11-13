@@ -56,7 +56,7 @@ def:pub SpeechInput(sessionId: str, speaker: str, language: str, voiceEnabled: b
                 queueRef.current = queueRef.current[1:];
                 try {
                     if turn["voice"] {
-                        updated = await append_spoken_turn(sessionId, turn["text"], turn["duration"], turn["audio"]);
+                        updated = await append_spoken_turn(sessionId, turn["text"], turn["duration"], turn["audio"], turn["speaker"]);
                     } else {
                         updated = await append_turn(sessionId, turn["speaker"], turn["text"], turn["duration"]);
                     }
@@ -158,7 +158,7 @@ def:pub SpeechInput(sessionId: str, speaker: str, language: str, voiceEnabled: b
             capture = createAudioCapture();
             try { await capture.start(); captureRef.current = capture; }
             except Exception {
-                error = "Could not use the microphone for speaker recognition; turns will be guessed.";
+                error = "Could not use the microphone for speaker recognition; unidentified turns will use your selected speaker.";
             }
             # Stopped (or unmounted) while the prompt was open.
             if not listeningRef.current { stopCapture(); return; }
@@ -191,7 +191,7 @@ def:pub SpeechInput(sessionId: str, speaker: str, language: str, voiceEnabled: b
     }
     # Switching speaker mid-utterance flushes it to the previous speaker; onend restarts.
     can with [speaker] entry {
-        if not voiceEnabled and listeningRef.current and utteranceRef.current and recognitionRef.current {
+        if listeningRef.current and utteranceRef.current and recognitionRef.current {
             recognitionRef.current.stop();
         }
     }

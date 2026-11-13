@@ -80,9 +80,9 @@ def:protect delete_voice() -> VoiceStatus {
     return VoiceStatus(enrolled=False);
 }
 """Append a spoken turn, attributing it by voice. The WAV is used only for the
-match and never stored. Speech too short to judge alternates with the last turn."""
+match and never stored. Uncertain matches use the explicitly selected speaker."""
 def:protect append_spoken_turn(session_id: str, text: str, duration_seconds: float,
-                               audio_b64: str) -> SessionView {
+                               audio_b64: str, fallback_speaker: str = "") -> SessionView {
     session = owned_session(session_id);
     voiceprint = profile().voiceprint;
     score: float | None = None;
@@ -92,9 +92,7 @@ def:protect append_spoken_turn(session_id: str, text: str, duration_seconds: flo
         except Exception { score = None; }
     }
     if score is None {
-        last = session.turns[-1].speaker if session.turns else "learner";
-        return add_turn(session, "learner" if last == "partner" else "partner", text,
-            duration_seconds, "turn-taking");
+        return add_turn(session, fallback_speaker, text, duration_seconds, "manual");
     }
     return add_turn(session, "learner" if score >= MATCH_THRESHOLD else "partner", text,
         duration_seconds, "voice", round(score, 3));
