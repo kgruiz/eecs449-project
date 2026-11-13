@@ -1,11 +1,11 @@
-"""Web conversation workspace with hold-to-mark speaker attribution."""
+"""Web conversation workspace with manual or voiceprint speaker attribution."""
 import from "lucide-react" { X, Home as HomeIcon, MessageCircle, Plus, ChevronRight, LogOut, Mic }
 import from "./components/hold-speaker.jsx" { HoldSpeaker }
 import from "./components/scroll-bounce.jsx" { ScrollBounce }
 import from "@jac/runtime" { jacLogin, jacSignup, jacLogout, jacIsLoggedIn, SignupResult }
 import from .core.models { SessionView, TranscriptTurn }
 import from .endpoints {
-    get_profile, save_onboarding_draft, complete_onboarding, decorate_conversation, start_conversation, end_conversation, voice_status, set_turn_speaker
+    get_profile, save_onboarding_draft, complete_onboarding, decorate_conversation, start_conversation, end_conversation, voice_status, set_voice_detection, set_turn_speaker
 }
 import from "./components/language-picker.jsx" { LanguagePicker, LevelPicker }
 import from .components.SpeechInput { SpeechInput }
@@ -24,12 +24,18 @@ def:pub app -> JsxElement {
         session: SessionView | None = None,
         speaker: str = "partner", error: str = "", busy: bool = False,
         page: str = "home", historyId: str = "", voice_enrolled: bool = False, speechBusy: bool = False, spokenDraft: str = "",
-        endRequested: bool = False,
+        endRequested: bool = False, voice_enabled: bool = False, sessionVoice: bool = False, voicePreferenceBusy: bool = False,
         displayName: str = "", profileReady: bool = False, onboarding: bool = False, onboardingStep: int = 0;
 
     async def loadVoice() -> None {
-        try { status = await voice_status(); voice_enrolled = status.enrolled; }
-        except Exception { voice_enrolled = False; }
+        try { status = await voice_status(); voice_enrolled = status.enrolled; voice_enabled = status.enabled; }
+        except Exception { voice_enrolled = False; voice_enabled = False; }
+    }
+    async def updateVoicePreference(enabled: bool) -> None {
+        voicePreferenceBusy = True; error = "";
+        try { status = await set_voice_detection(enabled); voice_enabled = status.enabled; }
+        except Exception { error = "Could not update voice recognition. Please try again."; }
+        finally { voicePreferenceBusy = False; }
     }
     async def loadProfile() -> None {
         profileReady = False; error = "";
@@ -86,7 +92,7 @@ def:pub app -> JsxElement {
         error = ""; busy = True;
         try {
             created = await start_conversation(False, "human");
-            speaker = "partner"; endRequested = False; session = created; page = "talk";
+            speaker = "partner"; endRequested = False; sessionVoice = voice_enrolled and voice_enabled; session = created; page = "talk";
         } except Exception { error = "Could not start your conversation. Please try again."; }
         finally { busy = False; }
     }
@@ -182,7 +188,7 @@ def:pub app -> JsxElement {
                             </div>
                         </div>
                     </div>
-                    <aside className="profile-extras"><div className="profile-voice-card"><div className="profile-voice-icon"><Mic size={21} aria-hidden="true"/></div><h2>Voice recognition</h2><p>Set up your voice for speaker recognition in the native app. Web conversations use the Me button.</p><details className="profile-voice-details"><summary><span>Manage voice recognition</span><ChevronRight size={18} aria-hidden="true"/></summary><VoiceSetup enrolled={voice_enrolled} onChange={lambda (v: bool) { voice_enrolled = v; }}/></details></div>
+                    <aside className="profile-extras"><div className="profile-voice-card"><div className="profile-voice-icon"><Mic size={21} aria-hidden="true"/></div><h2>Voice recognition</h2><p>Identify your voice during conversations. When off, hold Me while you speak.</p>{voice_enrolled and <label className="voice-preference"><span><strong>Use in conversations</strong><small>Automatically identify your voice</small></span><input type="checkbox" role="switch" checked={voice_enabled} disabled={voicePreferenceBusy} onChange={lambda (e: ChangeEvent) { updateVoicePreference(e.target.checked); }}/></label>}<details className="profile-voice-details"><summary><span>{"Manage voice recognition" if voice_enrolled else "Set up voice recognition"}</span><ChevronRight size={18} aria-hidden="true"/></summary><VoiceSetup enrolled={voice_enrolled} onChange={lambda (v: bool) { voice_enrolled = v; if not v { voice_enabled = False; } }}/></details></div>
                         <div className="profile-signout"><button className="profile-signout-button" disabled={busy or speechBusy} onClick={logout}><LogOut size={18} aria-hidden="true"/>Sign out</button></div>
                     </aside>
                 </div>
@@ -195,19 +201,21 @@ def:pub app -> JsxElement {
                 </header>
                 <div className="live-status">
                     <SpeechInput key={session.id} sessionId={session.id} speaker={speaker}
-                        language={session.target_language} voiceEnabled={False} autoStart={True} stopRequested={endRequested}
+                        language={session.target_language} voiceEnabled={sessionVoice} autoStart={True} stopRequested={endRequested}
                         onBusyChange={lambda (value: bool) { speechBusy = value; }}
                         onSessionChange={lambda (updated: SessionView) { session = updated; }}
-                        onDraft={trackSpeech}/>
+                        onDraft={trackSpeech} onVoiceUnavailable={lambda { sessionVoice = False; }}/>
                 </div>
                 <div className="live-transcript">
                     {len(session.turns) == 0 and <div className="transcript-empty"><h2>Start talking</h2><p>Your conversation will appear here.</p></div>}
                     <TranscriptScroll key={session.id} session={session} onSwapSpeaker={swapSpeaker}/>
                 </div>
                 <div className="live-bottom">
-                    <WordHelper key={"words-" + session.id} sessionId={session.id} learnerSpeaking={speaker == "learner"} draft={spokenDraft}/>
-                    <HoldSpeaker speaking={speaker == "learner"} disabled={busy or endRequested}
+                    <WordHelper key={"words-" + session.id} sessionId={session.id} learnerSpeaking={bool(spokenDraft) if sessionVoice else speaker == "learner"} draft={spokenDraft}/>
+                    {sessionVoice and <p className="voice-auto-status">Voice recognition is on. Check speaker labels as you go.</p>}
+                    {not sessionVoice and <HoldSpeaker speaking={speaker == "learner"} disabled={busy or endRequested}
                         onChange={lambda (held: bool) { speaker = "learner" if held else "partner"; spokenDraft = ""; }}/>
+                    }
                     {endRequested and <p role="status" className="live-saving">Finishing and saving your conversation…</p>}
                 </div>
             </section>}

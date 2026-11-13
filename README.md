@@ -31,8 +31,11 @@ The current checkout includes:
   with at least one turn. The UTF-8 file includes speaker labels, languages,
   CEFR level, and session status, and is generated locally in the browser.
 - Browser speech recognition with interim text, finalized turns, recorded
-  utterance durations, and a hold-to-mark speaker control on web. Hold Me
-  while speaking and release for the partner; this does not mute the mic.
+  utterance durations, and optional voiceprint attribution. Enable voice
+  recognition in the profile after enrollment to use it in web conversations;
+  otherwise hold Me while speaking and release for the partner. Holding Me
+  does not mute the mic. Uncertain voice matches fall back to Partner and can
+  be corrected in the transcript.
 - Use the translation icon on a transcript turn to show English beneath
   the original. Toggle it to hide or reveal the cached translation.
 - A responsive Pip-styled web interface for sign-in, live transcripts, and
@@ -267,8 +270,8 @@ code signing.
 - `core/models.jac`: learner profile, transcript, session, and usage contracts.
 - `core/ai.jac`: server-only byLLM model and translation prompt.
 - `components/Translation.jac`: per-turn translation controls and bilingual transcript display.
-- `components/SpeechInput.jac`: browser speech-to-text adapter; the web
-  conversation view uses manual hold-to-mark attribution.
+- `components/SpeechInput.jac`: browser speech-to-text adapter with manual
+  hold-to-mark or optional voiceprint attribution.
 - `components/VoiceSetup.jac`, `components/audioCapture.js`: web voice enrollment
   and in-memory microphone capture for speaker detection.
 - `core/voiceprint.py`: server-side speaker verification (sherpa-onnx WeSpeaker);

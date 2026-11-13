@@ -2255,6 +2255,12 @@ details[open] > summary > .disclosure-chevron {
 .profile-voice-card { padding: 24px; border: 1px solid var(--pip-border); border-radius: 18px; background: var(--pip-surface); }
 .profile-voice-icon { display: grid; place-items: center; width: 42px; height: 42px; margin-bottom: 16px; border-radius: 13px; background: #eeebff; color: var(--pip-blue); }
 .profile-voice-details { margin-top: 20px; }
+.voice-preference { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-top: 20px; padding: 14px; border-radius: 12px; background: #f3f2ff; }
+.voice-preference span { display: grid; gap: 4px; }
+.voice-preference strong { font-size: 14px; }
+.voice-preference small { color: #687184; font-size: 12px; }
+.voice-preference input { width: 21px; height: 21px; accent-color: var(--pip-blue); flex: none; }
+.voice-auto-status { text-align: center; color: #687184; font-size: 13px; margin: 12px 0; }
 .profile-voice-details > summary { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 48px; padding: 11px 14px; border: 1px solid #dedee8; border-radius: 11px; color: var(--pip-ink); font-size: 14px; font-weight: 650; cursor: pointer; list-style: none; }
 .profile-voice-details > summary::-webkit-details-marker { display: none; }
 .profile-voice-details[open] > summary svg { transform: rotate(90deg); }

@@ -90,7 +90,14 @@ def:protect append_turn(session_id: str, speaker: str, text: str, duration_secon
 }
 def:protect voice_status() -> VoiceStatus {
     profiles = [root -->][?:LearnerProfile];
-    return VoiceStatus(enrolled=bool(profiles) and len(profiles[0].voiceprint) > 0);
+    enrolled = bool(profiles) and len(profiles[0].voiceprint) > 0;
+    return VoiceStatus(enrolled=enrolled, enabled=enrolled and profiles[0].voice_detection_enabled);
+}
+def:protect set_voice_detection(enabled: bool) -> VoiceStatus {
+    learner = profile();
+    if enabled and not learner.voiceprint { raise ValueError("Set up voice recognition first."); }
+    learner.voice_detection_enabled = enabled;
+    return VoiceStatus(enrolled=bool(learner.voiceprint), enabled=enabled);
 }
 """Store the learner's voiceprint from one or more WAV clips of a single
 enrollment (joined in order); the audio itself is discarded."""
@@ -104,7 +111,7 @@ def:protect enroll_voice(audio_clips: list[str], consent_confirmed: bool) -> Voi
     return VoiceStatus(enrolled=True);
 }
 def:protect delete_voice() -> VoiceStatus {
-    profile().voiceprint = [];
+    learner = profile(); learner.voiceprint = []; learner.voice_detection_enabled = False;
     return VoiceStatus(enrolled=False);
 }
 """Append a spoken turn, attributing it by voice. The WAV is used only for the

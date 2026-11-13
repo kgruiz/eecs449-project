@@ -4,10 +4,10 @@ node LearnerProfile {
     # Existing profiles predate onboarding and should continue to work.
     has display_name: str = "", onboarding_completed: bool = True, onboarding_step: int = 0;
     # Speaker embedding from voice enrollment (not audio); empty until enrolled.
-    has voiceprint: list[float] = [];
+    has voiceprint: list[float] = [], voice_detection_enabled: bool = False;
 }
 obj VoiceStatus {
-    has enrolled: bool;
+    has enrolled: bool, enabled: bool = False;
 }
 obj ProfileView {
     has native_language: str, target_language: str, level: str,

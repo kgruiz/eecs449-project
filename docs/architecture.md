@@ -27,8 +27,11 @@ The web UI uses the Pip visual design through `web.css` and decorative
 the transcript and hold-to-mark control. The web app attempts to start
 recognition on entry; browser permission or retry can be required. Holding Me
 selects the learner, and releasing selects the partner without muting audio.
-Voice enrollment is managed in the profile and is not used to override web
-hold-to-mark attribution. End requests recognition to stop and waits for its
+Voice enrollment and the web voice-detection preference are managed in the
+profile. When enrolled and enabled, web sends temporary per-turn audio for
+voiceprint attribution and hides the hold control; capture failure restores the
+hold control. Uncertain matches fall back to Partner and can be corrected.
+End requests recognition to stop and waits for its
 pending turns before ending the session. `TranscriptScroll.jac` keeps the turn list in a
 bounded, keyboard-focusable scroll region beneath the header. It follows new
 content while within 48 pixels of the bottom, preserves the reader's position
@@ -85,8 +88,8 @@ The learner can optionally enroll a voiceprint by reading a passage
 WeSpeaker embedding (`core/voiceprint.py`, sherpa-onnx), never the audio;
 `delete_voice` removes it.
 
-The web conversation now uses the hold control for manual attribution and
-does not send per-turn audio for speaker detection. The native adapter can send
+When enabled in the profile, the web adapter captures temporary per-turn audio;
+otherwise it uses the hold control. The native adapter can also send
 temporary utterance audio to `append_spoken_turn`, which scores it against the voiceprint
 (cosine >= `SPEAKER_MATCH_THRESHOLD`, default 0.5, means learner) and
 discards it. Speech under ~1 s, or a scoring failure, falls back to

@@ -1,5 +1,17 @@
 import from unittest.mock { patch }
 
+test "voice recognition preference requires enrollment" {
+    learner = LearnerProfile();
+    with patch(__name__ + ".profile", return_value=learner) {
+        with testraises(ValueError) { set_voice_detection(True); }
+        learner.voiceprint = [1.0];
+        assert set_voice_detection(True).enabled;
+        assert learner.voice_detection_enabled;
+        assert not set_voice_detection(False).enabled;
+        assert not learner.voice_detection_enabled;
+    }
+}
+
 def fallback_session() -> Conversation {
 
     return Conversation(native_language="English", target_language="Spanish", level="A2",

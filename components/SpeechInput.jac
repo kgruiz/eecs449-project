@@ -22,7 +22,8 @@ def:pub SpeechInput(sessionId: str, speaker: str, language: str, voiceEnabled: b
                     onSessionChange: Callable[[SessionView], None],
                     autoStart: bool = False, stopRequested: bool = False,
                     onDraft: Callable[[str, str], None] | None = None,
-                    onBusyChange: Callable[[bool], None] | None = None) -> JsxElement {
+                    onBusyChange: Callable[[bool], None] | None = None,
+                    onVoiceUnavailable: Callable[[], None] | None = None) -> JsxElement {
     has listening: bool = False, micStarted: bool = False, interim: str = "", locale: str = resolveLanguage(language)[0],
         error: str = "";
     has saving: bool = False, settling: bool = False;
@@ -36,6 +37,7 @@ def:pub SpeechInput(sessionId: str, speaker: str, language: str, voiceEnabled: b
     has queueRef: Ref[list[dict[str, any]]] = Ref([]);
     has drainingRef: Ref[bool] = Ref(False);
     has captureRef: Ref[any] = Ref(None);
+    has voiceRef: Ref[bool] = Ref(voiceEnabled);
     # Typed loosely: the checker has no stubs for the (partly prefixed) speech API.
     browser: any = window;
     recognitionClass: any = browser.SpeechRecognition or browser.webkitSpeechRecognition;
@@ -84,13 +86,13 @@ def:pub SpeechInput(sessionId: str, speaker: str, language: str, voiceEnabled: b
         now = Date.now();
         elapsed = (now - started) / 1000.0;
         audio = "";
-        if voiceEnabled and captureRef.current {
+        if voiceRef.current and captureRef.current {
             begin = (started - UTTERANCE_PAD_MS) if utterance else (now - UNTIMED_UTTERANCE_MS);
             audio = captureRef.current.clip(begin, now);
         }
-        if not voiceEnabled { reportDraft(who, text.strip()); }
+        if not voiceRef.current { reportDraft(who, text.strip()); }
         queueRef.current = (queueRef.current or []) + [{"speaker": who, "text": text.strip(),
-            "voice": voiceEnabled, "audio": audio,
+            "voice": voiceRef.current, "audio": audio,
             "duration": round(elapsed, 2) if elapsed > 0.0 else 0.0}];
         drain();
     }
@@ -113,7 +115,7 @@ def:pub SpeechInput(sessionId: str, speaker: str, language: str, voiceEnabled: b
             utteranceRef.current = {"speaker": speakerRef.current, "started": Date.now()};
         }
         interim = pending;
-        if pending.strip() and not voiceEnabled {
+        if pending.strip() and not voiceRef.current {
             reportDraft(utteranceRef.current["speaker"] if utteranceRef.current else speakerRef.current, pending);
         }
     }
@@ -154,11 +156,13 @@ def:pub SpeechInput(sessionId: str, speaker: str, language: str, voiceEnabled: b
         # Mark listening before the mic prompt so Start can't run twice meanwhile.
         listeningRef.current = True;
         listening = True;
-        if voiceEnabled {
+        if voiceRef.current {
             capture = createAudioCapture();
             try { await capture.start(); captureRef.current = capture; }
             except Exception {
                 error = "Could not use the microphone for speaker recognition; unidentified turns will use your selected speaker.";
+                voiceRef.current = False;
+                if onVoiceUnavailable { onVoiceUnavailable(); }
             }
             # Stopped (or unmounted) while the prompt was open.
             if not listeningRef.current { stopCapture(); return; }
