@@ -1,5 +1,5 @@
 """Web conversation workspace with hold-to-mark speaker attribution."""
-import from "lucide-react" { X, Home as HomeIcon, MessageCircle, Plus }
+import from "lucide-react" { X, Home as HomeIcon, MessageCircle, Plus, ChevronRight, LogOut, Mic }
 import from "./components/hold-speaker.jsx" { HoldSpeaker }
 import from "./components/scroll-bounce.jsx" { ScrollBounce }
 import from "@jac/runtime" { jacLogin, jacSignup, jacLogout, jacIsLoggedIn, SignupResult }
@@ -168,7 +168,25 @@ def:pub app -> JsxElement {
             {logged_in and not profileReady and <div className="profile-loading"><p role="status">{error if error else "Preparing your space…"}</p>{error and <button className="button button-secondary" onClick={loadProfile}>Try again</button>}</div>}
             {logged_in and profileReady and onboarding and <Onboarding name={displayName} nativeLanguage={native_language} targetLanguage={target_language} level={level} onName={lambda (value: str) { displayName = value; }} onNative={lambda (value: str) { native_language = value; }} onTarget={lambda (value: str) { target_language = value; }} onLevel={lambda (value: str) { level = value; }} onFinish={saveOnboarding} onProgress={saveProgress} initialStep={onboardingStep} busy={busy}/>}
             {logged_in and profileReady and not onboarding and page == "home" and <Home name={displayName} active={session is not None} onNew={returnToSetup} onOpen={lambda (id: str) { historyId = id; page = "conversations"; }} onAll={lambda { historyId = ""; page = "conversations"; }}/>}
-            {logged_in and profileReady and not onboarding and page == "profile" and <section className="card profile-card"><h1>Your profile</h1><p className="muted">Update your name and learning preferences.</p><div className="form-stack"><label className="field">Name<input maxLength={80} value={displayName} onChange={lambda (e: ChangeEvent) { displayName = e.target.value; }}/></label><LanguagePicker label="Your language" value={native_language} onChange={lambda (value: str) { native_language = value; }}/><LanguagePicker label="Learning language" value={target_language} onChange={lambda (value: str) { target_language = value; }}/><label className="field">Level<LevelPicker value={level} onChange={lambda (value: str) { level = value; }}/></label><button className="button button-primary" disabled={busy or not displayName.strip()} onClick={saveOnboarding}>Save profile</button></div><div className="profile-voice"><h2>Voice recognition</h2><p className="muted">Voice recognition is available in the native app. Web conversations use the hold-to-speak control.</p><VoiceSetup enrolled={voice_enrolled} onChange={lambda (v: bool) { voice_enrolled = v; }}/></div><div className="profile-signout"><button className="button button-secondary" disabled={busy or speechBusy} onClick={logout}>Sign out</button></div></section>}
+            {logged_in and profileReady and not onboarding and page == "profile" and <section className="profile-page">
+                <div className="profile-heading"><p className="eyebrow">YOUR SPACE</p><h1>Your profile</h1><p>Make Pip feel like yours.</p></div>
+                <div className="profile-grid">
+                    <div className="profile-main">
+                        <div className="profile-identity"><span className="profile-initial" aria-hidden="true">{displayName[:1].upper() if displayName else "P"}</span><div><strong>{displayName if displayName else "Your profile"}</strong><span>Your learning space</span></div><span className="profile-identity-spark" aria-hidden="true">✦</span></div>
+                        <div className="profile-fields"><div className="profile-section-heading"><h2>Learning preferences</h2><p>These help tailor your conversations and feedback.</p></div>
+                            <div className="profile-form"><label className="field">Name<input maxLength={80} autoComplete="given-name" value={displayName} onChange={lambda (e: ChangeEvent) { displayName = e.target.value; }}/></label>
+                                <LanguagePicker label="Language you know" value={native_language} onChange={lambda (value: str) { native_language = value; }}/>
+                                <LanguagePicker label="Learning language" value={target_language} onChange={lambda (value: str) { target_language = value; }}/>
+                                <div className="field"><label htmlFor="learner-level">Your level</label><LevelPicker value={level} onChange={lambda (value: str) { level = value; }}/></div>
+                                <button className="button button-primary profile-save" disabled={busy or not displayName.strip()} onClick={saveOnboarding}>{"Saving..." if busy else "Save changes"}</button>
+                            </div>
+                        </div>
+                    </div>
+                    <aside className="profile-extras"><div className="profile-voice-card"><div className="profile-voice-icon"><Mic size={21} aria-hidden="true"/></div><h2>Voice recognition</h2><p>Set up your voice for speaker recognition in the native app. Web conversations use the Me button.</p><details className="profile-voice-details"><summary><span>Manage voice recognition</span><ChevronRight size={18} aria-hidden="true"/></summary><VoiceSetup enrolled={voice_enrolled} onChange={lambda (v: bool) { voice_enrolled = v; }}/></details></div>
+                        <div className="profile-signout"><button className="profile-signout-button" disabled={busy or speechBusy} onClick={logout}><LogOut size={18} aria-hidden="true"/>Sign out</button></div>
+                    </aside>
+                </div>
+            </section>}
             {logged_in and profileReady and not onboarding and page == "talk" and session is not None and <section className="live-conversation">
                 <header className="live-header">
                     <span className="live-brand"><BrandMark/><span>pip</span></span>

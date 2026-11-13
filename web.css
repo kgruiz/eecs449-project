@@ -2230,3 +2230,50 @@ details[open] > summary > .disclosure-chevron {
     .live-bottom { padding: 5px 18px calc(14px + env(safe-area-inset-bottom)); }
     .hold-speaker-button { width: 90px; height: 90px; }
 }
+
+/* Profile: a personal space with editing and voice settings kept distinct. */
+.profile-page { width: min(100%, 1010px); margin: 24px auto 64px; }
+.profile-heading { margin-bottom: 28px; }
+.profile-heading .eyebrow { margin: 0 0 10px; }
+.pip-app .profile-heading h1 { margin: 0; font: 500 clamp(38px, 4.5vw, 52px)/1.08 Georgia, serif; letter-spacing: -.04em; }
+.profile-heading > p:last-child { margin: 9px 0 0; color: #687184; font-size: 16px; }
+.profile-grid { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(270px, .85fr); gap: 24px; align-items: start; }
+.profile-main, .profile-extras { min-width: 0; }
+.profile-identity { display: flex; align-items: center; gap: 17px; min-height: 112px; padding: 20px 24px; border-radius: 18px; background: #ede9ff; overflow: hidden; }
+.profile-initial { display: grid; place-items: center; flex: none; width: 62px; height: 62px; border-radius: 50%; color: white; background: #654fe9; font-size: 28px; font-weight: 700; }
+.profile-identity > div { display: grid; gap: 4px; min-width: 0; }
+.profile-identity strong { overflow-wrap: anywhere; font: 600 23px/1.15 Georgia, serif; color: var(--pip-ink); }
+.profile-identity > div span { font-size: 13px; color: #626984; }
+.profile-identity-spark { margin-left: auto; align-self: flex-start; color: #a296ea; font-size: 26px; }
+.profile-fields { margin-top: 26px; padding: 26px; background: var(--pip-surface); border: 1px solid var(--pip-border); border-radius: 18px; }
+.pip-app .profile-section-heading h2, .pip-app .profile-voice-card h2 { margin: 0; font: 500 24px/1.2 Georgia, serif; letter-spacing: -.025em; }
+.profile-section-heading p, .profile-voice-card > p { margin: 7px 0 0; color: #687184; font-size: 14px; line-height: 1.5; }
+.profile-form { display: grid; grid-template-columns: 1fr 1fr; gap: 18px 16px; margin-top: 24px; }
+.profile-form > :first-child, .profile-save { grid-column: 1 / -1; }
+.profile-form .field { min-width: 0; }
+.profile-save { width: 100%; margin-top: 4px; }
+.profile-voice-card { padding: 24px; border: 1px solid var(--pip-border); border-radius: 18px; background: var(--pip-surface); }
+.profile-voice-icon { display: grid; place-items: center; width: 42px; height: 42px; margin-bottom: 16px; border-radius: 13px; background: #eeebff; color: var(--pip-blue); }
+.profile-voice-details { margin-top: 20px; }
+.profile-voice-details > summary { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 48px; padding: 11px 14px; border: 1px solid #dedee8; border-radius: 11px; color: var(--pip-ink); font-size: 14px; font-weight: 650; cursor: pointer; list-style: none; }
+.profile-voice-details > summary::-webkit-details-marker { display: none; }
+.profile-voice-details[open] > summary svg { transform: rotate(90deg); }
+.profile-voice-details .voice-setup { margin-top: 20px; }
+.profile-voice-details .voice-setup .eyebrow { display: none; }
+.profile-voice-details .voice-passage { overflow-wrap: anywhere; }
+.profile-signout { margin-top: 22px; padding: 20px 4px 0; border-top: 1px solid var(--pip-border); }
+.profile-signout-button { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; padding: 8px 4px; border: 0; background: transparent; color: #b94639; font-size: 14px; font-weight: 700; cursor: pointer; }
+.profile-signout-button:focus-visible, .profile-voice-details > summary:focus-visible { outline: 2px solid var(--pip-blue); outline-offset: 3px; }
+@media (max-width: 700px) {
+    .profile-page { margin: 4px auto 30px; }
+    .profile-heading { margin-bottom: 22px; }
+    .pip-app .profile-heading h1 { font-size: 38px; }
+    .profile-grid { grid-template-columns: minmax(0, 1fr); gap: 18px; }
+    .profile-identity { min-height: 96px; padding: 16px 18px; }
+    .profile-initial { width: 56px; height: 56px; font-size: 24px; }
+    .profile-fields { margin-top: 18px; padding: 20px; }
+    .profile-form { grid-template-columns: minmax(0, 1fr); gap: 16px; margin-top: 20px; }
+    .profile-form > :first-child, .profile-save { grid-column: auto; }
+    .profile-voice-card { padding: 20px; }
+    .profile-signout { margin-top: 18px; }
+}
