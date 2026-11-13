@@ -12,7 +12,8 @@ The current checkout includes:
 - Account creation and sign-in.
 - Web onboarding after signup collects a display name, languages, and CEFR
   level. Progress is saved between steps. Existing profiles skip onboarding;
-  their preferences and display name can be edited from the account menu.
+  their preferences and display name can be edited on the profile page,
+  opened by selecting the account initial. Sign out is at the bottom.
 - A responsive web Home shows recent completed conversations and an entry
   point to start a conversation. Mobile widths use a bottom navigation with a
   central new-conversation action; active sessions remain available when

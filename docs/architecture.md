@@ -197,8 +197,8 @@ completed step; existing profiles default to complete. The profile view sent
 to the browser excludes the stored voiceprint. Home uses the account-scoped
 history endpoint to show the three most recent completed conversations, and
 opens the existing detail view. At narrow widths a bottom bar provides Home,
-new conversation, and Conversations. Account settings are in the initial
-menu. Active in-memory sessions retain the existing navigation protections.
+new conversation, and Conversations. Selecting the initial opens the profile
+page for editing and signing out. Active in-memory sessions retain the existing navigation protections.
 
 After completion the web client asks the protected decoration endpoint for a
 topic emoji. It requires an owned, ended session and sends at most
