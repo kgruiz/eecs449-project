@@ -608,3 +608,25 @@ invalid fallback selection, and ended-session rejection. Scoped `jac check` pass
 for the endpoints and changed web/native components with warnings; the web client
 build passed. No mobile simulator, physical-device test, or live model request was
 performed. Real microphone timing still needs verification.
+
+### Return to setup on 11/13/2026
+
+The active web conversation has a separate **Return to setup** button. Its dialog
+provides **Keep talking** and **End and return to setup**. Canceling preserves the
+session and draft; confirming ends and saves the session before clearing the live
+workspace and returning to setup with consent unchecked. The dialog warns about
+unsent typed text and stays open on failure for retry. The action is disabled while
+speech or a save is in progress. The logo is unchanged. The ordinary **End
+conversation** action still opens Overview; returning to setup leaves feedback
+available to generate when the saved conversation is opened later.
+
+Validation: `jac check frontend.jac` and `jac build web -a client` passed (checker
+warnings remain). Browser checks against a local web server with disposable
+accounts verified the consent gate, typed-turn saving, initial dialog focus,
+cancellation preserving the draft/session, a simulated end-request failure and
+successful retry, saved-history access, and ordinary completion to Overview.
+A synthetic recognizer verified that exit controls stay disabled while listening
+and unlock after the final spoken turn saves. Unauthenticated access was rejected;
+a second account could neither read nor end the first account's session. These
+checks used partner-only turns and made no Gemini requests. No simulator or real
+microphone was used; real-device timing remains unverified.
