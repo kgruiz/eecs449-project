@@ -62,15 +62,12 @@ def:protect save_onboarding_draft(display_name: str, native_language: str, targe
     learner.target_language = target_language; learner.level = level; learner.onboarding_step = step;
     return profile_view(learner);
 }
-def:protect start_conversation(consent_confirmed: bool, partner_mode: str = "human") -> SessionView {
-    if not consent_confirmed {
-        raise ValueError("All participants must consent to transcription and AI processing.");
-    }
+def:protect start_conversation(consent_confirmed: bool = False, partner_mode: str = "human") -> SessionView {
     if partner_mode not in ["human", "ai"] { raise ValueError("Unknown partner mode."); }
     learner = profile();
     session = root ++> Conversation(native_language=learner.native_language,
         target_language=learner.target_language, level=learner.level,
-        partner_mode=partner_mode, consent_confirmed=True, created_at=datetime.now(timezone.utc).isoformat());
+        partner_mode=partner_mode, consent_confirmed=consent_confirmed, created_at=datetime.now(timezone.utc).isoformat());
     return session.to_view();
 }
 def:protect get_conversation(session_id: str) -> SessionView {
@@ -153,7 +150,7 @@ def:protect end_conversation(session_id: str) -> SessionView {
 }
 def:protect decorate_conversation(session_id: str) -> None {
     session = owned_session(session_id);
-    if session.status != "ended" or not session.consent_confirmed { raise ValueError("A completed, consented conversation is required."); }
+    if session.status != "ended" { raise ValueError("A completed conversation is required."); }
     if session.emoji or not session.turns { return; }
     if os.getenv("GEMINI_API_KEY") { session.model_requests += 1; }
     session.emoji = choose_conversation_emoji(conversation_context(session));
@@ -165,7 +162,6 @@ def conversation_context(session: Conversation, limit: int = 12) -> str {
 def:protect suggest_word(session_id: str, partial_sentence: str) -> WordHint {
     session = owned_session(session_id);
     if session.status != "active" { raise ValueError("Conversation has ended."); }
-    if not session.consent_confirmed { raise ValueError("Participant consent is required."); }
     partial = partial_sentence.strip();
     if len(partial) > 500 { raise ValueError("Provide at most 500 characters."); }
     if not partial and not session.turns { raise ValueError("Start the conversation before asking for a word."); }
@@ -176,7 +172,6 @@ def:protect suggest_word(session_id: str, partial_sentence: str) -> WordHint {
 
 def:protect translate_sentence(session_id: str, turn_id: str, sentence: str) -> str {
     session = owned_session(session_id);
-    if not session.consent_confirmed { raise ValueError("Participant consent is required."); }
     if not sentence.strip() or len(sentence) > 4000 { raise ValueError("Invalid sentence."); }
     for turn in session.turns {
         if turn.id == turn_id and sentence.strip() in turn.text {

@@ -37,6 +37,28 @@ test "voice match overrides manual fallback" {
     }
 }
 
+test "language help does not require a recorded participant confirmation" {
+    session = fallback_session();
+    session.consent_confirmed = False;
+    with patch(__name__ + ".owned_session", return_value=session),
+         patch(__name__ + ".suggest_next_word", return_value=WordHint(word="hola", meaning="hello")),
+         patch(__name__ + ".translate_to_english", return_value="Hello.") {
+        assert suggest_word("session", "Hol").word == "hola";
+        assert translate_sentence("session", "previous", "Hola.") == "Hello.";
+    }
+}
+
+test "manual speaker turns are saved without a confirmation flag" {
+    session = fallback_session();
+    session.consent_confirmed = False;
+    with patch(__name__ + ".owned_session", return_value=session) {
+        assert append_turn("session", "learner", "Hola", 0.5).turns[-1].speaker == "learner";
+        assert append_turn("session", "partner", "Buenos días", 0.5).turns[-1].speaker == "partner";
+        session.status = "ended";
+        with testraises(ValueError) { append_turn("session", "learner", "Late", 0.5); }
+    }
+}
+
 test "uncertain voice requires valid manual selection and active session" {
     session = fallback_session();
 

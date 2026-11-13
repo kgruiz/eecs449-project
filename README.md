@@ -17,24 +17,25 @@ The current checkout includes:
   point to start a conversation. Mobile widths use a bottom navigation with a
   central new-conversation action; active sessions remain available when
   navigating away. This is responsive web UI, not an installable PWA yet.
-- A completed, consented conversation can receive one topic emoji from Gemini;
+- A completed conversation can receive one topic emoji from Gemini;
   a neutral icon is used when the provider is unavailable or for older records.
   The topic request uses up to the last 12 turns and is separate from coaching.
 - A learner profile with native language, target language, and CEFR level.
   Web setup uses searchable language choices such as Spanish (Spain) and
   Spanish (Mexico). Listening defaults to the learning language; Change opens
   a language picker with Cancel and Apply, affecting transcription only.
-- Participant consent before starting a conversation.
-- Authenticated sessions, saved text transcripts, and typed turns.
+- Authenticated sessions and saved text transcripts. Native mobile and the
+  shared API still support typed turns; the web conversation view uses speech.
 - A web **Download transcript (.txt)** button for active or ended conversations
   with at least one turn. The UTF-8 file includes speaker labels, languages,
   CEFR level, and session status, and is generated locally in the browser.
-- Browser speech recognition with interim text, finalized turns, manual
-  speaker selection, and recorded utterance durations.
+- Browser speech recognition with interim text, finalized turns, recorded
+  utterance durations, and a hold-to-mark speaker control on web. Hold Me
+  while speaking and release for the partner; this does not mute the mic.
 - Use the translation icon on a transcript turn to show English beneath
   the original. Toggle it to hide or reveal the cached translation.
-- A responsive Pip-styled web interface for sign-in, conversation setup,
-  transcripts, speech controls, and typed turns. The design does not add
+- A responsive Pip-styled web interface for sign-in, live transcripts, and
+  speech controls. The design does not add
   the planned language-assistance features.
 - A native mobile conversation UI and device speech-recognition adapter
   using the same authenticated server endpoints. Its web preview uses typed
@@ -45,7 +46,7 @@ lessons are planned. Web next-word hints and web/mobile post-conversation
 recaps are implemented. `FeaturePanels.jac` is still
 an extension placeholder. The web AI-partner option is disabled and labeled
 “coming soon”; the server still accepts the mode but does not generate replies.
-Translation is sent to Gemini only when requested, after participant consent.
+Translation is sent to Gemini only when requested.
 
 See [the project plan](docs/project-plan.md) for scope, milestones, risks,
 and open decisions, and [the architecture](docs/architecture.md) for the
@@ -64,12 +65,14 @@ jac run --dev web
 ```
 
 Open the local URL printed by Jac. Create an account, choose your languages
-and CEFR level, confirm participant consent, and start a session. Select who
-is speaking, then use **Start listening**, or type a sentence and add it as
-a turn. Speech input requires a browser exposing `SpeechRecognition` or
+and CEFR level, and use the new-conversation action. The web app attempts to
+start listening; browser microphone permission may be needed. Hold **Me** while
+you speak and release for your partner; End waits for pending turns to save.
+There is no participant-confirmation step or backend requirement. Speech input
+requires a browser exposing `SpeechRecognition` or
 `webkitSpeechRecognition`; the UI names Chrome, Edge, and Safari. Browsers
-without that API can use typed turns. Actual browser and language support
-still needs runtime verification.
+without that API cannot use the web conversation view. Actual browser and
+language support still needs runtime verification.
 
 Set `GEMINI_API_KEY` in `.env` to enable translation, word hints, and coaching. The server defaults to
 `gemini-3.5-flash-lite` through Jac's byLLM integration. Run `jac install`
@@ -256,15 +259,15 @@ code signing.
 ## Structure
 
 - `main.jac`: entry point for the `web` app and its server endpoints.
-- `frontend.jac`: authentication, profile setup, consent, and conversation UI.
+- `frontend.jac`: authentication, profile setup, and conversation UI.
 - `web.css`: web-only colors, typography, controls, and responsive layouts.
 - `components/WebArtwork.jac`: decorative web logo and companion artwork.
 - `endpoints.jac`: authenticated profile, session, and transcript endpoints.
 - `core/models.jac`: learner profile, transcript, session, and usage contracts.
 - `core/ai.jac`: server-only byLLM model and translation prompt.
 - `components/Translation.jac`: per-turn translation controls and bilingual transcript display.
-- `components/SpeechInput.jac`: browser speech-to-text adapter; with a voiceprint
-  enrolled it sends each turn's audio to `append_spoken_turn` for speaker detection.
+- `components/SpeechInput.jac`: browser speech-to-text adapter; the web
+  conversation view uses manual hold-to-mark attribution.
 - `components/VoiceSetup.jac`, `components/audioCapture.js`: web voice enrollment
   and in-memory microphone capture for speaker detection.
 - `core/voiceprint.py`: server-side speaker verification (sherpa-onnx WeSpeaker);
@@ -283,7 +286,7 @@ code signing.
 
 ## Web navigation
 
-**Home** offers conversation setup and recent completed conversations. The
+**Home** offers recent completed conversations. The
 new-conversation action opens the live transcript and controls.
 **Conversations** lists your completed sessions, newest dated sessions first,
 with a title taken from the opening turn, language/level, local date/time,
@@ -296,16 +299,16 @@ Opening a conversation shows three sections:
 - **Transcript:** saved turns, on-demand translations, and text download.
 - **Practice:** evidence-based phrasing improvements and short practice tasks.
 
-Ending a session takes you directly to its Overview. New conversation returns
-to Talk setup. Switching tabs retains an active session, speaker selection, and
-typed draft; stop listening and wait for saves before leaving Talk. Active
+Ending a session takes you directly to its Overview. The new-conversation
+action starts a session using the saved profile. Navigation is hidden during
+an active web conversation. Active
 sessions are not shown in the completed library, and active-session recovery
 after a full page reload is not implemented. Tab selection is local UI state,
 not a shareable URL. Native mobile retains its existing recap layout.
 
 ## Conversation recap
 
-Stop listening and wait for pending turns to save, then end the conversation.
+Use End to stop listening and wait for pending turns to save.
 Web and mobile request a recap automatically for sessions with a learner turn.
 The recap includes a summary, up to three strengths, and up to three priorities
 with learner quotes, suggested phrasing, and specific practice tasks. Explanations
@@ -324,14 +327,31 @@ Speaker corrections must be made before ending the conversation.
 
 Conversation text is stored in the authenticated user's graph. The app does
 not store raw audio. Speech recognition uses the browser's speech service;
-the consent copy explains that Chrome and Edge send audio to their provider.
-The native app uses the phone's speech service; its consent copy explains
-that Apple or Google may process the audio. The consent flow also covers
-sending conversation text to Gemini for language help and an automatic recap
-after completion. Deletion
+Chrome and Edge send audio to their provider. The native app uses the phone's
+speech service, where Apple or Google may process audio. Conversation text is
+sent to Gemini for requested language help and an automatic recap after
+completion. Web does not ask for participant confirmation. Deletion
 and retention controls are not implemented.
 
 ## Validation status
+
+### Web live conversation redesign (2026-11-13)
+
+In an isolated WSL copy under Jac 0.37.23, `jac check frontend.jac
+components/SpeechInput.jac endpoints.jac core/coaching.jac core/practice.jac`
+passed with warnings, and `jac build web --as client` succeeded. Offline
+`jac test core/coaching.jac`, `jac test core/practice.jac`, and `jac test
+endpoints.jac` passed 13, 7, and 27 collected tests respectively; model calls
+were mocked. Local API checks with two disposable accounts covered required
+authentication, ownership isolation, session creation without a recorded
+confirmation, a typed API turn, completion, and rejection of a late turn.
+A mobile-width browser check verified the plus action opens the live layout,
+the active view hides navigation and typing, and End opens the saved recap.
+
+The hold control, actual microphone audio, interrupted pointer events and the
+final speech result during End have not been verified end to end with a real
+speaker or a simulated recognizer. Live Gemini, native-device behavior, and
+voice enrollment were not retested for this change.
 
 ### Web onboarding and Home (2026-11-13)
 

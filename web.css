@@ -2193,3 +2193,43 @@ details[open] > summary > .disclosure-chevron {
     .home-hero .home-hero-art { display: none; }
     .home-heading h2 { font-size: 21px; }
 }
+
+/* Live conversation: transcript first, with a held speaker control. */
+.workspace:has(.live-conversation) { width: min(100%, 860px); padding: 0; }
+.live-conversation { display: flex; flex-direction: column; height: 100dvh; min-height: 480px; background: var(--pip-bg); }
+.live-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 18px 24px; border-bottom: 1px solid var(--pip-border); }
+.live-brand { display: inline-flex; align-items: center; gap: 7px; font-size: 23px; font-weight: 750; letter-spacing: -1px; }
+.live-brand .brand-mark { width: 34px; height: 34px; }
+.live-language { color: #59647b; font-size: 13px; text-align: center; }
+.live-end { display: inline-flex; align-items: center; gap: 4px; min-height: 42px; padding: 8px 12px; border: 1px solid #e6b8b3; border-radius: 12px; background: transparent; color: #b43830; cursor: pointer; font-weight: 700; }
+.live-status { padding: 10px 24px 0; }
+.live-status .speech-panel { margin: 0; }
+.live-status .speech-status { display: flex; align-items: center; gap: 7px; margin: 0; color: #58657b; font-size: 12px; }
+.live-status .speech-indicator { width: 8px; height: 8px; border-radius: 50%; background: var(--pip-blue); }
+.live-status .speech-mic-icon { display: none; }
+.live-status .speech-controls { margin-top: 4px; }
+.live-status .interim-text { font-size: 13px; margin: 0; }
+.live-transcript { flex: 1; min-height: 0; padding: 10px 24px; display: flex; flex-direction: column; }
+.live-transcript .transcript-scroll-shell { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+.live-transcript .transcript-scroll { flex: 1; max-height: none; min-height: 0; }
+.live-transcript .transcript-empty { flex: none; }
+.live-bottom { flex: none; padding: 8px 24px calc(18px + env(safe-area-inset-bottom)); }
+.live-bottom .word-helper { margin: 0 auto 8px; max-width: 520px; padding: 8px 12px; }
+.live-bottom .word-helper-heading { gap: 8px; }
+.live-bottom .word-helper-toggle { font-size: 11px; }
+.live-bottom .word-helper .button { padding: 5px 10px; font-size: 12px; min-height: 32px; }
+.hold-speaker { text-align: center; }
+.hold-speaker-status { margin: 4px 0 8px; font-weight: 700; font-size: 14px; }
+.hold-speaker-button { width: 98px; height: 98px; display: inline-flex; flex-direction: column; justify-content: center; align-items: center; gap: 4px; border: 2px solid var(--pip-blue); border-radius: 50%; color: var(--pip-blue); background: var(--pip-surface); font-size: 16px; font-weight: 750; touch-action: none; user-select: none; cursor: pointer; }
+.hold-speaker-button.is-held { background: var(--pip-blue); color: white; transform: scale(.97); }
+.hold-speaker-button:focus-visible { outline: 3px solid #879aff; outline-offset: 4px; }
+.hold-speaker-help, .live-saving { margin: 7px 0 0; color: #687184; font-size: 13px; text-align: center; }
+.profile-voice { margin-top: 32px; padding-top: 24px; border-top: 1px solid var(--pip-border); }
+@media (max-width: 700px) {
+    .workspace:has(.live-conversation) { margin: 0; width: 100%; padding: 0; }
+    .live-header { padding: 14px 18px; }
+    .live-status { padding: 8px 18px 0; }
+    .live-transcript { padding: 8px 18px; }
+    .live-bottom { padding: 5px 18px calc(14px + env(safe-area-inset-bottom)); }
+    .hold-speaker-button { width: 90px; height: 90px; }
+}

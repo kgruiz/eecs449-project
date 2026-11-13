@@ -48,13 +48,12 @@ test "coaching rejects partner attribution and fabricated quotes" {
     }
 }
 
-test "coaching requires completed consented learner conversation" {
+test "coaching requires a completed learner conversation" {
 
-    for kind in ["active", "consent", "empty", "partner", "long"] {
+    for kind in ["active", "empty", "partner", "long"] {
         session = sample_session();
 
         if kind == "active" { session.status = "active"; }
-        elif kind == "consent" { session.consent_confirmed = False; }
         elif kind == "empty" { session.turns = []; }
         elif kind == "partner" { session.turns = [session.turns[1]]; }
         else { session.turns[0].text = "x" * 100001; }
@@ -79,6 +78,14 @@ test "coaching failures preserve ended session and allow retry" {
     with patch(__name__ + ".generate_report", return_value=sample_report()) {
         assert build_report(session).summary != "";
         assert session.model_requests == 2;
+    }
+}
+
+test "coaching works without a recorded participant confirmation" {
+    session = sample_session();
+    session.consent_confirmed = False;
+    with patch(__name__ + ".generate_report", return_value=sample_report()) {
+        assert build_report(session).summary != "";
     }
 }
 
