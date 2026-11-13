@@ -593,3 +593,18 @@ offline tests respectively. An isolated component preview verified corrections,
 optional improvements, legacy feedback, answer/next controls, and a 390px layout
 without horizontal overflow. The preview used fixtures and simulated checking;
 no live model or microphone requests were made.
+
+### Manual speaker fallback on 11/13/2026
+
+When voice identification is unavailable or uncertain, spoken turns use the
+Me/Partner selection captured when the utterance began, rather than alternating
+speakers. Both web and native mobile keep the manual picker visible with voice
+enrollment. Successful voice matches still override that fallback. Older clients
+that omit the fallback receive an error on an uncertain match instead of a guess.
+
+Validation: `jac test endpoints.jac` passed 22 collected offline tests, including
+short/missing audio, model failure, absent enrollment, successful voice matching,
+invalid fallback selection, and ended-session rejection. Scoped `jac check` passed
+for the endpoints and changed web/native components with warnings; the web client
+build passed. No mobile simulator, physical-device test, or live model request was
+performed. Real microphone timing still needs verification.

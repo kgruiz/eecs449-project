@@ -195,9 +195,9 @@ def:pub app -> JsxElement {
                     {session.status == "ended" and <p className="session-ended-note">Conversation ended. The transcript is saved to your account.</p>}
                 </section>}
                 {session is not None and session.status == "active" and <aside className="card controls-card">
-                    {voice_enrolled and <p className="muted">Speakers are recognized by voice. Click a speaker name to correct it.</p>}
+                    {voice_enrolled and <p className="muted">Speakers are recognized by voice. If recognition is unavailable or uncertain, the selected speaker below is used. Click a speaker name to correct it.</p>}
                     <fieldset className="speaker-picker">
-                        <legend>{"Typed turns are from" if voice_enrolled else "Who is speaking?"}</legend>
+                        <legend>{"Speaker for typed turns and voice fallback" if voice_enrolled else "Who is speaking?"}</legend>
                         <div className="speaker-segments">
                             {[<label key={value} className="speaker-option">
                                 <input type="radio" name="conversation-speaker" value={value} checked={speaker == value}

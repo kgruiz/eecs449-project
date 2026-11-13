@@ -79,7 +79,7 @@ def:pub SpeechInput(sessionId: str, speaker: str, language: str, voiceEnabled: b
                 try {
                     if turn["voice"] {
                         audio = await take_recording(turn["audio"]) if turn["audio"] else "";
-                        updated = await append_spoken_turn(sessionId, turn["text"], turn["duration"], audio);
+                        updated = await append_spoken_turn(sessionId, turn["text"], turn["duration"], audio, turn["speaker"]);
                     } else {
                         updated = await append_turn(sessionId, turn["speaker"], turn["text"], turn["duration"]);
                     }
@@ -109,7 +109,7 @@ def:pub SpeechInput(sessionId: str, speaker: str, language: str, voiceEnabled: b
         drain();
     }
     # A session's recording identifies its speaker only if it holds a single turn
-    # (iOS); several turns in one recording (Android) fall back to turn-taking.
+    # (iOS); several turns in one recording (Android) use the selected speaker.
     def flushSession() -> None {
         turns = pendingRef.current or [];
         uri = audioUriRef.current;
@@ -240,7 +240,7 @@ def:pub SpeechInput(sessionId: str, speaker: str, language: str, voiceEnabled: b
     }
     # Switching speaker mid-utterance flushes it to the previous speaker; "end" restarts.
     can with [speaker] entry {
-        if not voiceRef.current and listeningRef.current and utteranceRef.current {
+        if listeningRef.current and utteranceRef.current {
             ExpoSpeechRecognitionModule.stop();
         }
     }
