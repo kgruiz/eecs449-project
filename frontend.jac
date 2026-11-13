@@ -83,6 +83,19 @@ def:pub app -> JsxElement {
     def trackSpeech(who: str, spoken: str) -> None {
         spokenDraft = spoken if who == "learner" else "";
     }
+    def returnToSetup() -> None {
+
+        if busy or speechBusy { return; }
+
+        if session is not None and session.status == "active" {
+            error = "";
+
+            if returnDialogRef.current { returnDialogRef.current.showModal(); }
+        } else {
+            historyId = ""; page = "talk";
+        }
+    }
+
     async def finish(returnToSetup: bool = False) -> None {
         if busy or speechBusy { return; }
         updated: SessionView | None = None;
@@ -104,7 +117,9 @@ def:pub app -> JsxElement {
         <ScrollBounce />
         <a className="skip-link" href="#workspace">Skip to conversation</a>
         <header className="topbar">
-            <a className="brand" href="#workspace" aria-label="Pip Language Assistant">
+            <a className="brand" href="#workspace" aria-label="Pip Language Assistant"
+                aria-disabled={busy or speechBusy}
+                onClick={lambda (event: any) { event.preventDefault(); returnToSetup(); }}>
                 <BrandMark/>
                 <span className="wordmark">pip</span>
             </a>
@@ -234,7 +249,7 @@ def:pub app -> JsxElement {
                             {speechBusy and <p className="muted" role="status">Stop listening and wait for your turns to save before leaving Talk or ending.</p>}
                             <button className="button button-end" disabled={busy or speechBusy} onClick={lambda { finish(False); }}>End conversation</button>
                             <button className="button button-quiet" disabled={busy or speechBusy}
-                                onClick={lambda { error = ""; if returnDialogRef.current { returnDialogRef.current.showModal(); } }}>Return to setup</button>
+                                onClick={returnToSetup}>Return to setup</button>
                         </div>
                     </div>
                 </aside>}

@@ -616,8 +616,9 @@ provides **Keep talking** and **End and return to setup**. Canceling preserves t
 session and draft; confirming ends and saves the session before clearing the live
 workspace and returning to setup with consent unchecked. The dialog warns about
 unsent typed text and stays open on failure for retry. The action is disabled while
-speech or a save is in progress. The logo is unchanged. The ordinary **End
-conversation** action still opens Overview; returning to setup leaves feedback
+speech or a save is in progress. Clicking the Pip logo uses the same dialog and
+guards during an active conversation; otherwise it returns to Talk setup. The
+ordinary **End conversation** action still opens Overview; returning to setup leaves feedback
 available to generate when the saved conversation is opened later.
 
 Validation: `jac check frontend.jac` and `jac build web -a client` passed (checker
@@ -630,3 +631,9 @@ and unlock after the final spoken turn saves. Unauthenticated access was rejecte
 a second account could neither read nor end the first account's session. These
 checks used partner-only turns and made no Gemini requests. No simulator or real
 microphone was used; real-device timing remains unverified.
+
+Logo follow-up validation: scoped `jac check frontend.jac` and the web client
+build passed. Local browser checks verified logo-triggered confirmation, draft
+preservation on cancel, completion to setup with consent reset, blocking during
+synthetic speech recognition, and direct return from history without an active
+session. No simulator, real microphone, or Gemini request was used.
