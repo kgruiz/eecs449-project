@@ -1,6 +1,7 @@
 """Web conversation workspace with manual or voiceprint speaker attribution."""
 import from "lucide-react" { X, Home as HomeIcon, MessageCircle, Plus, ChevronRight, LogOut, Mic }
 import from "./components/hold-speaker.jsx" { HoldSpeaker }
+import from "./components/language-flag.jsx" { LanguageFlag }
 import from "./components/scroll-bounce.jsx" { ScrollBounce }
 import from "@jac/runtime" { jacLogin, jacSignup, jacLogout, jacIsLoggedIn, SignupResult }
 import from .core.models { SessionView, TranscriptTurn }
@@ -178,7 +179,7 @@ def:pub app -> JsxElement {
                 <div className="profile-heading"><p className="eyebrow">YOUR SPACE</p><h1>Your profile</h1><p>Make Pip feel like yours.</p></div>
                 <div className="profile-grid">
                     <div className="profile-main">
-                        <div className="profile-identity"><span className="profile-initial" aria-hidden="true">{displayName[:1].upper() if displayName else "P"}</span><div><strong>{displayName if displayName else "Your profile"}</strong><span>Your learning space</span></div><span className="profile-identity-spark" aria-hidden="true">✦</span></div>
+                        <div className="profile-identity"><span className="profile-initial" aria-hidden="true">{displayName[:1].upper() if displayName else "P"}</span><div><strong>{displayName if displayName else "Your profile"}</strong><span><LanguageFlag language={target_language}/>{" " + target_language + " · " + level}</span></div><span className="profile-identity-spark" aria-hidden="true">✦</span></div>
                         <div className="profile-fields"><div className="profile-section-heading"><h2>Learning preferences</h2><p>These help tailor your conversations and feedback.</p></div>
                             <div className="profile-form"><label className="field">Name<input maxLength={80} autoComplete="given-name" value={displayName} onChange={lambda (e: ChangeEvent) { displayName = e.target.value; }}/></label>
                                 <LanguagePicker label="Language you know" value={native_language} onChange={lambda (value: str) { native_language = value; }}/>
