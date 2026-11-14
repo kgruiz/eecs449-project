@@ -9,8 +9,8 @@ sem evaluate_answer = "Evaluate the learner's answer to the supplied practice ta
 
 def check_answer(session: Conversation, priority_index: int, answer: str) -> PracticeFeedback {
 
-    if session.status != "ended" or not session.consent_confirmed {
-        raise ValueError("Practice requires an ended, consented conversation.");
+    if session.status != "ended" {
+        raise ValueError("Practice requires an ended conversation.");
     }
     coaching = session.coaching;
 

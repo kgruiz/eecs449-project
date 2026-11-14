@@ -9,8 +9,8 @@ sem generate_report = "Summarize this completed language-learning conversation b
 
 def build_report(session: Conversation) -> CoachingReport {
 
-    if session.status != "ended" or not session.consent_confirmed {
-        raise ValueError("End the conversation with participant consent before requesting feedback.");
+    if session.status != "ended" {
+        raise ValueError("End the conversation before requesting feedback.");
     }
 
     if session.coaching is not None {
