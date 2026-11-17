@@ -2297,7 +2297,6 @@ button.speech-pill:hover { border-color: #aab7f5; color: var(--pip-blue); }
     .live-composer-who { min-width: 0; padding: 6px 10px; }
     .live-composer-send { padding-inline: 14px; }
 }
-}
 
 /* Profile: a personal space with editing and voice settings kept distinct. */
 .profile-page { width: min(100%, 1010px); margin: 24px auto 64px; }
