@@ -78,7 +78,9 @@ previous speaker. Recognition attempts to restart after browser silence
 timeouts until stopped. These behaviors are implementation intent and
 still need browser verification.
 
-There is no acoustic pause detection. The web conversation view does not provide typed turns, so it needs a supported browser. The app does not store raw audio; the browser's
+There is no acoustic pause detection. The web live view also has a typed
+composer (Me/Partner choice, `append_turn`, zero duration), so browsers without
+speech support or with a blocked microphone still work. The app does not store raw audio; the browser's
 speech service handles transcription.
 
 ## Speaker detection
@@ -178,7 +180,7 @@ decisions, and [the README](../README.md) for setup and validation status.
 
 `core/coaching.jac` uses the shared server-only Gemini model to return a typed
 `CoachingReport`. `conversation_feedback` resolves an owned session and requires
-completion and learner text before generating a report. It validates
+completion, participant consent, and learner text before generating a report. It validates
 nonempty fields, list limits, and exact learner-quote/turn-ID matches before saving
 the report on `Conversation`. `SessionView` includes the optional saved report.
 Failed generation leaves the transcript ended and retryable. Successful sequential
@@ -200,7 +202,9 @@ completed step; existing profiles default to complete. The profile view sent
 to the browser excludes the stored voiceprint. Home uses the account-scoped
 history endpoint to show the three most recent completed conversations, and
 opens the existing detail view. At narrow widths a bottom bar provides Home,
-new conversation, and Conversations. Selecting the initial opens the profile
+new conversation, and Conversations. Every new-conversation action opens a
+participant-consent dialog; the session is created with `consent_confirmed`
+only after the learner confirms. Selecting the initial opens the profile
 page for editing and signing out. Active in-memory sessions retain the existing navigation protections.
 
 After completion the web client asks the protected decoration endpoint for a

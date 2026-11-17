@@ -6,7 +6,7 @@ import from "./components/scroll-bounce.jsx" { ScrollBounce }
 import from "@jac/runtime" { jacLogin, jacSignup, jacLogout, jacIsLoggedIn, SignupResult }
 import from .core.models { SessionView, TranscriptTurn }
 import from .endpoints {
-    get_profile, save_onboarding_draft, complete_onboarding, decorate_conversation, start_conversation, end_conversation, voice_status, set_voice_detection, set_turn_speaker
+    get_profile, save_onboarding_draft, complete_onboarding, decorate_conversation, start_conversation, append_turn, end_conversation, voice_status, set_voice_detection, set_turn_speaker
 }
 import from "./components/language-picker.jsx" { LanguagePicker, LevelPicker }
 import from .components.SpeechInput { SpeechInput }
@@ -26,7 +26,9 @@ def:pub app -> JsxElement {
         speaker: str = "partner", error: str = "", busy: bool = False,
         page: str = "home", historyId: str = "", voice_enrolled: bool = False, speechBusy: bool = False, spokenDraft: str = "",
         endRequested: bool = False, voice_enabled: bool = False, sessionVoice: bool = False, voicePreferenceBusy: bool = False,
-        displayName: str = "", profileReady: bool = False, onboarding: bool = False, onboardingStep: int = 0;
+        displayName: str = "", profileReady: bool = False, onboarding: bool = False, onboardingStep: int = 0,
+        consent: bool = False, typedText: str = "", typedSpeaker: str = "learner";
+    has consentDialogRef: Ref[any] = Ref(None);
 
     async def loadVoice() -> None {
         try { status = await voice_status(); voice_enrolled = status.enrolled; voice_enabled = status.enabled; }
@@ -88,13 +90,35 @@ def:pub app -> JsxElement {
     def logout() -> None {
         jacLogout(); page = "home"; historyId = ""; logged_in = False; session = None; voice_enrolled = False; profileReady = False; displayName = "";
     }
+    # Every new conversation starts with participant consent (see the dialog below).
+    def askConsent() -> None {
+        consent = False; error = "";
+        if consentDialogRef.current { consentDialogRef.current.showModal(); }
+    }
+    def closeConsent() -> None {
+        if consentDialogRef.current { consentDialogRef.current.close(); }
+    }
     async def start() -> None {
         created: SessionView | None = None;
+        if not consent or busy { return; }
         error = ""; busy = True;
         try {
-            created = await start_conversation(False, "human");
-            speaker = "partner"; endRequested = False; sessionVoice = voice_enrolled and voice_enabled; session = created; page = "talk";
+            created = await start_conversation(True, "human");
+            speaker = "partner"; typedText = ""; typedSpeaker = "learner"; endRequested = False;
+            sessionVoice = voice_enrolled and voice_enabled; session = created; page = "talk";
+            closeConsent();
         } except Exception { error = "Could not start your conversation. Please try again."; }
+        finally { busy = False; consent = False; }
+    }
+    async def addTyped() -> None {
+        updated: SessionView | None = None;
+        message = typedText.strip();
+        if session is None or not message or busy or endRequested { return; }
+        error = ""; busy = True;
+        try {
+            updated = await append_turn(session.id, typedSpeaker, message, 0.0);
+            session = updated; typedText = "";
+        } except Exception { error = "Could not add this message. Please try again."; }
         finally { busy = False; }
     }
     # Only the learner's own unfinished speech counts toward struggle detection.
@@ -105,7 +129,7 @@ def:pub app -> JsxElement {
 
         if busy or speechBusy { return; }
         if session is not None and session.status == "active" { page = "talk"; }
-        else { historyId = ""; start(); }
+        else { historyId = ""; askConsent(); }
     }
 
     async def finish(returnToSetup: bool = False) -> None {
@@ -117,7 +141,7 @@ def:pub app -> JsxElement {
             updated = await end_conversation(session.id); historyId = updated.id;
             # Finish decoration before mounting recap generation to avoid concurrent writes.
             try { await decorate_conversation(updated.id); } except Exception { }
-            session = None; spokenDraft = "";
+            session = None; spokenDraft = ""; typedText = "";
 
             if returnToSetup {
                 historyId = ""; page = "home";
@@ -212,15 +236,49 @@ def:pub app -> JsxElement {
                     <TranscriptScroll key={session.id} session={session} onSwapSpeaker={swapSpeaker}/>
                 </div>
                 <div className="live-bottom">
-                    <WordHelper key={"words-" + session.id} sessionId={session.id} learnerSpeaking={bool(spokenDraft) if sessionVoice else speaker == "learner"} draft={spokenDraft}/>
+                    <WordHelper key={"words-" + session.id} sessionId={session.id}
+                        learnerSpeaking={(typedSpeaker == "learner") if typedText.strip() else (bool(spokenDraft) if sessionVoice else speaker == "learner")}
+                        draft={typedText if typedSpeaker == "learner" and typedText.strip() else spokenDraft}/>
                     {sessionVoice and <p className="voice-auto-status">Voice recognition is on. Check speaker labels as you go.</p>}
                     {not sessionVoice and <HoldSpeaker speaking={speaker == "learner"} disabled={busy or endRequested}
                         onChange={lambda (held: bool) { speaker = "learner" if held else "partner"; spokenDraft = ""; }}/>
                     }
+                    <form className="live-composer" aria-label="Type a message"
+                        onSubmit={lambda (event: any) { event.preventDefault(); addTyped(); }}>
+                        <div className="live-composer-speaker" role="group" aria-label="Who is this message from?">
+                            <button type="button" className={"live-composer-option " + ("is-selected" if typedSpeaker == "learner" else "")}
+                                aria-pressed={typedSpeaker == "learner"} onClick={lambda { typedSpeaker = "learner"; }}>Me</button>
+                            <button type="button" className={"live-composer-option " + ("is-selected" if typedSpeaker == "partner" else "")}
+                                aria-pressed={typedSpeaker == "partner"} onClick={lambda { typedSpeaker = "partner"; }}>Partner</button>
+                        </div>
+                        <input className="live-composer-input" aria-label="Message" placeholder="Or type a message…" maxLength={4000}
+                            value={typedText} disabled={endRequested} onChange={lambda (e: ChangeEvent) { typedText = e.target.value; }}/>
+                        <button type="submit" className="button button-primary live-composer-send"
+                            disabled={busy or endRequested or not typedText.strip()}>Send</button>
+                    </form>
                     {endRequested and <p role="status" className="live-saving">Finishing and saving your conversation…</p>}
                 </div>
             </section>}
             {logged_in and profileReady and not onboarding and page == "conversations" and <Conversations key={historyId} initialSessionId={historyId} active={session is not None} onTalk={returnToSetup}/>}
+            <dialog ref={consentDialogRef} className="language-dialog consent-dialog" aria-labelledby="consent-title"
+                aria-describedby="consent-description" onCancel={lambda (event: any) { if busy { event.preventDefault(); } }}>
+                <h2 id="consent-title">Before you start</h2>
+                <p id="consent-description" className="muted">Pip transcribes everyone in the conversation, so check that your partner is happy to take part.</p>
+                <label className="consent-box"><input type="checkbox" checked={consent} disabled={busy}
+                    onChange={lambda (e: ChangeEvent) { consent = e.target.checked; }}/>
+                    <span>{"All participants agree to live transcription by the browser's speech service, "
+                        + ("sending each spoken turn's audio to our server to recognize who is speaking, " if voice_enrolled and voice_enabled else "")
+                        + "saved text, and sending conversation text to Gemini for language help and an automatic recap after ending."}</span>
+                </label>
+                <p className="form-footnote">{"Raw audio is not saved. Speech is transcribed by your browser's speech service (Chrome and Edge send audio to their provider); you can also type turns."
+                    + (" Speaker recognition uses each turn's audio once and then discards it." if voice_enrolled and voice_enabled else "")}</p>
+                {error and <p role="alert" className="speech-error">{error}</p>}
+                <div className="language-dialog-actions">
+                    <button type="button" className="button button-secondary" disabled={busy} onClick={closeConsent}>Cancel</button>
+                    <button type="button" className="button button-primary" disabled={busy or not consent} onClick={start}>
+                        {"Starting..." if busy else "Start conversation"}</button>
+                </div>
+            </dialog>
 
         </main>
         {logged_in and profileReady and not onboarding and not (page == "talk" and session is not None) and <nav className="mobile-nav" aria-label="Main navigation"><button disabled={busy or speechBusy} className={"mobile-nav-item " + ("is-selected" if page == "home" else "")} onClick={lambda { page = "home"; }}><HomeIcon size={22}/><span>Home</span></button><button className="mobile-nav-new" disabled={busy or speechBusy} aria-label="Start a new conversation" onClick={returnToSetup}><Plus size={30}/></button><button disabled={busy or speechBusy} className={"mobile-nav-item " + ("is-selected" if page == "conversations" else "")} onClick={lambda { historyId = ""; page = "conversations"; }}><MessageCircle size={22}/><span>Conversations</span></button></nav>}

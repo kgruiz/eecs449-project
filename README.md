@@ -25,8 +25,10 @@ The current checkout includes:
   Web setup uses searchable language choices such as Spanish (Spain) and
   Spanish (Mexico). Listening defaults to the learning language; Change opens
   a language picker with Cancel and Apply, affecting transcription only.
-- Authenticated sessions and saved text transcripts. Native mobile and the
-  shared API still support typed turns; the web conversation view uses speech.
+- Participant consent before starting each conversation. On web, every new
+  conversation opens a confirmation dialog; coaching requires the confirmation.
+- Authenticated sessions, saved text transcripts, and typed turns. The web
+  live view has a compact composer with a Me/Partner choice beside speech.
 - A web **Download transcript (.txt)** button for active or ended conversations
   with at least one turn. The UTF-8 file includes speaker labels, languages,
   CEFR level, and session status, and is generated locally in the browser.
@@ -71,12 +73,13 @@ jac run --dev web
 Open the local URL printed by Jac. Create an account, choose your languages
 and CEFR level, and use the new-conversation action. The web app attempts to
 start listening; browser microphone permission may be needed. Hold **Me** while
-you speak and release for your partner; End waits for pending turns to save.
-There is no participant-confirmation step or backend requirement. Speech input
+you speak and release for your partner, or type a message and choose Me or
+Partner; End waits for pending turns to save. Each new conversation first asks
+you to confirm that all participants agree to transcription. Speech input
 requires a browser exposing `SpeechRecognition` or
 `webkitSpeechRecognition`; the UI names Chrome, Edge, and Safari. Browsers
-without that API cannot use the web conversation view. Actual browser and
-language support still needs runtime verification.
+without that API, or with the microphone blocked, can still use typed turns.
+Actual browser and language support still needs runtime verification.
 
 Set `GEMINI_API_KEY` in `.env` to enable translation, word hints, and coaching. The server defaults to
 `gemini-3.5-flash-lite` through Jac's byLLM integration. Run `jac install`
@@ -334,10 +337,24 @@ not store raw audio. Speech recognition uses the browser's speech service;
 Chrome and Edge send audio to their provider. The native app uses the phone's
 speech service, where Apple or Google may process audio. Conversation text is
 sent to Gemini for requested language help and an automatic recap after
-completion. Web does not ask for participant confirmation. Deletion
+completion. Web asks for participant confirmation before each conversation,
+and coaching is generated only for confirmed conversations. Deletion
 and retention controls are not implemented.
 
 ## Validation status
+
+### Web consent and typed turns restored (2026-11-17)
+
+On macOS with Jac 0.37.23, `jac check frontend.jac` reported no errors (warnings
+only) and `jac test core/coaching.jac` passed 12 collected tests with the model
+mocked. In the local dev server, headless browser checks with a disposable
+account verified that Start opens the consent dialog, Cancel creates no session,
+Start stays disabled until the box is checked, and confirming creates a session.
+A typed Partner turn and a typed Me turn (submitted with Send and with a typed
+Enter) saved with the right speakers. The composer did not overflow a 360px
+layout. Headless Chromium blocked the microphone, so spoken turns were not
+retested. Ending the conversation, coaching for confirmed sessions, and live
+Gemini calls were not exercised.
 
 ### Web live conversation redesign (2026-11-13)
 

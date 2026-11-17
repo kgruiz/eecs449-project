@@ -2215,6 +2215,14 @@ details[open] > summary > .disclosure-chevron {
 .live-bottom .word-helper-heading { gap: 8px; }
 .live-bottom .word-helper-toggle { font-size: 11px; }
 .live-bottom .word-helper .button { padding: 5px 10px; font-size: 12px; min-height: 32px; }
+.live-composer { display: flex; align-items: center; gap: 8px; max-width: 520px; margin: 12px auto 0; }
+.live-composer-speaker { display: inline-flex; flex: none; padding: 3px; border: 1px solid var(--pip-border); border-radius: 999px; background: var(--pip-surface); }
+.live-composer-option { padding: 6px 11px; border: 0; border-radius: 999px; background: transparent; color: var(--pip-muted); font: inherit; font-size: 12px; font-weight: 650; cursor: pointer; }
+.live-composer-option.is-selected { background: var(--pip-blue); color: white; }
+.live-composer-option:focus-visible { outline: 2px solid #879aff; outline-offset: 2px; }
+.pip-app .live-composer-input { flex: 1; min-width: 0; min-height: 40px; padding: 8px 12px; border: 1px solid var(--pip-border); border-radius: 999px; background: var(--pip-surface); font: inherit; font-size: 14px; }
+.live-bottom .live-composer-send { flex: none; min-height: 40px; padding: 8px 16px; border-radius: 999px; }
+.consent-dialog .consent-box { margin-top: 0; }
 .hold-speaker { text-align: center; }
 .hold-speaker-status { margin: 4px 0 8px; font-weight: 700; font-size: 14px; }
 .hold-speaker-button { width: 98px; height: 98px; display: inline-flex; flex-direction: column; justify-content: center; align-items: center; gap: 4px; border: 2px solid var(--pip-blue); border-radius: 50%; color: var(--pip-blue); background: var(--pip-surface); font-size: 16px; font-weight: 750; touch-action: none; user-select: none; cursor: pointer; }
