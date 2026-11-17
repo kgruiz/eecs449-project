@@ -353,6 +353,22 @@ and retention controls are not implemented.
 
 ## Validation status
 
+### Live layout and conversation list redesign (2026-11-17)
+
+On macOS with Jac 0.37.23, `jac check` reported no errors (warnings only) for
+`frontend.jac`, `components/SpeechInput.jac`, `components/WordHelper.jac`,
+`components/Conversations.jac`, `components/Home.jac`, and
+`components/TranscriptScroll.jac`. Offline tests passed for `endpoints.jac`
+(34), `core/hints.jac` (7), and `core/history.jac` (4). Headless browser checks
+with typed turns measured the live transcript at 469px of a 720px viewport
+(203px before) and 603px of 844px at the narrowest available width, with no
+horizontal overflow; verified alternating Me/Partner styling, a dismissible
+microphone notice, the centered Latest button not overlapping translate
+controls, the shared conversation row on Home and Conversations, the secondary
+start button on a conversation's detail page, and its absence at phone widths.
+No AI-backed endpoint was called during these checks. Real microphone use and
+interim speech display were not exercised.
+
 ### Navigation, live controls, and polish (2026-11-17)
 
 On macOS with Jac 0.37.23, `jac check` reported no errors (warnings only) for
