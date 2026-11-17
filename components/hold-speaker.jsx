@@ -2,7 +2,8 @@ import { Hand } from "lucide-react";
 import { useEffect, useRef } from "react";
 
 // Pointer capture and global release handle drags, interruptions and lost focus.
-export function HoldSpeaker({ speaking, onChange, disabled }) {
+// `listening` is false while the microphone is off, so no one is being transcribed.
+export function HoldSpeaker({ speaking, onChange, disabled, listening = true }) {
 	const held = useRef(false);
 	const callback = useRef(onChange);
 	callback.current = onChange;
@@ -33,7 +34,7 @@ export function HoldSpeaker({ speaking, onChange, disabled }) {
 		}
 	}
 	return <div className="hold-speaker">
-		<p className="hold-speaker-status" aria-live="polite">{speaking ? "Me speaking" : "Partner speaking"}</p>
+		<p className="hold-speaker-status" aria-live="polite">{!listening ? "Microphone off" : speaking ? "Me speaking" : "Partner speaking"}</p>
 		<button type="button" className={`hold-speaker-button ${speaking ? "is-held" : ""}`} disabled={disabled}
 			aria-label="Hold while you speak; assistive technology can activate to toggle" aria-pressed={speaking}
 			onPointerDown={(event) => { if (event.button === 0) { event.preventDefault(); event.currentTarget.setPointerCapture(event.pointerId); press(); } }}
@@ -43,6 +44,6 @@ export function HoldSpeaker({ speaking, onChange, disabled }) {
 			onKeyUp={(event) => { if (event.key === " " || event.key === "Enter") { event.preventDefault(); release(); } }}>
 			<Hand size={29} aria-hidden="true"/><span>Me</span>
 		</button>
-		<p className="hold-speaker-help">{speaking ? "Release when you finish" : "Hold while you speak"}</p>
+		<p className="hold-speaker-help">{!listening ? "Turn on the microphone to transcribe speech" : speaking ? "Release when you finish" : "Hold while you speak"}</p>
 	</div>;
 }

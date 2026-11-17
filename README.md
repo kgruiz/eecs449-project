@@ -74,7 +74,8 @@ jac run --dev web
 
 Open the local URL printed by Jac. Create an account, choose your languages
 and CEFR level, and use the new-conversation action. The web app attempts to
-start listening; browser microphone permission may be needed. Hold **Me** while
+start listening; browser microphone permission may be needed. If it is refused,
+**Turn on microphone** retries and typing still works. Hold **Me** while
 you speak and release for your partner, or type a message and choose Me or
 Partner; End waits for pending turns to save. Each new conversation first asks
 you to confirm that all participants agree to transcription. Speech input

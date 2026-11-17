@@ -23,7 +23,8 @@ def:pub SpeechInput(sessionId: str, speaker: str, language: str, voiceEnabled: b
                     autoStart: bool = False, stopRequested: bool = False,
                     onDraft: Callable[[str, str], None] | None = None,
                     onBusyChange: Callable[[bool], None] | None = None,
-                    onVoiceUnavailable: Callable[[], None] | None = None) -> JsxElement {
+                    onVoiceUnavailable: Callable[[], None] | None = None,
+                    onListeningChange: Callable[[bool], None] | None = None) -> JsxElement {
     has listening: bool = False, micStarted: bool = False, interim: str = "", locale: str = resolveLanguage(language)[0],
         error: str = "";
     has saving: bool = False, settling: bool = False;
@@ -123,9 +124,12 @@ def:pub SpeechInput(sessionId: str, speaker: str, language: str, voiceEnabled: b
         # Silence and our own aborts are routine; onend restarts if still listening.
         if code in ROUTINE_SPEECH_ERRORS { return; }
         listeningRef.current = False;
-        listening = False; micStarted = False;
+        # Some browsers skip onend after a refused start; clear settling here so
+        # the conversation is not treated as busy forever.
+        listening = False; micStarted = False; settling = False;
         stopCapture();
-        error = speech_error_message(code);
+        # Typing is always available beside speech in the web live view.
+        error = speech_error_message(code) + (" You can still type messages below." if code in ["not-allowed", "service-not-allowed", "audio-capture", "language-not-supported"] else "");
     }
     def handleEnd() -> None {
         settling = False; micStarted = False;
@@ -139,7 +143,7 @@ def:pub SpeechInput(sessionId: str, speaker: str, language: str, voiceEnabled: b
                 listeningRef.current = False;
                 listening = False;
                 settling = False;
-                error = "Speech recognition stopped. Press Start listening to resume.";
+                error = "Speech recognition stopped. Turn on the microphone to resume.";
                 stopCapture();
             }
         } else { listening = False; stopCapture(); }
@@ -194,6 +198,7 @@ def:pub SpeechInput(sessionId: str, speaker: str, language: str, voiceEnabled: b
         if recognitionRef.current { recognitionRef.current.stop(); }
     }
     can with entry { if autoStart { start(); } }
+    can with [listening] entry { if onListeningChange { onListeningChange(listening); } }
     can with [stopRequested] entry { if stopRequested and listeningRef.current { stop(); } }
     # Switching speaker mid-utterance flushes it to the previous speaker; onend restarts.
     can with [speaker] entry {
@@ -214,12 +219,12 @@ def:pub SpeechInput(sessionId: str, speaker: str, language: str, voiceEnabled: b
             <span>{("Listening" if micStarted else "Starting microphone...") if listening else "Saving spoken turns..."}</span>
         </div>}
         {not recognitionClass and <p className="muted">
-            Live transcription needs a browser with the Web Speech API (Chrome, Edge or Safari).
+            Live transcription needs a browser with the Web Speech API (Chrome, Edge or Safari). You can type messages below.
         </p>}
         {recognitionClass and <div className="speech-controls">
             {not listening and not stopRequested and <button className="button button-primary" disabled={not locale.strip()} onClick={lambda { start(); }}>
                 <Mic className="speech-mic-icon" size={20} strokeWidth={1.75} aria-hidden="true"/>
-                Start listening
+                Turn on microphone
             </button>}
             <p className="interim-text" aria-live="polite">{interim}</p>
         </div>}

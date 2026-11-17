@@ -28,7 +28,7 @@ def:pub app -> JsxElement {
         page: str = "home", historyId: str = "", voice_enrolled: bool = False, speechBusy: bool = False, spokenDraft: str = "",
         endRequested: bool = False, voice_enabled: bool = False, sessionVoice: bool = False, voicePreferenceBusy: bool = False,
         displayName: str = "", profileReady: bool = False, onboarding: bool = False, onboardingStep: int = 0,
-        consent: bool = False, typedText: str = "", typedSpeaker: str = "learner",
+        consent: bool = False, typedText: str = "", typedSpeaker: str = "learner", micOn: bool = False,
         routeHash: str = "", routeReady: bool = False, convRoute: str = "", routeNonce: int = 0;
     has consentDialogRef: Ref[any] = Ref(None);
     has popRef: Ref[any] = Ref(None);
@@ -287,7 +287,8 @@ def:pub app -> JsxElement {
                         language={session.target_language} voiceEnabled={sessionVoice} autoStart={True} stopRequested={endRequested}
                         onBusyChange={lambda (value: bool) { speechBusy = value; }}
                         onSessionChange={lambda (updated: SessionView) { session = updated; }}
-                        onDraft={trackSpeech} onVoiceUnavailable={lambda { sessionVoice = False; }}/>
+                        onDraft={trackSpeech} onVoiceUnavailable={lambda { sessionVoice = False; }}
+                        onListeningChange={lambda (value: bool) { micOn = value; }}/>
                 </div>
                 <div className="live-transcript">
                     {len(session.turns) == 0 and <div className="transcript-empty"><h2>Start talking</h2><p>Your conversation will appear here.</p></div>}
@@ -298,7 +299,7 @@ def:pub app -> JsxElement {
                         learnerSpeaking={(typedSpeaker == "learner") if typedText.strip() else (bool(spokenDraft) if sessionVoice else speaker == "learner")}
                         draft={typedText if typedSpeaker == "learner" and typedText.strip() else spokenDraft}/>
                     {sessionVoice and <p className="voice-auto-status">Voice recognition is on. Check speaker labels as you go.</p>}
-                    {not sessionVoice and <HoldSpeaker speaking={speaker == "learner"} disabled={busy or endRequested}
+                    {not sessionVoice and <HoldSpeaker speaking={speaker == "learner"} listening={micOn} disabled={busy or endRequested}
                         onChange={lambda (held: bool) { speaker = "learner" if held else "partner"; spokenDraft = ""; }}/>
                     }
                     <form className="live-composer" aria-label="Type a message"
@@ -322,7 +323,7 @@ def:pub app -> JsxElement {
             <dialog ref={consentDialogRef} className="language-dialog consent-dialog" aria-labelledby="consent-title"
                 aria-describedby="consent-description" onCancel={lambda (event: any) { if busy { event.preventDefault(); } }}>
                 <h2 id="consent-title">Before you start</h2>
-                <p id="consent-description" className="muted">Pip transcribes everyone in the conversation, so check that your partner is happy to take part.</p>
+                <p id="consent-description" className="muted">Pip transcribes everyone in the conversation, so check that your partner is happy to take part. Your browser may then ask to use the microphone; you can also type messages.</p>
                 <label className="consent-box"><input type="checkbox" checked={consent} disabled={busy}
                     onChange={lambda (e: ChangeEvent) { consent = e.target.checked; }}/>
                     <span>{"All participants agree to live transcription by the browser's speech service, "
