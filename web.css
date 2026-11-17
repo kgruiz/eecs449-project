@@ -27,7 +27,8 @@
 .onboarding-benefits { display: grid; gap: 10px; margin: 28px 0; }
 .onboarding-benefits p { display: flex; gap: 14px; align-items: flex-start; background: #f2f3ff; padding: 16px; border-radius: 14px; line-height: 1.5; margin: 0; }
 .onboarding-benefits svg { color: var(--pip-blue); flex: none; }
-.onboarding-actions { display: flex; gap: 10px; margin-top: 30px; }
+/* Sticky so Continue stays reachable under long language lists on short screens. */
+.onboarding-actions { position: sticky; bottom: 0; z-index: 1; display: flex; gap: 10px; margin-top: 30px; padding: 14px 0 0; background: var(--pip-surface); }
 .onboarding-actions button, .home-start { display: inline-flex; align-items: center; justify-content: center; gap: 10px; }
 .onboarding-next { flex: 1; }
 .home-screen { max-width: 1050px; margin: 0 auto; padding: 28px 0 60px; }
@@ -2183,7 +2184,8 @@ details[open] > summary > .disclosure-chevron {
     .onboarding-actions { margin-top: 22px; }
     .home-hero { padding: 25px 22px; gap: 8px; }
     .home-hero > div:first-child { min-width: 0; flex: 1; }
-    .home-hero .home-hero-art { flex: 0 0 100px; height: 90px; transform: scale(.52); transform-origin: center; margin-left: -20px; margin-right: -20px; }
+    /* The scaled art still overflowed the card and was clipped; the copy carries the hero here. */
+    .home-hero .home-hero-art { display: none; }
     .home-heading { gap: 8px; }
     .pip-app .home-heading h2 { font-size: 24px; }
     .home-view-all { white-space: nowrap; }
@@ -2226,6 +2228,11 @@ details[open] > summary > .disclosure-chevron {
 .live-bottom .word-helper-heading { gap: 8px; }
 .live-bottom .word-helper-toggle { font-size: 11px; }
 .live-bottom .word-helper .button { padding: 5px 10px; font-size: 12px; min-height: 32px; }
+/* One compact row until a hint arrives; hints and status wrap underneath. */
+.live-bottom .word-helper { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.live-bottom .word-helper-heading { flex: 1; min-width: 0; }
+.live-bottom .word-helper > .button { flex: none; width: auto; }
+.live-bottom .word-hint, .live-bottom .word-helper-status, .live-bottom .word-helper-error { flex-basis: 100%; order: 1; }
 .live-composer { display: flex; align-items: center; gap: 8px; max-width: 520px; margin: 12px auto 0; }
 .live-composer-speaker { display: inline-flex; flex: none; padding: 3px; border: 1px solid var(--pip-border); border-radius: 999px; background: var(--pip-surface); }
 .live-composer-option { padding: 6px 11px; border: 0; border-radius: 999px; background: transparent; color: var(--pip-muted); font: inherit; font-size: 12px; font-weight: 650; cursor: pointer; }
@@ -2234,6 +2241,7 @@ details[open] > summary > .disclosure-chevron {
 .pip-app .live-composer-input { flex: 1; min-width: 0; min-height: 40px; padding: 8px 12px; border: 1px solid var(--pip-border); border-radius: 999px; background: var(--pip-surface); font: inherit; font-size: 14px; }
 .live-bottom .live-composer-send { flex: none; min-height: 40px; padding: 8px 16px; border-radius: 999px; }
 .consent-dialog .consent-box { margin-top: 0; }
+.auth-error { margin: 0; padding: 10px 12px; border-radius: 10px; background: #fff0e9; color: #963c30; font-size: 13px; }
 .profile-language-error { grid-column: 1 / -1; margin: 0; color: var(--pip-danger); font-size: 13px; }
 .hold-speaker { text-align: center; }
 .hold-speaker-status { margin: 4px 0 8px; font-weight: 700; font-size: 14px; }

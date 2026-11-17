@@ -56,5 +56,9 @@ watchdog = ">=3.0.0"
 
 [client]
 
+[client.app_meta_data]
+title = "Pip"
+description = "Learn from the real conversations you already have."
+
 [byllm.model]
 default_model = "gemini/gemini-3.5-flash-lite"

@@ -351,6 +351,27 @@ and retention controls are not implemented.
 
 ## Validation status
 
+### Navigation, live controls, and polish (2026-11-17)
+
+On macOS with Jac 0.37.23, `jac check` reported no errors (warnings only) for
+`frontend.jac`, `components/SpeechInput.jac`, `components/Conversations.jac`,
+`components/Onboarding.jac`, and `components/Home.jac`. Offline tests passed
+for `endpoints.jac` (34), `core/history.jac` (4), `core/coaching.jac` (13),
+`core/hints.jac` (7), and `core/ai.jac` (5). Headless browser checks with
+disposable accounts verified: hash addresses for Home, Conversations, Profile,
+and Talk; Back, Forward, and reload of `#/profile`; a deep link to an unknown
+conversation ID opening and failing gracefully, including after Back; Back from
+an active conversation to Home and Forward into it again with a single history
+entry; sign-in errors shown inside the card; the page title "Pip" (set at
+runtime because the dev template hard-codes its own title; `jac.toml`
+`[client.app_meta_data]` covers builds); "Welcome" for an account without
+conversations; the compact microphone control, "Microphone off" state, and
+typing hint when the microphone is blocked; the one-row word-suggestion bar;
+sticky onboarding actions at 1280x800; and no hero art clipping or horizontal
+overflow at the browser tool's 500px minimum width. A deep link to a real
+completed conversation was not exercised because creating one would call
+Gemini; live microphone permission prompts were not available headless.
+
 ### Language rules, native translation, and empty sessions (2026-11-17)
 
 On macOS with Jac 0.37.23, `jac check` reported no errors (warnings only) for

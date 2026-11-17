@@ -9,7 +9,7 @@ import from .endpoints {
     get_profile, save_onboarding_draft, complete_onboarding, decorate_conversation, start_conversation, append_turn, end_conversation, voice_status, set_voice_detection, set_turn_speaker
 }
 import from "./components/language-picker.jsx" { LanguagePicker, LevelPicker }
-import from "./components/language-options.js" { sameLanguage }
+import from "./components/language-options.js" { sameLanguage, shortLanguageName }
 import from .components.SpeechInput { SpeechInput }
 import from .components.WordHelper { WordHelper }
 import from .components.VoiceSetup { VoiceSetup }
@@ -29,7 +29,7 @@ def:pub app -> JsxElement {
         endRequested: bool = False, voice_enabled: bool = False, sessionVoice: bool = False, voicePreferenceBusy: bool = False,
         displayName: str = "", profileReady: bool = False, onboarding: bool = False, onboardingStep: int = 0,
         consent: bool = False, typedText: str = "", typedSpeaker: str = "learner", micOn: bool = False,
-        routeHash: str = "", routeReady: bool = False, convRoute: str = "", routeNonce: int = 0;
+        routeHash: str = "", routeReady: bool = False, convRoute: str = "", routeNonce: int = 0, authError: str = "";
     has consentDialogRef: Ref[any] = Ref(None);
     has popRef: Ref[any] = Ref(None);
 
@@ -54,6 +54,8 @@ def:pub app -> JsxElement {
     }
     can with entry {
         browser: any = window;
+        # jac.toml sets the built page title; the dev server's template does not.
+        browser.document.title = "Pip";
         routeHash = browser.location.hash;
         popRef.current = lambda { routeHash = browser.location.hash; };
         browser.addEventListener("popstate", popRef.current);
@@ -128,17 +130,23 @@ def:pub app -> JsxElement {
     async def authenticate(register: bool) -> None {
         signup: SignupResult | None = None;
         ok: bool = False;
+        authError = "";
+        if "@" not in email.strip() or "." not in email.strip().split("@")[-1] { authError = "Enter a valid email address."; return; }
+        if not password { authError = "Enter your password."; return; }
         error = ""; busy = True;
         try {
             if register {
-                signup = await jacSignup(email, password);
-                if not signup.success { error = signup.error; return; }
+                signup = await jacSignup(email.strip(), password);
+                if not signup.success {
+                    authError = "Could not create your account. If you already have one, sign in instead." if not signup.error or signup.error == "Signup failed" else signup.error;
+                    return;
+                }
             }
-            ok = await jacLogin(email, password);
+            ok = await jacLogin(email.strip(), password);
             logged_in = ok;
-            if not ok { error = "Sign in failed."; }
+            if not ok { authError = "That email and password don't match. Check them and try again."; }
             password = "";
-        } except Exception { error = "Unable to sign in. Please try again."; }
+        } except Exception { authError = "Unable to sign in right now. Please try again."; }
         finally { busy = False; }
     }
     def logout() -> None {
@@ -239,12 +247,13 @@ def:pub app -> JsxElement {
                     <div className="form-stack">
                         <label className="field">Email
                             <input type="email" autoComplete="email" placeholder="you@example.com" value={email}
-                                onChange={lambda (e: ChangeEvent) { email = e.target.value; }}/>
+                                onChange={lambda (e: ChangeEvent) { email = e.target.value; authError = ""; }}/>
                         </label>
                         <label className="field">Password
                             <input type="password" autoComplete="current-password" placeholder="Your password" value={password}
-                                onChange={lambda (e: ChangeEvent) { password = e.target.value; }}/>
+                                onChange={lambda (e: ChangeEvent) { password = e.target.value; authError = ""; }}/>
                         </label>
+                        {authError and <p className="auth-error" role="alert">{authError}</p>}
                         <button className="button button-primary" disabled={busy} onClick={lambda { authenticate(False); }}>
                             {"Please wait..." if busy else "Sign in"}
                         </button>
@@ -279,7 +288,7 @@ def:pub app -> JsxElement {
             {logged_in and profileReady and not onboarding and page == "talk" and session is not None and <section className="live-conversation">
                 <header className="live-header">
                     <span className="live-brand"><BrandMark/><span>pip</span></span>
-                    <span className="live-language">{session.target_language + " · " + session.level}</span>
+                    <span className="live-language">{shortLanguageName(session.target_language) + " · " + session.level}</span>
                     <button className="live-end" disabled={busy or endRequested} onClick={lambda { endRequested = True; }} aria-label="End conversation"><X size={20}/><span>End</span></button>
                 </header>
                 <div className="live-status">
