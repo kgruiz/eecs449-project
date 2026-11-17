@@ -1068,6 +1068,13 @@ html[data-scroll-bounce] body {
 	font-size: 13px;
 	color: #4d5a47;
 }
+.word-hint-lookup {
+	background: var(--pip-surface);
+	border: 2px solid var(--pip-lime);
+}
+.word-hint-lookup .word-hint-meaning {
+	color: var(--pip-muted);
+}
 .word-helper-status {
 	margin: 0;
 	font-size: 12px;

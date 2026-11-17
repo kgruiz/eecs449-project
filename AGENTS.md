@@ -14,7 +14,8 @@ app with a native conversation UI. Both use the shared server endpoints;
 the mobile browser preview supports typed turns only.
 `components/FeaturePanels.jac` is a placeholder. The web app suggests a
 next word when the learner pauses mid-sentence (`components/WordHelper.jac`,
-`suggest_word`), which makes a Gemini call through `core/hints.jac`. Full
+`suggest_word`), which makes a Gemini call through `core/hints.jac`; the same
+call answers "how do I say X?" asides in the draft. Full
 reply hints, AI-partner responses, mistake history,
 and lessons are planned, not implemented. Translation and saved post-conversation
 coaching are implemented; coaching uses the shared Gemini configuration and

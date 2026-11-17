@@ -125,14 +125,20 @@ These native adapter behaviors still need end-to-end verification.
 when their in-progress sentence stays unchanged for four seconds while
 "Me" is held. The in-progress sentence is the learner's interim speech that
 `SpeechInput.jac` reports through `onDraft` (then the finalized utterance). Sentences ending
-in `.`, `!`, or `?` do not trigger, and the learner can turn automatic
+in `.`, `!`, or `?` do not trigger unless they contain a common "how do I
+say X?" phrasing (`ASKS_FOR_WORD`), and the learner can turn automatic
 suggestions off or tap "Suggest a word" at any time.
 
 `suggest_word(session_id, partial_sentence)` checks ownership and an active
 session, then calls `suggest_next_word` in `core/hints.jac`
 with the partial sentence, the last 12 turns, the session languages, and
 CEFR level. It returns a `WordHint` (target-language word plus a short
-native-language meaning) and increments `model_requests`. Drafts and hints
+native-language meaning) and increments `model_requests`. When the draft
+contains an aside asking how to say something, in the native or target
+language ("how do I say bread", "come si dice bread"), the same call also
+fills `WordHint.lookup` (`WordLookup`: the asked item and its target-language
+word), which the helper shows above the next word. The model, not the client
+regex, decides whether a draft is such an aside. Drafts and hints
 are never saved as transcript turns. A hint that arrives after the learner
 keeps going is discarded.
 
