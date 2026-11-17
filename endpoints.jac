@@ -7,7 +7,7 @@ import from datetime { datetime, timezone }
 import from .core.history { history_page }
 import from .core.coaching { build_report }
 import from .core.practice { check_answer }
-import from .core.ai { translate_to_english }
+import from .core.ai { translate_into }
 import from .core.speech { speech_locale }
 import from .core.emoji { choose_conversation_emoji }
 import os;
@@ -190,7 +190,7 @@ def:protect translate_sentence(session_id: str, turn_id: str, sentence: str) -> 
     if not sentence.strip() or len(sentence) > 4000 { raise ValueError("Invalid sentence."); }
     for turn in session.turns {
         if turn.id == turn_id and sentence.strip() in turn.text {
-            return translate_to_english(sentence.strip());
+            return translate_into(sentence.strip(), session.native_language or "English");
         }
     }
     raise ValueError("Sentence not found in this conversation.");

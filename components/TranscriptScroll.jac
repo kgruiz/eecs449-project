@@ -48,7 +48,7 @@ def:pub TranscriptScroll(session: SessionView, onSwapSpeaker: Callable[[Transcri
             <ol className="transcript-list" ref={content} aria-live="polite" aria-relevant="additions text">
                 {[<li key={turn.id} className={"transcript-turn " + ("turn-learner" if turn.speaker == "learner" else "turn-partner")}>
                     <span className="speaker-avatar" aria-hidden="true">{"M" if turn.speaker == "learner" else "P"}</span>
-                    <TranscriptText sessionId={session.id} turnId={turn.id} text={turn.text} speaker={turn.speaker}
+                    <TranscriptText sessionId={session.id} turnId={turn.id} text={turn.text} speaker={turn.speaker} language={session.native_language}
                         speakerSource={turn.speaker_source} canCorrect={session.status == "active"}
                         onSpeakerClick={lambda { onSwapSpeaker(turn); }}/>
                 </li> for turn in session.turns]}

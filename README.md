@@ -40,8 +40,8 @@ The current checkout includes:
   otherwise hold Me while speaking and release for the partner. Holding Me
   does not mute the mic. Uncertain voice matches fall back to Partner and can
   be corrected in the transcript.
-- Use the translation icon on a transcript turn to show English beneath
-  the original. Toggle it to hide or reveal the cached translation.
+- Use the translation icon on a transcript turn to show a translation into
+  the learner's native language beneath the original. Toggle it to hide or reveal the cached translation.
 - A responsive Pip-styled web interface for sign-in, live transcripts, and
   speech controls. The design does not add
   the planned language-assistance features.

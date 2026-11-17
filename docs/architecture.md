@@ -38,7 +38,7 @@ content while within 48 pixels of the bottom, preserves the reader's position
 when scrolled up, and offers a Latest button to resume following. A resize
 observer also handles translation expansion and viewport changes, and is
 disconnected on unmount. The transcript supports on-demand full-turn
-translation to English and next-word suggestions. Full-reply hints and AI replies
+translation into the learner's native language and next-word suggestions. Full-reply hints and AI replies
 remain planned. Saved conversation and practice navigation are implemented on web. Speech listening status remains local
 to `SpeechInput.jac`; an active session does not imply microphone capture.
 
@@ -161,9 +161,10 @@ session -> coaching report -> mistake history and optional practice lessons.
 `core/ai.jac` provides a server-only Jac byLLM translation, using
 Gemini 3.5 Flash-Lite. The protected translation endpoint checks ownership
 and that the selected text belongs to the requested turn before
-sending it to Gemini. Translations are cached in the browser view only;
+sending it to Gemini with the session's native language as the target
+(`translate_into`; `translate_to_english` remains a wrapper). Translations are cached in the browser view only;
 the saved transcript remains unchanged. Each turn has an icon-only action
-with hover/focus tooltips. The original remains visible while English appears
+with hover/focus tooltips. The original remains visible while the translation appears
 below it with a labeled accent rule. Toggling visibility reuses the cached
 translation; loading and retry states belong to each turn.
 
