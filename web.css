@@ -594,6 +594,7 @@ html[data-scroll-bounce] body {
 }
 .transcript-turn {
 	display: flex;
+	flex-wrap: wrap;
 	align-items: flex-start;
 	gap: 16px;
 	padding: 14px 0;
@@ -1728,3 +1729,27 @@ button.speech-pill:hover { border-color: #aab7f5; color: var(--pip-blue); }
     .profile-voice-card { padding: 20px; }
     .profile-signout { margin-top: 18px; }
 }
+
+/* Tutor marks: the learner's words with removed words struck in red pen, then
+   the suggested wording with new words written in. Optional improvements use
+   the accent blue instead of red. */
+.tutor-mark { display: grid; gap: 2px; font-family: Georgia, serif; font-size: 1.0625rem; line-height: 1.5; }
+.tutor-mark-original { color: var(--pip-muted); }
+.tutor-mark-fix { color: var(--pip-ink); }
+.tutor-mark-fix::before { content: "→ "; color: var(--pip-danger); }
+.tutor-mark del { color: var(--pip-danger); text-decoration-thickness: 2px; text-decoration-color: var(--pip-danger); }
+.tutor-mark ins { color: var(--pip-danger); font-style: italic; text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; }
+.tutor-mark.is-improvement del,
+.tutor-mark.is-improvement ins,
+.tutor-mark.is-improvement .tutor-mark-fix::before { color: var(--pip-blue); text-decoration-color: var(--pip-blue); }
+/* In the recap Overview. */
+.recap-block { margin-top: 24px; }
+.recap-marks { list-style: none; margin: 10px 0 0; padding: 0; display: grid; gap: 12px; }
+.recap-marks li { display: grid; gap: 6px; padding: 14px 16px; border: 1px solid var(--pip-border); border-radius: 12px; background: var(--pip-surface); }
+.recap-mark-title { font-weight: 650; }
+.recap-mark-why { color: var(--pip-muted); font-size: 14px; }
+.recap-strengths { margin: 10px 0 0; padding-left: 20px; display: grid; gap: 6px; }
+/* Under the quoted turn in a saved transcript (past the avatar column). */
+.turn-mark { flex-basis: 100%; display: grid; gap: 4px; margin: 2px 0 0 48px; padding: 10px 12px; border-radius: 10px; background: var(--pip-surface); border: 1px dashed var(--pip-border); }
+.turn-mark-title { color: var(--pip-muted); font-size: 13px; }
+@media (max-width: 600px) { .turn-mark { margin-left: 0; } }

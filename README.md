@@ -332,6 +332,12 @@ with learner quotes, suggested phrasing, and specific practice tasks. Explanatio
 use the session's native language; phrasing follows its target language and CEFR level.
 Feedback uses text only and does not score pronunciation or acoustic fluency.
 
+On web, each practice priority is shown as a tutor's mark
+(`components/tutor-mark.jsx`): the learner's words with removed words struck
+through, then the suggested wording with new words written in. Corrections use
+red and optional improvements blue. The marks appear in the Overview's "To work
+on" list and, in a saved transcript, under the turn each priority quotes.
+
 Successful reports are saved with the conversation and returned by
 `get_conversation`; repeat requests reuse them. The web Conversations tab
 lets you revisit completed sessions and their saved feedback.
@@ -352,6 +358,17 @@ and coaching is generated only for confirmed conversations. Deletion
 and retention controls are not implemented.
 
 ## Validation status
+
+### Tutor marks in the recap and transcript (2026-11-17)
+
+On macOS with Jac 0.37.23, `jac check` reported no errors (warnings only) for
+`components/CoachingPanel.jac`, `components/TranscriptScroll.jac`, and
+`components/Conversations.jac`. No saved recap had practice priorities, so the
+real `CoachingPanel` and `TranscriptScroll` components were rendered in the
+running app with a sample session holding one correction and one improvement:
+the Overview listed both marks with struck and inserted words, and each mark
+appeared under its quoted turn. No AI-backed endpoint was called. Marks on a
+real generated recap remain unverified.
 
 ### Live layout and conversation list redesign (2026-11-17)
 

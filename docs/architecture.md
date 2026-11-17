@@ -234,6 +234,11 @@ full transcripts and coaching are fetched with the existing owned-session API.
 New sessions record creation time, while old sessions default to an empty date.
 The UI formats dates in the browser's local timezone.
 
+`components/tutor-mark.jsx` renders a coaching priority as struck learner
+words and the suggested wording (`changedWords` from `practice-diff.js`, run in
+both directions). The recap Overview lists the marks, and `TranscriptScroll`
+accepts `marks` to show each under the turn it quotes.
+
 `frontend.jac` owns Talk state separately from `components/Conversations.jac`.
 Navigation is hidden during a live web conversation. Completion clears the
 live workspace and opens the ended session in Conversations, or returns Home
