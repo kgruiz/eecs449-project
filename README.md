@@ -296,7 +296,11 @@ code signing.
 ## Web navigation
 
 **Home** offers recent completed conversations. The
-new-conversation action opens the live transcript and controls.
+new-conversation action opens the live transcript and controls. Each page has
+a hash address (`#/`, `#/conversations`, `#/conversations/<id>`, `#/profile`,
+`#/talk`), so browser Back/Forward, refresh, and links work; navigation is
+undone while spoken turns are still saving. `#/talk` only opens an active
+conversation in the current tab.
 **Conversations** lists your completed sessions, newest dated sessions first,
 with a title taken from the opening turn, language/level, local date/time,
 turn count, and summary preview. Earlier sessions without timestamps remain

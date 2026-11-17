@@ -28,8 +28,61 @@ def:pub app -> JsxElement {
         page: str = "home", historyId: str = "", voice_enrolled: bool = False, speechBusy: bool = False, spokenDraft: str = "",
         endRequested: bool = False, voice_enabled: bool = False, sessionVoice: bool = False, voicePreferenceBusy: bool = False,
         displayName: str = "", profileReady: bool = False, onboarding: bool = False, onboardingStep: int = 0,
-        consent: bool = False, typedText: str = "", typedSpeaker: str = "learner";
+        consent: bool = False, typedText: str = "", typedSpeaker: str = "learner",
+        routeHash: str = "", routeReady: bool = False, convRoute: str = "", routeNonce: int = 0;
     has consentDialogRef: Ref[any] = Ref(None);
+    has popRef: Ref[any] = Ref(None);
+
+    # Hash routes keep Back, Forward, refresh and links working without server
+    # rewrites: #/, #/conversations, #/conversations/<id>, #/profile, #/talk.
+    def currentRoute() -> str {
+        if page == "conversations" { return ("#/conversations/" + convRoute) if convRoute else "#/conversations"; }
+        if page == "profile" { return "#/profile"; }
+        if page == "talk" and session is not None { return "#/talk"; }
+        return "#/";
+    }
+    def showConversations(id: str) -> None {
+        historyId = id; convRoute = id; routeNonce = routeNonce + 1; page = "conversations";
+    }
+    def applyRoute(hash: str) -> None {
+        path = hash[2:] if hash.startswith("#/") else "";
+        if path.startswith("conversations/") { showConversations(path[14:]); }
+        elif path == "conversations" { showConversations(""); }
+        elif path == "profile" { page = "profile"; }
+        elif path == "talk" and session is not None { page = "talk"; }
+        else { page = "home"; }
+    }
+    can with entry {
+        browser: any = window;
+        routeHash = browser.location.hash;
+        popRef.current = lambda { routeHash = browser.location.hash; };
+        browser.addEventListener("popstate", popRef.current);
+    }
+    can with exit {
+        browser: any = window;
+        if popRef.current { browser.removeEventListener("popstate", popRef.current); }
+    }
+    can with [routeHash, logged_in, profileReady, onboarding] entry {
+        browser: any = window;
+        if not (logged_in and profileReady and not onboarding) { return; }
+        current = currentRoute();
+        if routeReady and routeHash == current { return; }
+        # Leaving mid-save would drop turns; undo the browser navigation instead.
+        if routeReady and (busy or speechBusy) {
+            if browser.location.hash != current { browser.history.pushState(None, "", current); }
+            routeHash = current;
+            return;
+        }
+        applyRoute(routeHash); routeReady = True;
+    }
+    can with [page, convRoute, session, routeReady] entry {
+        browser: any = window;
+        if not routeReady { return; }
+        route = currentRoute();
+        if browser.location.hash != route { browser.history.pushState(None, "", route); }
+        # Mirror the address so a later Back to an earlier hash still registers as a change.
+        routeHash = route;
+    }
 
     async def loadVoice() -> None {
         try { status = await voice_status(); voice_enrolled = status.enrolled; voice_enabled = status.enabled; }
@@ -89,7 +142,9 @@ def:pub app -> JsxElement {
         finally { busy = False; }
     }
     def logout() -> None {
-        jacLogout(); page = "home"; historyId = ""; logged_in = False; session = None; voice_enrolled = False; profileReady = False; displayName = "";
+        browser: any = window;
+        jacLogout(); page = "home"; historyId = ""; convRoute = ""; logged_in = False; session = None; voice_enrolled = False; profileReady = False; displayName = "";
+        routeReady = False; routeHash = "#/"; browser.history.replaceState(None, "", "#/");
     }
     # Every new conversation starts with participant consent (see the dialog below).
     def askConsent() -> None {
@@ -139,15 +194,15 @@ def:pub app -> JsxElement {
         if session is None { return; }
         error = ""; busy = True;
         try {
-            updated = await end_conversation(session.id); historyId = updated.id;
+            updated = await end_conversation(session.id);
             # Finish decoration before mounting recap generation to avoid concurrent writes.
             try { await decorate_conversation(updated.id); } except Exception { }
             session = None; spokenDraft = ""; typedText = "";
 
             # Nothing was said, so there is nothing to review; history hides it too.
             if returnToSetup or len(updated.turns) == 0 {
-                historyId = ""; page = "home";
-            } else { page = "conversations"; }
+                historyId = ""; convRoute = ""; page = "home";
+            } else { showConversations(updated.id); }
         }
         except Exception { error = "Could not end this conversation."; }
         finally { busy = False; endRequested = False; }
@@ -167,7 +222,7 @@ def:pub app -> JsxElement {
             </a>
             {logged_in and profileReady and not onboarding and <nav className="main-tabs" aria-label="Main navigation">
                 <button className={"main-tab " + ("is-selected" if page == "home" else "")} aria-pressed={page == "home"} disabled={busy or speechBusy} onClick={lambda { page = "home"; }}>Home</button>
-                <button className={"main-tab " + ("is-selected" if page == "conversations" else "")} aria-pressed={page == "conversations"} disabled={busy or speechBusy} onClick={lambda { historyId = ""; page = "conversations"; }}>Conversations</button>
+                <button className={"main-tab " + ("is-selected" if page == "conversations" else "")} aria-pressed={page == "conversations"} disabled={busy or speechBusy} onClick={lambda { showConversations(""); }}>Conversations</button>
             </nav>}
             <div className="account-controls">
                 {logged_in and profileReady and not onboarding and <button type="button" className="account-avatar" aria-label="Open profile" disabled={busy or speechBusy} onClick={lambda { page = "profile"; }}>{displayName[:1].upper() if displayName else "P"}</button>}
@@ -200,7 +255,7 @@ def:pub app -> JsxElement {
             </div>}
             {logged_in and not profileReady and <div className="profile-loading"><p role="status">{error if error else "Preparing your space…"}</p>{error and <button className="button button-secondary" onClick={loadProfile}>Try again</button>}</div>}
             {logged_in and profileReady and onboarding and <Onboarding name={displayName} nativeLanguage={native_language} targetLanguage={target_language} level={level} onName={lambda (value: str) { displayName = value; }} onNative={lambda (value: str) { native_language = value; }} onTarget={lambda (value: str) { target_language = value; }} onLevel={lambda (value: str) { level = value; }} onFinish={saveOnboarding} onProgress={saveProgress} initialStep={onboardingStep} busy={busy}/>}
-            {logged_in and profileReady and not onboarding and page == "home" and <Home name={displayName} active={session is not None} onNew={returnToSetup} onOpen={lambda (id: str) { historyId = id; page = "conversations"; }} onAll={lambda { historyId = ""; page = "conversations"; }}/>}
+            {logged_in and profileReady and not onboarding and page == "home" and <Home name={displayName} active={session is not None} onNew={returnToSetup} onOpen={lambda (id: str) { showConversations(id); }} onAll={lambda { showConversations(""); }}/>}
             {logged_in and profileReady and not onboarding and page == "profile" and <section className="profile-page">
                 <div className="profile-heading"><p className="eyebrow">YOUR SPACE</p><h1>Your profile</h1><p>Make Pip feel like yours.</p></div>
                 <div className="profile-grid">
@@ -262,7 +317,8 @@ def:pub app -> JsxElement {
                     {endRequested and <p role="status" className="live-saving">Finishing and saving your conversation…</p>}
                 </div>
             </section>}
-            {logged_in and profileReady and not onboarding and page == "conversations" and <Conversations key={historyId} initialSessionId={historyId} active={session is not None} onTalk={returnToSetup}/>}
+            {logged_in and profileReady and not onboarding and page == "conversations" and <Conversations key={historyId + "|" + str(routeNonce)} initialSessionId={historyId} active={session is not None} onTalk={returnToSetup}
+                onSelect={lambda (id: str) { convRoute = id; }}/>}
             <dialog ref={consentDialogRef} className="language-dialog consent-dialog" aria-labelledby="consent-title"
                 aria-describedby="consent-description" onCancel={lambda (event: any) { if busy { event.preventDefault(); } }}>
                 <h2 id="consent-title">Before you start</h2>
@@ -284,6 +340,6 @@ def:pub app -> JsxElement {
             </dialog>
 
         </main>
-        {logged_in and profileReady and not onboarding and not (page == "talk" and session is not None) and <nav className="mobile-nav" aria-label="Main navigation"><button disabled={busy or speechBusy} className={"mobile-nav-item " + ("is-selected" if page == "home" else "")} onClick={lambda { page = "home"; }}><HomeIcon size={22}/><span>Home</span></button><button className="mobile-nav-new" disabled={busy or speechBusy} aria-label="Start a new conversation" onClick={returnToSetup}><Plus size={30}/></button><button disabled={busy or speechBusy} className={"mobile-nav-item " + ("is-selected" if page == "conversations" else "")} onClick={lambda { historyId = ""; page = "conversations"; }}><MessageCircle size={22}/><span>Conversations</span></button></nav>}
+        {logged_in and profileReady and not onboarding and not (page == "talk" and session is not None) and <nav className="mobile-nav" aria-label="Main navigation"><button disabled={busy or speechBusy} className={"mobile-nav-item " + ("is-selected" if page == "home" else "")} onClick={lambda { page = "home"; }}><HomeIcon size={22}/><span>Home</span></button><button className="mobile-nav-new" disabled={busy or speechBusy} aria-label="Start a new conversation" onClick={returnToSetup}><Plus size={30}/></button><button disabled={busy or speechBusy} className={"mobile-nav-item " + ("is-selected" if page == "conversations" else "")} onClick={lambda { showConversations(""); }}><MessageCircle size={22}/><span>Conversations</span></button></nav>}
     </div>
 }

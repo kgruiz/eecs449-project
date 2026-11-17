@@ -14,7 +14,8 @@ def conversation_date(value: str) -> str {
     return new(Date, value).toLocaleString("en-US", {"month": "2-digit", "day": "2-digit", "year": "numeric", "hour": "numeric", "minute": "2-digit", "timeZoneName": "short"});
 }
 
-def:pub Conversations(initialSessionId: str, onTalk: Callable[[], None], active: bool) -> JsxElement {
+# onSelect reports the open conversation ("" for the list) so the page address can follow.
+def:pub Conversations(initialSessionId: str, onTalk: Callable[[], None], active: bool, onSelect: Callable[[str], None]) -> JsxElement {
     has items: list[HistoryItem] = [], selected: SessionView | None = None,
         section: str = "overview", loading: bool = True, opening: bool = False,
         error: str = "", more: bool = False, page: int = 0, requestedId: str = initialSessionId;
@@ -31,7 +32,7 @@ def:pub Conversations(initialSessionId: str, onTalk: Callable[[], None], active:
     async def openConversation(id: str) -> None {
         requestRef.current = (requestRef.current or 0) + 1;
         request = requestRef.current;
-        requestedId = id; opening = True; error = "";
+        requestedId = id; opening = True; error = ""; onSelect(id);
 
         try {
             loaded = await get_conversation(id);
@@ -49,7 +50,7 @@ def:pub Conversations(initialSessionId: str, onTalk: Callable[[], None], active:
     }
     def back() -> None {
         requestRef.current = (requestRef.current or 0) + 1;
-        selected = None; requestedId = ""; opening = False; error = "";
+        selected = None; requestedId = ""; opening = False; error = ""; onSelect("");
         loadPage(page);
     }
     can with entry {

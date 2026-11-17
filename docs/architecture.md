@@ -239,8 +239,12 @@ language by base locale, and web onboarding hides that language. Overview and
 Practice share one mounted coaching component, so switching detail sections
 does not regenerate feedback. Transcript has its own view and retains export
 and translation. The completed library is paginated; its page selection is
-local state. Active-session recovery after reload and deep links remain future
-work. Native mobile still uses its existing conversation/recap screen.
+local state. `frontend.jac` mirrors the page in a hash route (`#/`,
+`#/conversations[/<id>]`, `#/profile`, `#/talk`) with `pushState` and a
+`popstate` listener, so links and reloads open the right page; Conversations
+reports the open record through `onSelect`. Browser navigation is reverted
+while speech turns are saving. Active-session recovery after reload remains
+future work. Native mobile still uses its existing conversation/recap screen.
 
 ## Interactive web practice
 
