@@ -9,6 +9,7 @@ import from .endpoints {
     get_profile, save_onboarding_draft, complete_onboarding, decorate_conversation, start_conversation, append_turn, end_conversation, voice_status, set_voice_detection, set_turn_speaker
 }
 import from "./components/language-picker.jsx" { LanguagePicker, LevelPicker }
+import from "./components/language-options.js" { sameLanguage }
 import from .components.SpeechInput { SpeechInput }
 import from .components.WordHelper { WordHelper }
 import from .components.VoiceSetup { VoiceSetup }
@@ -209,7 +210,8 @@ def:pub app -> JsxElement {
                                 <LanguagePicker label="Language you know" value={native_language} onChange={lambda (value: str) { native_language = value; }}/>
                                 <LanguagePicker label="Learning language" value={target_language} onChange={lambda (value: str) { target_language = value; }}/>
                                 <div className="field"><label htmlFor="learner-level">Your level</label><LevelPicker value={level} onChange={lambda (value: str) { level = value; }}/></div>
-                                <button className="button button-primary profile-save" disabled={busy or not displayName.strip()} onClick={saveOnboarding}>{"Saving..." if busy else "Save changes"}</button>
+                                {sameLanguage(native_language, target_language) and <p className="profile-language-error" role="alert">Choose a learning language different from the language you know.</p>}
+                                <button className="button button-primary profile-save" disabled={busy or not displayName.strip() or sameLanguage(native_language, target_language)} onClick={saveOnboarding}>{"Saving..." if busy else "Save changes"}</button>
                             </div>
                         </div>
                     </div>

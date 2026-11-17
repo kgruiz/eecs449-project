@@ -22,6 +22,8 @@ The current checkout includes:
   a neutral icon is used when the provider is unavailable or for older records.
   The topic request uses up to the last 12 turns and is separate from coaching.
 - A learner profile with native language, target language, and CEFR level.
+  The learning language must differ from the native language (regional
+  variants such as English (US) and English (UK) count as the same language).
   Web setup uses searchable language choices such as Spanish (Spain) and
   Spanish (Mexico). Listening defaults to the learning language; Change opens
   a language picker with Cancel and Apply, affecting transcription only.

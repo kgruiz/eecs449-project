@@ -87,3 +87,12 @@ test "uncertain voice requires valid manual selection and active session" {
         assert len(session.turns) == 1;
     }
 }
+
+test "profile rejects learning the language you already know" {
+    learner = LearnerProfile();
+    with patch(__name__ + ".profile", return_value=learner) {
+        with testraises(ValueError) { save_profile("English (United States)", "English (United Kingdom)", "A2"); }
+        with testraises(ValueError) { save_profile("Spanish", "Spanish (Mexico)", "A2"); }
+        assert save_profile("English (United States)", "Russian (Russia)", "A2").target_language == "Russian (Russia)";
+    }
+}

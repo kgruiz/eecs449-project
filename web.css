@@ -2146,6 +2146,7 @@ details[open] > summary > .disclosure-chevron {
 .onboarding-level .level-code { flex: 0 0 26px; color: #69748b; font-size: 13px; font-weight: 700; }
 .onboarding-level.is-selected .level-code { color: var(--pip-blue); }
 .onboarding-level > svg { flex: none; color: var(--pip-blue); }
+.onboarding-language-note { margin: 10px 2px 0; color: #687184; font-size: 13px; }
 .onboarding-level-hint { min-height: 40px; margin: 14px 2px 0; color: #687184; font-size: 13px; line-height: 1.45; }
 .onboarding-search { display: flex; align-items: center; gap: 10px; padding: 0 14px; height: 49px; border: 1px solid #dcdde5; border-radius: 12px; color: #687184; background: var(--pip-surface); }
 .onboarding-search input { min-width: 0; flex: 1; border: 0; outline: 0; background: transparent; font: inherit; color: var(--pip-ink); }
@@ -2230,6 +2231,7 @@ details[open] > summary > .disclosure-chevron {
 .pip-app .live-composer-input { flex: 1; min-width: 0; min-height: 40px; padding: 8px 12px; border: 1px solid var(--pip-border); border-radius: 999px; background: var(--pip-surface); font: inherit; font-size: 14px; }
 .live-bottom .live-composer-send { flex: none; min-height: 40px; padding: 8px 16px; border-radius: 999px; }
 .consent-dialog .consent-box { margin-top: 0; }
+.profile-language-error { grid-column: 1 / -1; margin: 0; color: var(--pip-danger); font-size: 13px; }
 .hold-speaker { text-align: center; }
 .hold-speaker-status { margin: 4px 0 8px; font-weight: 700; font-size: 14px; }
 .hold-speaker-button { width: 98px; height: 98px; display: inline-flex; flex-direction: column; justify-content: center; align-items: center; gap: 4px; border: 2px solid var(--pip-blue); border-radius: 50%; color: var(--pip-blue); background: var(--pip-surface); font-size: 16px; font-weight: 750; touch-action: none; user-select: none; cursor: pointer; }
