@@ -2,6 +2,10 @@
 
 ## Goal
 
+The web experience includes resumable profile onboarding and a responsive
+Home with recent conversations and mobile bottom navigation. Installable PWA
+support remains future work. See the README for validation and limitations.
+
 Help language learners participate in real conversations and learn from
 what went wrong. Provide support during a conversation and targeted
 practice afterward, using one shared speech and transcript pipeline.
@@ -13,8 +17,10 @@ targets, not evidence of completed or tested functionality.
 ## Current progress
 
 The Jac foundation and browser speech-to-text work are merged. The checkout
-contains authentication, learner profiles, consent, sessions, saved text,
-typed turns, and browser transcription with manual speaker selection.
+contains authentication, learner profiles, sessions, saved text, typed-turn
+API support, and browser transcription with hold-to-mark speaker selection.
+Web no longer asks for participant confirmation; the native UI retains its
+existing confirmation control.
 The Week 7 update lists PR #7 as the merged initial speech-to-text demo.
 A native mobile conversation UI and speech-recognition adapter have been
 added in PR #10, sharing the web server's endpoints. The author reports an
@@ -71,8 +77,8 @@ feature if time permits.
   time before claiming that target is met.
 - **Feedback quality:** ground advice in specific conversation evidence
   and check usefulness with learners rather than offering generic feedback.
-- **Privacy:** require participant consent, keep raw audio out of app
-  storage by default, and design deletion and retention controls.
+- **Privacy:** web no longer captures participant confirmation; keep raw audio
+  out of app storage by default and design deletion and retention controls.
 - **Cost:** measure provider usage and per-minute costs. Existing fields
   count submitted utterance durations and model requests, but are not
   provider billing or a budget system.

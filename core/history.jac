@@ -13,7 +13,7 @@ def conversation_summary(session: Conversation) -> ConversationSummary {
     return ConversationSummary(id=jid(session), title=title,
         target_language=session.target_language, level=session.level,
         created_at=session.created_at, turn_count=len(session.turns),
-        preview=preview, has_coaching=session.coaching is not None);
+        preview=preview, has_coaching=session.coaching is not None, emoji=session.emoji or "💬");
 }
 
 def history_page(sessions: list[Conversation], offset: int, limit: int) -> list[ConversationSummary] {

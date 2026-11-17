@@ -1,5 +1,17 @@
 import from unittest.mock { patch }
 
+test "voice recognition preference requires enrollment" {
+    learner = LearnerProfile();
+    with patch(__name__ + ".profile", return_value=learner) {
+        with testraises(ValueError) { set_voice_detection(True); }
+        learner.voiceprint = [1.0];
+        assert set_voice_detection(True).enabled;
+        assert learner.voice_detection_enabled;
+        assert not set_voice_detection(False).enabled;
+        assert not learner.voice_detection_enabled;
+    }
+}
+
 def fallback_session() -> Conversation {
 
     return Conversation(native_language="English", target_language="Spanish", level="A2",
@@ -34,6 +46,28 @@ test "voice match overrides manual fallback" {
         result = append_spoken_turn("session", "Hola.", 2.0, "audio", "partner");
         assert result.turns[-1].speaker == "learner";
         assert result.turns[-1].speaker_source == "voice";
+    }
+}
+
+test "language help does not require a recorded participant confirmation" {
+    session = fallback_session();
+    session.consent_confirmed = False;
+    with patch(__name__ + ".owned_session", return_value=session),
+         patch(__name__ + ".suggest_next_word", return_value=WordHint(word="hola", meaning="hello")),
+         patch(__name__ + ".translate_to_english", return_value="Hello.") {
+        assert suggest_word("session", "Hol").word == "hola";
+        assert translate_sentence("session", "previous", "Hola.") == "Hello.";
+    }
+}
+
+test "manual speaker turns are saved without a confirmation flag" {
+    session = fallback_session();
+    session.consent_confirmed = False;
+    with patch(__name__ + ".owned_session", return_value=session) {
+        assert append_turn("session", "learner", "Hola", 0.5).turns[-1].speaker == "learner";
+        assert append_turn("session", "partner", "Buenos días", 0.5).turns[-1].speaker == "partner";
+        session.status = "ended";
+        with testraises(ValueError) { append_turn("session", "learner", "Late", 0.5); }
     }
 }
 

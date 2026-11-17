@@ -1,5 +1,5 @@
 """Shared authenticated pipeline. Audio adapters submit finalized turns here."""
-import from .core.models { LearnerProfile, TranscriptTurn, Conversation, SessionView, VoiceStatus, WordHint, ConversationSummary, PracticeFeedback }
+import from .core.models { LearnerProfile, ProfileView, TranscriptTurn, Conversation, SessionView, VoiceStatus, WordHint, ConversationSummary, PracticeFeedback }
 import from .core.voiceprint { enroll, learner_similarity, MATCH_THRESHOLD }
 import from .core.hints { suggest_next_word }
 import from uuid { uuid4 }
@@ -8,6 +8,8 @@ import from .core.history { history_page }
 import from .core.coaching { build_report }
 import from .core.practice { check_answer }
 import from .core.ai { translate_to_english }
+import from .core.emoji { choose_conversation_emoji }
+import os;
 def profile() -> LearnerProfile {
     profiles = [root -->][?:LearnerProfile];
     if profiles { return profiles[0]; }
@@ -32,15 +34,40 @@ def:protect save_profile(native_language: str, target_language: str, level: str)
     learner.level = level;
     return learner;
 }
-def:protect start_conversation(consent_confirmed: bool, partner_mode: str = "human") -> SessionView {
-    if not consent_confirmed {
-        raise ValueError("All participants must consent to transcription and AI processing.");
-    }
+def profile_view(learner: LearnerProfile) -> ProfileView {
+    return ProfileView(native_language=learner.native_language, target_language=learner.target_language,
+        level=learner.level, display_name=learner.display_name,
+        onboarding_completed=learner.onboarding_completed, onboarding_step=learner.onboarding_step);
+}
+def:protect get_profile() -> ProfileView {
+    profiles = [root -->][?:LearnerProfile];
+    if profiles { return profile_view(profiles[0]); }
+    return profile_view(LearnerProfile(onboarding_completed=False));
+}
+
+def:protect complete_onboarding(display_name: str, native_language: str, target_language: str, level: str) -> ProfileView {
+    name = display_name.strip();
+    if not name or len(name) > 80 { raise ValueError("Enter a name of up to 80 characters."); }
+    learner = save_profile(native_language, target_language, level);
+    learner.display_name = name;
+    learner.onboarding_completed = True;
+    return profile_view(learner);
+}
+def:protect save_onboarding_draft(display_name: str, native_language: str, target_language: str, level: str, step: int) -> ProfileView {
+    if len(display_name.strip()) > 80 or step < 0 or step > 5 { raise ValueError("Invalid onboarding progress."); }
+    profiles = [root -->][?:LearnerProfile];
+    learner = profiles[0] if profiles else root ++> LearnerProfile(onboarding_completed=False);
+    if learner.onboarding_completed { return profile_view(learner); }
+    learner.display_name = display_name.strip(); learner.native_language = native_language;
+    learner.target_language = target_language; learner.level = level; learner.onboarding_step = step;
+    return profile_view(learner);
+}
+def:protect start_conversation(consent_confirmed: bool = False, partner_mode: str = "human") -> SessionView {
     if partner_mode not in ["human", "ai"] { raise ValueError("Unknown partner mode."); }
     learner = profile();
     session = root ++> Conversation(native_language=learner.native_language,
         target_language=learner.target_language, level=learner.level,
-        partner_mode=partner_mode, consent_confirmed=True, created_at=datetime.now(timezone.utc).isoformat());
+        partner_mode=partner_mode, consent_confirmed=consent_confirmed, created_at=datetime.now(timezone.utc).isoformat());
     return session.to_view();
 }
 def:protect get_conversation(session_id: str) -> SessionView {
@@ -62,7 +89,15 @@ def:protect append_turn(session_id: str, speaker: str, text: str, duration_secon
     return add_turn(owned_session(session_id), speaker, text, duration_seconds);
 }
 def:protect voice_status() -> VoiceStatus {
-    return VoiceStatus(enrolled=len(profile().voiceprint) > 0);
+    profiles = [root -->][?:LearnerProfile];
+    enrolled = bool(profiles) and len(profiles[0].voiceprint) > 0;
+    return VoiceStatus(enrolled=enrolled, enabled=enrolled and profiles[0].voice_detection_enabled);
+}
+def:protect set_voice_detection(enabled: bool) -> VoiceStatus {
+    learner = profile();
+    if enabled and not learner.voiceprint { raise ValueError("Set up voice recognition first."); }
+    learner.voice_detection_enabled = enabled;
+    return VoiceStatus(enrolled=bool(learner.voiceprint), enabled=enabled);
 }
 """Store the learner's voiceprint from one or more WAV clips of a single
 enrollment (joined in order); the audio itself is discarded."""
@@ -76,7 +111,7 @@ def:protect enroll_voice(audio_clips: list[str], consent_confirmed: bool) -> Voi
     return VoiceStatus(enrolled=True);
 }
 def:protect delete_voice() -> VoiceStatus {
-    profile().voiceprint = [];
+    learner = profile(); learner.voiceprint = []; learner.voice_detection_enabled = False;
     return VoiceStatus(enrolled=False);
 }
 """Append a spoken turn, attributing it by voice. The WAV is used only for the
@@ -120,6 +155,13 @@ def:protect end_conversation(session_id: str) -> SessionView {
     session.status = "ended";
     return session.to_view();
 }
+def:protect decorate_conversation(session_id: str) -> None {
+    session = owned_session(session_id);
+    if session.status != "ended" { raise ValueError("A completed conversation is required."); }
+    if session.emoji or not session.turns { return; }
+    if os.getenv("GEMINI_API_KEY") { session.model_requests += 1; }
+    session.emoji = choose_conversation_emoji(conversation_context(session));
+}
 def conversation_context(session: Conversation, limit: int = 12) -> str {
     return "\n".join([f"{turn.speaker}: {turn.text}" for turn in session.turns[-limit:]]);
 }
@@ -127,7 +169,6 @@ def conversation_context(session: Conversation, limit: int = 12) -> str {
 def:protect suggest_word(session_id: str, partial_sentence: str) -> WordHint {
     session = owned_session(session_id);
     if session.status != "active" { raise ValueError("Conversation has ended."); }
-    if not session.consent_confirmed { raise ValueError("Participant consent is required."); }
     partial = partial_sentence.strip();
     if len(partial) > 500 { raise ValueError("Provide at most 500 characters."); }
     if not partial and not session.turns { raise ValueError("Start the conversation before asking for a word."); }
@@ -138,7 +179,6 @@ def:protect suggest_word(session_id: str, partial_sentence: str) -> WordHint {
 
 def:protect translate_sentence(session_id: str, turn_id: str, sentence: str) -> str {
     session = owned_session(session_id);
-    if not session.consent_confirmed { raise ValueError("Participant consent is required."); }
     if not sentence.strip() or len(sentence) > 4000 { raise ValueError("Invalid sentence."); }
     for turn in session.turns {
         if turn.id == turn_id and sentence.strip() in turn.text {

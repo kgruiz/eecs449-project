@@ -11,13 +11,12 @@ def practice_session() -> Conversation {
 
 test "practice validates session and input before calling provider" {
 
-    for kind in ["active", "consent", "missing", "index", "negative", "empty", "long", "partner"] {
+    for kind in ["active", "missing", "index", "negative", "empty", "long", "partner"] {
         session = practice_session();
         index = 0;
         answer = "Voy a la biblioteca.";
 
         if kind == "active" { session.status = "active"; }
-        elif kind == "consent" { session.consent_confirmed = False; }
         elif kind == "missing" { session.coaching = None; }
         elif kind == "index" { index = 1; }
         elif kind == "negative" { index = -1; }
