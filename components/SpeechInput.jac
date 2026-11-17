@@ -7,7 +7,7 @@ memory; each utterance's audio (from its first interim result, padded, to its
 final result) goes with it to append_spoken_turn, which decides the speaker from
 the learner's voiceprint. Otherwise the turn goes to append_turn with the
 manually selected speaker."""
-import from "lucide-react" { Mic }
+import from "lucide-react" { MicOff, X }
 import from "./language-options.js" { resolveLanguage }
 import from "./audioCapture.js" { createAudioCapture }
 import from ..core.models { SessionView }
@@ -24,7 +24,8 @@ def:pub SpeechInput(sessionId: str, speaker: str, language: str, voiceEnabled: b
                     onDraft: Callable[[str, str], None] | None = None,
                     onBusyChange: Callable[[bool], None] | None = None,
                     onVoiceUnavailable: Callable[[], None] | None = None,
-                    onListeningChange: Callable[[bool], None] | None = None) -> JsxElement {
+                    onListeningChange: Callable[[bool], None] | None = None,
+                    onInterim: Callable[[str], None] | None = None) -> JsxElement {
     has listening: bool = False, micStarted: bool = False, interim: str = "", locale: str = resolveLanguage(language)[0],
         error: str = "";
     has saving: bool = False, settling: bool = False;
@@ -199,6 +200,8 @@ def:pub SpeechInput(sessionId: str, speaker: str, language: str, voiceEnabled: b
     }
     can with entry { if autoStart { start(); } }
     can with [listening] entry { if onListeningChange { onListeningChange(listening); } }
+    # The live view shows in-progress speech beside the transcript, not in this control.
+    can with [interim] entry { if onInterim { onInterim(interim); } }
     can with [stopRequested] entry { if stopRequested and listeningRef.current { stop(); } }
     # Switching speaker mid-utterance flushes it to the previous speaker; onend restarts.
     can with [speaker] entry {
@@ -211,23 +214,24 @@ def:pub SpeechInput(sessionId: str, speaker: str, language: str, voiceEnabled: b
         if recognitionRef.current { recognitionRef.current.abort(); }
         stopCapture();
     }
-    <section className="speech-panel" aria-label="Speech to text">
-        {(listening or saving or settling) and <div className="speech-status" role="status">
-            <span className="speech-indicator" aria-hidden="true">
-                <Mic className="speech-mic-icon" size={20} strokeWidth={1.75} aria-hidden="true"/>
-            </span>
-            <span>{("Listening" if micStarted else "Starting microphone...") if listening else "Saving spoken turns..."}</span>
+    # A compact header control: a status pill while the microphone is in use, a
+    # button to turn it on otherwise, and a dismissible notice for errors.
+    <section className="speech-panel is-compact" aria-label="Speech to text">
+        {recognitionClass and (listening or saving or settling) and <span className="speech-pill is-on" role="status">
+            <span className="speech-indicator" aria-hidden="true"/>
+            <span className="speech-pill-label">{("Listening" if micStarted else "Starting…") if listening else "Saving…"}</span>
+        </span>}
+        {recognitionClass and not (listening or saving or settling) and not stopRequested and <button type="button"
+            className="speech-pill is-off" disabled={not locale.strip()} onClick={lambda { error = ""; start(); }}
+            aria-label="Turn on microphone" title="Turn on microphone">
+            <MicOff size={16} strokeWidth={1.9} aria-hidden="true"/><span className="speech-pill-label">Mic off</span>
+        </button>}
+        {not recognitionClass and <span className="speech-pill is-off" title="Live transcription needs Chrome, Edge or Safari.">
+            <MicOff size={16} strokeWidth={1.9} aria-hidden="true"/><span className="speech-pill-label">No speech</span>
+        </span>}
+        {(error or not recognitionClass) and <div className="speech-notice" role="alert">
+            <p>{error if error else "Live transcription needs a browser with the Web Speech API (Chrome, Edge or Safari). You can type messages below."}</p>
+            {error and <button type="button" className="speech-notice-close" aria-label="Dismiss" onClick={lambda { error = ""; }}><X size={16} aria-hidden="true"/></button>}
         </div>}
-        {not recognitionClass and <p className="muted">
-            Live transcription needs a browser with the Web Speech API (Chrome, Edge or Safari). You can type messages below.
-        </p>}
-        {recognitionClass and <div className="speech-controls">
-            {not listening and not stopRequested and <button className="button button-primary" disabled={not locale.strip()} onClick={lambda { start(); }}>
-                <Mic className="speech-mic-icon" size={20} strokeWidth={1.75} aria-hidden="true"/>
-                Turn on microphone
-            </button>}
-            <p className="interim-text" aria-live="polite">{interim}</p>
-        </div>}
-        {error and <p className="speech-error" role="alert">{error}</p>}
     </section>
 }

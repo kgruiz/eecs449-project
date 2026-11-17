@@ -74,10 +74,12 @@ jac run --dev web
 
 Open the local URL printed by Jac. Create an account, choose your languages
 and CEFR level, and use the new-conversation action. The web app attempts to
-start listening; browser microphone permission may be needed. If it is refused,
-**Turn on microphone** retries and typing still works. Hold **Me** while
-you speak and release for your partner, or type a message and choose Me or
-Partner; End waits for pending turns to save. Each new conversation first asks
+start listening; browser microphone permission may be needed. The header pill
+shows **Listening** or **Mic off**; select **Mic off** to retry, and typing
+always works. Hold the **Hold** button while you speak and release for your
+partner, or type a message and use the Me/Partner chip to choose who said it;
+End waits for pending turns to save. In-progress speech appears under the
+transcript, and your turns carry a blue accent. Each new conversation first asks
 you to confirm that all participants agree to transcription. Speech input
 requires a browser exposing `SpeechRecognition` or
 `webkitSpeechRecognition`; the UI names Chrome, Edge, and Safari. Browsers

@@ -80,9 +80,11 @@ still need browser verification.
 
 There is no acoustic pause detection. The web live view also has a typed
 composer (Me/Partner choice, `append_turn`, zero duration), so browsers without
-speech support or with a blocked microphone still work. `SpeechInput` reports
-listening state (`onListeningChange`) so the hold control can show
-"Microphone off", and refused-permission errors point to typing. The app does not store raw audio; the browser's
+speech support or with a blocked microphone still work. `SpeechInput` renders a
+header status pill with a dismissible error notice, and reports listening
+state (`onListeningChange`) and interim text (`onInterim`) so the live view can
+caption the microphone state and show in-progress speech under the transcript.
+The hold control renders compactly beside the composer. The app does not store raw audio; the browser's
 speech service handles transcription.
 
 ## Speaker detection

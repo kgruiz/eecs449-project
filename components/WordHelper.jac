@@ -3,6 +3,7 @@ Struggling means the learner's in-progress sentence (interim speech or typing)
 has not changed for PAUSE_MS. If the draft asks how to say a word ("how do I
 say bread", "come si dice bread"), that answer is shown above the next word.
 Drafts and hints never enter the transcript."""
+import from "lucide-react" { Lightbulb }
 import from ..core.models { WordHint }
 import from ..endpoints { suggest_word }
 
@@ -52,14 +53,8 @@ def:pub WordHelper(sessionId: str, draft: str, learnerSpeaking: bool) -> JsxElem
     can with exit {
         if timerRef.current { clearTimeout(timerRef.current); }
     }
+    # Hints appear above one slim bar so the transcript keeps most of the screen.
     <section className="word-helper" aria-label="Word suggestions">
-        <div className="word-helper-heading">
-            <p className="word-helper-label">Word suggestions</p>
-            <label className="word-helper-toggle">
-                <input type="checkbox" checked={auto} onChange={lambda (e: ChangeEvent) { auto = e.target.checked; }}/>
-                Suggest when I pause
-            </label>
-        </div>
         {hint is not None and hint.lookup and <p className="word-hint word-hint-lookup" role="status">
             <span className="word-hint-meaning">{"“" + hint.lookup.asked + "”"}</span>
             <span className="word-hint-word">{hint.lookup.word}</span>
@@ -68,8 +63,15 @@ def:pub WordHelper(sessionId: str, draft: str, learnerSpeaking: bool) -> JsxElem
             <span className="word-hint-word">{hint.word}</span>
             <span className="word-hint-meaning">{hint.meaning}</span>
         </p>}
-        {loading and <p className="word-helper-status" role="status">Finding a word...</p>}
-        {failed and <p className="word-helper-error" role="alert">Could not suggest a word. Try again.</p>}
-        <button className="button button-secondary" disabled={loading} onClick={requestHint}>Suggest a word</button>
+        <div className="word-helper-bar">
+            <button type="button" className="word-helper-ask" disabled={loading} onClick={requestHint}>
+                <Lightbulb size={16} strokeWidth={1.9} aria-hidden="true"/>{"Finding a word…" if loading else "Suggest a word"}
+            </button>
+            {failed and <span className="word-helper-error" role="alert">Couldn’t suggest a word. Try again.</span>}
+            <label className="word-helper-toggle">
+                <input type="checkbox" checked={auto} onChange={lambda (e: ChangeEvent) { auto = e.target.checked; }}/>
+                Suggest when I pause
+            </label>
+        </div>
     </section>
 }

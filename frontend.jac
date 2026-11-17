@@ -1,5 +1,5 @@
 """Web conversation workspace with manual or voiceprint speaker attribution."""
-import from "lucide-react" { X, Home as HomeIcon, MessageCircle, Plus, ChevronRight, LogOut, Mic }
+import from "lucide-react" { X, Home as HomeIcon, MessageCircle, Plus, ChevronRight, LogOut, Mic, ArrowLeftRight }
 import from "./components/hold-speaker.jsx" { HoldSpeaker }
 import from "./components/language-flag.jsx" { LanguageFlag }
 import from "./components/scroll-bounce.jsx" { ScrollBounce }
@@ -28,7 +28,7 @@ def:pub app -> JsxElement {
         page: str = "home", historyId: str = "", voice_enrolled: bool = False, speechBusy: bool = False, spokenDraft: str = "",
         endRequested: bool = False, voice_enabled: bool = False, sessionVoice: bool = False, voicePreferenceBusy: bool = False,
         displayName: str = "", profileReady: bool = False, onboarding: bool = False, onboardingStep: int = 0,
-        consent: bool = False, typedText: str = "", typedSpeaker: str = "learner", micOn: bool = False,
+        consent: bool = False, typedText: str = "", typedSpeaker: str = "learner", micOn: bool = False, liveInterim: str = "",
         routeHash: str = "", routeReady: bool = False, convRoute: str = "", routeNonce: int = 0, authError: str = "";
     has consentDialogRef: Ref[any] = Ref(None);
     has popRef: Ref[any] = Ref(None);
@@ -289,41 +289,48 @@ def:pub app -> JsxElement {
                 <header className="live-header">
                     <span className="live-brand"><BrandMark/><span>pip</span></span>
                     <span className="live-language">{shortLanguageName(session.target_language) + " · " + session.level}</span>
-                    <button className="live-end" disabled={busy or endRequested} onClick={lambda { endRequested = True; }} aria-label="End conversation"><X size={20}/><span>End</span></button>
+                    <div className="live-actions">
+                        <SpeechInput key={session.id} sessionId={session.id} speaker={speaker}
+                            language={session.target_language} voiceEnabled={sessionVoice} autoStart={True} stopRequested={endRequested}
+                            onBusyChange={lambda (value: bool) { speechBusy = value; }}
+                            onSessionChange={lambda (updated: SessionView) { session = updated; }}
+                            onDraft={trackSpeech} onVoiceUnavailable={lambda { sessionVoice = False; }}
+                            onListeningChange={lambda (value: bool) { micOn = value; }}
+                            onInterim={lambda (value: str) { liveInterim = value; }}/>
+                        <button className="live-end" disabled={busy or endRequested} onClick={lambda { endRequested = True; }} aria-label="End conversation"><X size={20}/><span>End</span></button>
+                    </div>
                 </header>
-                <div className="live-status">
-                    <SpeechInput key={session.id} sessionId={session.id} speaker={speaker}
-                        language={session.target_language} voiceEnabled={sessionVoice} autoStart={True} stopRequested={endRequested}
-                        onBusyChange={lambda (value: bool) { speechBusy = value; }}
-                        onSessionChange={lambda (updated: SessionView) { session = updated; }}
-                        onDraft={trackSpeech} onVoiceUnavailable={lambda { sessionVoice = False; }}
-                        onListeningChange={lambda (value: bool) { micOn = value; }}/>
-                </div>
                 <div className="live-transcript">
-                    {len(session.turns) == 0 and <div className="transcript-empty"><h2>Start talking</h2><p>Your conversation will appear here.</p></div>}
+                    {len(session.turns) == 0 and not liveInterim.strip() and <div className="transcript-empty"><h2>Start talking</h2><p>Your conversation will appear here.</p></div>}
                     <TranscriptScroll key={session.id} session={session} onSwapSpeaker={swapSpeaker}/>
+                    {liveInterim.strip() and <p className={"live-interim " + ("turn-learner" if speaker == "learner" and not sessionVoice else "")} aria-hidden="true">
+                        <span className="live-interim-who">{"…" if sessionVoice else ("Me" if speaker == "learner" else "Partner")}</span>{liveInterim}</p>}
                 </div>
                 <div className="live-bottom">
                     <WordHelper key={"words-" + session.id} sessionId={session.id}
                         learnerSpeaking={(typedSpeaker == "learner") if typedText.strip() else (bool(spokenDraft) if sessionVoice else speaker == "learner")}
                         draft={typedText if typedSpeaker == "learner" and typedText.strip() else spokenDraft}/>
-                    {sessionVoice and <p className="voice-auto-status">Voice recognition is on. Check speaker labels as you go.</p>}
-                    {not sessionVoice and <HoldSpeaker speaking={speaker == "learner"} listening={micOn} disabled={busy or endRequested}
-                        onChange={lambda (held: bool) { speaker = "learner" if held else "partner"; spokenDraft = ""; }}/>
-                    }
-                    <form className="live-composer" aria-label="Type a message"
-                        onSubmit={lambda (event: any) { event.preventDefault(); addTyped(); }}>
-                        <div className="live-composer-speaker" role="group" aria-label="Who is this message from?">
-                            <button type="button" className={"live-composer-option " + ("is-selected" if typedSpeaker == "learner" else "")}
-                                aria-pressed={typedSpeaker == "learner"} onClick={lambda { typedSpeaker = "learner"; }}>Me</button>
-                            <button type="button" className={"live-composer-option " + ("is-selected" if typedSpeaker == "partner" else "")}
-                                aria-pressed={typedSpeaker == "partner"} onClick={lambda { typedSpeaker = "partner"; }}>Partner</button>
-                        </div>
-                        <input className="live-composer-input" aria-label="Message" placeholder="Or type a message…" maxLength={4000}
-                            value={typedText} disabled={endRequested} onChange={lambda (e: ChangeEvent) { typedText = e.target.value; }}/>
-                        <button type="submit" className="button button-primary live-composer-send"
-                            disabled={busy or endRequested or not typedText.strip()}>Send</button>
-                    </form>
+                    <p className="live-caption" aria-live="polite">{
+                        "Voice recognition is on. Check speaker labels as you go." if sessionVoice
+                        else ("You’re speaking. Release when you finish." if speaker == "learner"
+                        else ("Listening to your partner. Hold Me while you speak." if micOn
+                        else "Microphone off. Turn it on above, or type below."))}</p>
+                    <div className="live-dock">
+                        {not sessionVoice and <HoldSpeaker compact={True} speaking={speaker == "learner"} listening={micOn} disabled={busy or endRequested}
+                            onChange={lambda (held: bool) { speaker = "learner" if held else "partner"; spokenDraft = ""; }}/>}
+                        <form className="live-composer" aria-label="Type a message"
+                            onSubmit={lambda (event: any) { event.preventDefault(); addTyped(); }}>
+                            <button type="button" className={"live-composer-who " + ("is-learner" if typedSpeaker == "learner" else "is-partner")}
+                                aria-label={("Typing as Me" if typedSpeaker == "learner" else "Typing as Partner") + ". Switch speaker."}
+                                title="Switch who this message is from"
+                                onClick={lambda { typedSpeaker = "partner" if typedSpeaker == "learner" else "learner"; }}>
+                                {"Me" if typedSpeaker == "learner" else "Partner"}<ArrowLeftRight size={14} aria-hidden="true"/></button>
+                            <input className="live-composer-input" aria-label="Message" placeholder="Type a message…" maxLength={4000}
+                                value={typedText} disabled={endRequested} onChange={lambda (e: ChangeEvent) { typedText = e.target.value; }}/>
+                            <button type="submit" className="button button-primary live-composer-send"
+                                disabled={busy or endRequested or not typedText.strip()}>Send</button>
+                        </form>
+                    </div>
                     {endRequested and <p role="status" className="live-saving">Finishing and saving your conversation…</p>}
                 </div>
             </section>}
