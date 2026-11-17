@@ -22,7 +22,8 @@ def history_page(sessions: list[Conversation], offset: int, limit: int) -> list[
         raise ValueError("Invalid conversation page.");
     }
 
-    completed = [session for session in sessions if session.status == "ended"];
+    # Conversations ended before anyone spoke have nothing to review.
+    completed = [session for session in sessions if session.status == "ended" and session.turns];
     completed.sort(key=lambda (session: Conversation) -> str { return session.created_at; }, reverse=True);
 
     return [conversation_summary(session) for session in completed[offset:offset + limit]];

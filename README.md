@@ -308,7 +308,8 @@ Opening a conversation shows three sections:
 - **Transcript:** saved turns, on-demand translations, and text download.
 - **Practice:** evidence-based phrasing improvements and short practice tasks.
 
-Ending a session takes you directly to its Overview. The new-conversation
+Ending a session takes you directly to its Overview. A session ended before
+any turn was added returns to Home and is left out of the library. The new-conversation
 action starts a session using the saved profile. Navigation is hidden during
 an active web conversation. Active
 sessions are not shown in the completed library, and active-session recovery
@@ -344,6 +345,22 @@ and coaching is generated only for confirmed conversations. Deletion
 and retention controls are not implemented.
 
 ## Validation status
+
+### Language rules, native translation, and empty sessions (2026-11-17)
+
+On macOS with Jac 0.37.23, `jac check` reported no errors (warnings only) for
+`frontend.jac`, `endpoints.jac`, `core/ai.jac`, `core/history.jac`,
+`components/Onboarding.jac`, `components/Translation.jac`, and
+`components/TranscriptScroll.jac`. Offline tests passed for `endpoints.jac` (34),
+`core/ai.jac` (5), `core/history.jac` (4), `core/coaching.jac` (13),
+`core/hints.jac` (7), `core/practice.jac` (8), and `core/emoji.jac` (7), with
+model calls mocked. Headless browser checks with a disposable account verified
+that a Spanish native speaker's learning step hides Spanish with a note and
+blocks Continue until another language is chosen; the profile blocks saving
+Spanish (Spain) with Spanish (Mexico); the onboarding copy and the transcript
+translate control name Spanish; and ending an empty conversation returns to
+Home with an empty library and no Gemini call. No translation was requested,
+so live translation into non-English languages remains unverified.
 
 ### Web consent and typed turns restored (2026-11-17)
 

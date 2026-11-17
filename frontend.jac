@@ -144,7 +144,8 @@ def:pub app -> JsxElement {
             try { await decorate_conversation(updated.id); } except Exception { }
             session = None; spokenDraft = ""; typedText = "";
 
-            if returnToSetup {
+            # Nothing was said, so there is nothing to review; history hides it too.
+            if returnToSetup or len(updated.turns) == 0 {
                 historyId = ""; page = "home";
             } else { page = "conversations"; }
         }

@@ -232,9 +232,10 @@ The UI formats dates in the browser's local timezone.
 
 `frontend.jac` owns Talk state separately from `components/Conversations.jac`.
 Navigation is hidden during a live web conversation. Completion clears the
-live workspace and opens the ended session in Conversations. `save_profile`
-rejects a learning language that matches the native language by base locale,
-and web onboarding hides that language. Overview and
+live workspace and opens the ended session in Conversations, or returns Home
+when the session has no turns; `history_page` omits ended sessions without
+turns. `save_profile` rejects a learning language that matches the native
+language by base locale, and web onboarding hides that language. Overview and
 Practice share one mounted coaching component, so switching detail sections
 does not regenerate feedback. Transcript has its own view and retains export
 and translation. The completed library is paginated; its page selection is
