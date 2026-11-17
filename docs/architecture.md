@@ -236,8 +236,8 @@ The UI formats dates in the browser's local timezone.
 
 `components/tutor-mark.jsx` renders a coaching priority as struck learner
 words and the suggested wording (`changedWords` from `practice-diff.js`, run in
-both directions). The recap Overview lists the marks, and `TranscriptScroll`
-accepts `marks` to show each under the turn it quotes.
+both directions). Only the recap Overview shows the marks; transcripts stay
+unmarked.
 
 `frontend.jac` owns Talk state separately from `components/Conversations.jac`.
 Navigation is hidden during a live web conversation. Completion clears the

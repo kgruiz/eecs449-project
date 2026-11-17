@@ -3,10 +3,8 @@ import from "lucide-react" { ArrowDown }
 import from react { useEffect }
 import from ..core.models { SessionView, TranscriptTurn }
 import from .Translation { TranscriptText }
-import from "./tutor-mark.jsx" { TutorMark }
 
-# `marks` are recap practice priorities; each is shown under the turn it quotes.
-def:pub TranscriptScroll(session: SessionView, onSwapSpeaker: Callable[[TranscriptTurn], None], marks: list[any] | None = None) -> JsxElement {
+def:pub TranscriptScroll(session: SessionView, onSwapSpeaker: Callable[[TranscriptTurn], None]) -> JsxElement {
     has away: bool = False;
     has viewport: Ref[any] = Ref(None), content: Ref[any] = Ref(None);
     has following: Ref[bool] = Ref(True);
@@ -53,10 +51,6 @@ def:pub TranscriptScroll(session: SessionView, onSwapSpeaker: Callable[[Transcri
                     <TranscriptText sessionId={session.id} turnId={turn.id} text={turn.text} speaker={turn.speaker} language={session.native_language}
                         speakerSource={turn.speaker_source} canCorrect={session.status == "active"}
                         onSpeakerClick={lambda { onSwapSpeaker(turn); }}/>
-                    {[<div key={str(index)} className="turn-mark">
-                        <TutorMark original={mark.quote} suggestion={mark.suggestion} kind={mark.kind}/>
-                        <span className="turn-mark-title">{mark.title}</span>
-                    </div> for (index, mark) in enumerate(marks or []) if mark.turn_id == turn.id]}
                 </li> for turn in session.turns]}
             </ol>
         </div>

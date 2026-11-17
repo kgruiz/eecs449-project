@@ -86,8 +86,7 @@ def:pub Conversations(initialSessionId: str, onTalk: Callable[[], None], active:
             <div hidden={section != "transcript"} className="card history-transcript">
                 <div className="section-heading"><h2>Transcript</h2><TranscriptDownload key={selected.id} session={selected}/></div>
                 {len(selected.turns) == 0 and <p className="muted">No turns were recorded in this conversation.</p>}
-                <TranscriptScroll key={selected.id} session={selected} onSwapSpeaker={lambda (turn: TranscriptTurn) { }}
-                    marks={selected.coaching.priorities if selected.coaching is not None else []}/>
+                <TranscriptScroll key={selected.id} session={selected} onSwapSpeaker={lambda (turn: TranscriptTurn) { }}/>
             </div>
         </div>}
     </section>

@@ -594,7 +594,6 @@ html[data-scroll-bounce] body {
 }
 .transcript-turn {
 	display: flex;
-	flex-wrap: wrap;
 	align-items: flex-start;
 	gap: 16px;
 	padding: 14px 0;
@@ -1749,7 +1748,3 @@ button.speech-pill:hover { border-color: #aab7f5; color: var(--pip-blue); }
 .recap-mark-title { font-weight: 650; }
 .recap-mark-why { color: var(--pip-muted); font-size: 14px; }
 .recap-strengths { margin: 10px 0 0; padding-left: 20px; display: grid; gap: 6px; }
-/* Under the quoted turn in a saved transcript (past the avatar column). */
-.turn-mark { flex-basis: 100%; display: grid; gap: 4px; margin: 2px 0 0 48px; padding: 10px 12px; border-radius: 10px; background: var(--pip-surface); border: 1px dashed var(--pip-border); }
-.turn-mark-title { color: var(--pip-muted); font-size: 13px; }
-@media (max-width: 600px) { .turn-mark { margin-left: 0; } }
