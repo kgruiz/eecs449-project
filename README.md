@@ -339,6 +339,14 @@ and retention controls are not implemented.
 
 ## Validation status
 
+### iOS input-focus zoom (2026-11-17)
+
+In an isolated WSL copy, `jac check frontend.jac` passed with warnings and
+`jac build web --as client` succeeded.
+The viewport module was checked with simulated iPhone and desktop user agents;
+the user reported improved behavior in a phone preview. Actual behavior across
+iOS versions, browsers, and Home Screen launches still needs wider testing.
+
 ### Web live conversation redesign (2026-11-13)
 
 In an isolated WSL copy under Jac 0.37.23, `jac check frontend.jac
