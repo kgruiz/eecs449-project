@@ -36,3 +36,11 @@ test "translation rejects an empty text field" {
         }
     }
 }
+
+test "translation can target the learner's native language" {
+    response = {"choices": [{"message": {"role": "assistant", "content": "{\"text\": \"Привет\"}"}, "finish_reason": "stop"}], "usage": {}};
+
+    with patch.object(Model, "model_call_no_stream", return_value=response) {
+        assert translate_into("hola", "Russian (Russia)") == "Привет";
+    }
+}

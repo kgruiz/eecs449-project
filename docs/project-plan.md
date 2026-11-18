@@ -35,8 +35,8 @@ unverified.
 1. **Live conversation assistance.** Offer short, CEFR-appropriate reply
    hints when requested. Add an AI conversation partner. Explore pause or
    struggle triggers and spoken or headphone delivery after the basic flow.
-2. **Tap-to-translate.** Web transcript sentences can be translated to English
-   on request, with results retained while the transcript view is open.
+2. **Tap-to-translate.** Web transcript sentences can be translated into the
+   learner's native language on request, with results retained while the transcript view is open.
    Persistent caching and native mobile presentation remain future work.
 3. **Post-conversation coaching.** Saved summaries and evidence-based grammar
    and vocabulary practice priorities are implemented. Web practice now supports

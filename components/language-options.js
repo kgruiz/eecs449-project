@@ -30,3 +30,14 @@ export function resolveLanguage(value) {
 		) || [value, value]
 	);
 }
+
+// Regional variants count as one language: English (US) and English (UK) match.
+export function sameLanguage(first, second) {
+	const base = (value) => resolveLanguage(value || "")[0].split("-")[0].toLowerCase();
+	return base(first) === base(second);
+}
+
+// "Russian (Russia)" -> "Russian", for use in sentences and labels.
+export function shortLanguageName(value) {
+	return resolveLanguage(value || "")[1].split(" (")[0];
+}

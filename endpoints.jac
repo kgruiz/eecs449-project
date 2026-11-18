@@ -7,7 +7,8 @@ import from datetime { datetime, timezone }
 import from .core.history { history_page }
 import from .core.coaching { build_report }
 import from .core.practice { check_answer }
-import from .core.ai { translate_to_english }
+import from .core.ai { translate_into }
+import from .core.speech { speech_locale }
 import from .core.emoji { choose_conversation_emoji }
 import os;
 def profile() -> LearnerProfile {
@@ -21,9 +22,16 @@ def owned_session(session_id: str) -> Conversation {
     }
     raise ValueError("Conversation not found in your account.");
 }
+# Regional variants count as one language: English (US) and English (UK) match.
+def same_language(first: str, second: str) -> bool {
+    return speech_locale(first).split("-")[0].lower() == speech_locale(second).split("-")[0].lower();
+}
 def:protect save_profile(native_language: str, target_language: str, level: str) -> LearnerProfile {
     if not native_language.strip() or not target_language.strip() {
         raise ValueError("Choose both languages.");
+    }
+    if same_language(native_language, target_language) {
+        raise ValueError("Choose a learning language different from the language you know.");
     }
     if level not in ["A1", "A2", "B1", "B2", "C1", "C2"] {
         raise ValueError("Choose a CEFR level from A1 to C2.");
@@ -182,7 +190,7 @@ def:protect translate_sentence(session_id: str, turn_id: str, sentence: str) -> 
     if not sentence.strip() or len(sentence) > 4000 { raise ValueError("Invalid sentence."); }
     for turn in session.turns {
         if turn.id == turn_id and sentence.strip() in turn.text {
-            return translate_to_english(sentence.strip());
+            return translate_into(sentence.strip(), session.native_language or "English");
         }
     }
     raise ValueError("Sentence not found in this conversation.");

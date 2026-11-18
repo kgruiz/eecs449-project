@@ -38,7 +38,7 @@ content while within 48 pixels of the bottom, preserves the reader's position
 when scrolled up, and offers a Latest button to resume following. A resize
 observer also handles translation expansion and viewport changes, and is
 disconnected on unmount. The transcript supports on-demand full-turn
-translation to English and next-word suggestions. Full-reply hints and AI replies
+translation into the learner's native language and next-word suggestions. Full-reply hints and AI replies
 remain planned. Saved conversation and practice navigation are implemented on web. Speech listening status remains local
 to `SpeechInput.jac`; an active session does not imply microphone capture.
 
@@ -78,7 +78,13 @@ previous speaker. Recognition attempts to restart after browser silence
 timeouts until stopped. These behaviors are implementation intent and
 still need browser verification.
 
-There is no acoustic pause detection. The web conversation view does not provide typed turns, so it needs a supported browser. The app does not store raw audio; the browser's
+There is no acoustic pause detection. The web live view also has a typed
+composer (Me/Partner choice, `append_turn`, zero duration), so browsers without
+speech support or with a blocked microphone still work. `SpeechInput` renders a
+header status pill with a dismissible error notice, and reports listening
+state (`onListeningChange`) and interim text (`onInterim`) so the live view can
+caption the microphone state and show in-progress speech under the transcript.
+The hold control renders compactly beside the composer. The app does not store raw audio; the browser's
 speech service handles transcription.
 
 ## Speaker detection
@@ -123,14 +129,20 @@ These native adapter behaviors still need end-to-end verification.
 when their in-progress sentence stays unchanged for four seconds while
 "Me" is held. The in-progress sentence is the learner's interim speech that
 `SpeechInput.jac` reports through `onDraft` (then the finalized utterance). Sentences ending
-in `.`, `!`, or `?` do not trigger, and the learner can turn automatic
+in `.`, `!`, or `?` do not trigger unless they contain a common "how do I
+say X?" phrasing (`ASKS_FOR_WORD`), and the learner can turn automatic
 suggestions off or tap "Suggest a word" at any time.
 
 `suggest_word(session_id, partial_sentence)` checks ownership and an active
 session, then calls `suggest_next_word` in `core/hints.jac`
 with the partial sentence, the last 12 turns, the session languages, and
 CEFR level. It returns a `WordHint` (target-language word plus a short
-native-language meaning) and increments `model_requests`. Drafts and hints
+native-language meaning) and increments `model_requests`. When the draft
+contains an aside asking how to say something, in the native or target
+language ("how do I say bread", "come si dice bread"), the same call also
+fills `WordHint.lookup` (`WordLookup`: the asked item and its target-language
+word), which the helper shows above the next word. The model, not the client
+regex, decides whether a draft is such an aside. Drafts and hints
 are never saved as transcript turns. A hint that arrives after the learner
 keeps going is discarded.
 
@@ -153,9 +165,10 @@ session -> coaching report -> mistake history and optional practice lessons.
 `core/ai.jac` provides a server-only Jac byLLM translation, using
 Gemini 3.5 Flash-Lite. The protected translation endpoint checks ownership
 and that the selected text belongs to the requested turn before
-sending it to Gemini. Translations are cached in the browser view only;
+sending it to Gemini with the session's native language as the target
+(`translate_into`; `translate_to_english` remains a wrapper). Translations are cached in the browser view only;
 the saved transcript remains unchanged. Each turn has an icon-only action
-with hover/focus tooltips. The original remains visible while English appears
+with hover/focus tooltips. The original remains visible while the translation appears
 below it with a labeled accent rule. Toggling visibility reuses the cached
 translation; loading and retry states belong to each turn.
 
@@ -178,7 +191,7 @@ decisions, and [the README](../README.md) for setup and validation status.
 
 `core/coaching.jac` uses the shared server-only Gemini model to return a typed
 `CoachingReport`. `conversation_feedback` resolves an owned session and requires
-completion and learner text before generating a report. It validates
+completion, participant consent, and learner text before generating a report. It validates
 nonempty fields, list limits, and exact learner-quote/turn-ID matches before saving
 the report on `Conversation`. `SessionView` includes the optional saved report.
 Failed generation leaves the transcript ended and retryable. Successful sequential
@@ -200,7 +213,9 @@ completed step; existing profiles default to complete. The profile view sent
 to the browser excludes the stored voiceprint. Home uses the account-scoped
 history endpoint to show the three most recent completed conversations, and
 opens the existing detail view. At narrow widths a bottom bar provides Home,
-new conversation, and Conversations. Selecting the initial opens the profile
+new conversation, and Conversations. Every new-conversation action opens a
+participant-consent dialog; the session is created with `consent_confirmed`
+only after the learner confirms. Selecting the initial opens the profile
 page for editing and signing out. Active in-memory sessions retain the existing navigation protections.
 
 After completion the web client asks the protected decoration endpoint for a
@@ -219,14 +234,26 @@ full transcripts and coaching are fetched with the existing owned-session API.
 New sessions record creation time, while old sessions default to an empty date.
 The UI formats dates in the browser's local timezone.
 
+`components/tutor-mark.jsx` renders a coaching priority as struck learner
+words and the suggested wording (`changedWords` from `practice-diff.js`, run in
+both directions). Only the recap Overview shows the marks; transcripts stay
+unmarked.
+
 `frontend.jac` owns Talk state separately from `components/Conversations.jac`.
 Navigation is hidden during a live web conversation. Completion clears the
-live workspace and opens the ended session in Conversations. Overview and
+live workspace and opens the ended session in Conversations, or returns Home
+when the session has no turns; `history_page` omits ended sessions without
+turns. `save_profile` rejects a learning language that matches the native
+language by base locale, and web onboarding hides that language. Overview and
 Practice share one mounted coaching component, so switching detail sections
 does not regenerate feedback. Transcript has its own view and retains export
 and translation. The completed library is paginated; its page selection is
-local state. Active-session recovery after reload and deep links remain future
-work. Native mobile still uses its existing conversation/recap screen.
+local state. `frontend.jac` mirrors the page in a hash route (`#/`,
+`#/conversations[/<id>]`, `#/profile`, `#/talk`) with `pushState` and a
+`popstate` listener, so links and reloads open the right page; Conversations
+reports the open record through `onSelect`. Browser navigation is reverted
+while speech turns are saving. Active-session recovery after reload remains
+future work. Native mobile still uses its existing conversation/recap screen.
 
 ## Interactive web practice
 

@@ -54,7 +54,7 @@ test "language help does not require a recorded participant confirmation" {
     session.consent_confirmed = False;
     with patch(__name__ + ".owned_session", return_value=session),
          patch(__name__ + ".suggest_next_word", return_value=WordHint(word="hola", meaning="hello")),
-         patch(__name__ + ".translate_to_english", return_value="Hello.") {
+         patch(__name__ + ".translate_into", return_value="Hello.") {
         assert suggest_word("session", "Hol").word == "hola";
         assert translate_sentence("session", "previous", "Hola.") == "Hello.";
     }
@@ -85,5 +85,24 @@ test "uncertain voice requires valid manual selection and active session" {
 
         with testraises(ValueError) { append_spoken_turn("session", "Hola.", 1.0, "", "learner"); }
         assert len(session.turns) == 1;
+    }
+}
+
+test "translation targets the session's native language" {
+    session = fallback_session();
+    session.native_language = "Russian (Russia)";
+    with patch(__name__ + ".owned_session", return_value=session),
+         patch(__name__ + ".translate_into", return_value="Привет.") as translate {
+        assert translate_sentence("session", "previous", "Hola.") == "Привет.";
+        translate.assert_called_once_with("Hola.", "Russian (Russia)");
+    }
+}
+
+test "profile rejects learning the language you already know" {
+    learner = LearnerProfile();
+    with patch(__name__ + ".profile", return_value=learner) {
+        with testraises(ValueError) { save_profile("English (United States)", "English (United Kingdom)", "A2"); }
+        with testraises(ValueError) { save_profile("Spanish", "Spanish (Mexico)", "A2"); }
+        assert save_profile("English (United States)", "Russian (Russia)", "A2").target_language == "Russian (Russia)";
     }
 }

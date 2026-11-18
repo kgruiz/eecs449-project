@@ -19,6 +19,15 @@ test "history excludes active conversations and orders dated sessions newest fir
     assert len(history_page([], 0, 20)) == 0;
 }
 
+test "history leaves out conversations ended without any turns" {
+    empty = history_session("2026-11-04T20:00:00+00:00");
+    empty.turns = [];
+    kept = history_session("2026-11-02T20:00:00+00:00");
+    page = history_page([empty, kept], 0, 20);
+    assert len(page) == 1;
+    assert page[0].created_at == kept.created_at;
+}
+
 test "history bounds records and does not expose complete transcripts" {
     session = history_session("");
     session.turns[0].text = "a" * 4000;
