@@ -4,6 +4,7 @@ import from "./components/hold-speaker.jsx" { HoldSpeaker }
 import from "./components/language-flag.jsx" { LanguageFlag }
 import from "./components/scroll-bounce.jsx" { ScrollBounce }
 import from "./components/home-screen-install.jsx" { HomeScreenInstall, WebAppMetadata }
+import "./components/ios-viewport.js";
 import from "@jac/runtime" { jacLogin, jacSignup, jacLogout, jacIsLoggedIn, SignupResult }
 import from .core.models { SessionView, TranscriptTurn }
 import from .endpoints {
