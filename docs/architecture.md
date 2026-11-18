@@ -194,6 +194,16 @@ Real microphone timing and native-device presentation still require verification
 
 ## Web conversation library
 
+Home can offer iOS browser users instructions for adding Pip to the Home
+Screen. The prompt is hidden in standalone display mode and can be dismissed;
+the selected browser instructions can be corrected manually because user-agent
+detection is not reliable for every in-app browser. Display mode describes
+the current launch, not whether a shortcut already exists. The web manifest,
+Apple touch icon, and app metadata give a newly added shortcut Pip branding
+and request standalone presentation; they do not implement offline support.
+Actual iOS installation, icon appearance, microphone behavior, and retained
+sign-in still require testing on a device.
+
 Web onboarding stores a display name, progress, and completion flag alongside
 the existing language and level profile. New accounts can resume at their last
 completed step; existing profiles default to complete. The profile view sent

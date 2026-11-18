@@ -3,6 +3,7 @@ import from "lucide-react" { X, Home as HomeIcon, MessageCircle, Plus, ChevronRi
 import from "./components/hold-speaker.jsx" { HoldSpeaker }
 import from "./components/language-flag.jsx" { LanguageFlag }
 import from "./components/scroll-bounce.jsx" { ScrollBounce }
+import from "./components/home-screen-install.jsx" { WebAppMetadata }
 import from "@jac/runtime" { jacLogin, jacSignup, jacLogout, jacIsLoggedIn, SignupResult }
 import from .core.models { SessionView, TranscriptTurn }
 import from .endpoints {
@@ -130,6 +131,7 @@ def:pub app -> JsxElement {
         if endRequested and not speechBusy and not busy { finish(False); }
     }
     <div className="pip-app">
+        <WebAppMetadata/>
         <ScrollBounce />
         <a className="skip-link" href="#workspace">Skip to conversation</a>
         {not (logged_in and page == "talk" and session is not None) and <header className="topbar">

@@ -17,7 +17,10 @@ The current checkout includes:
 - A responsive web Home shows recent completed conversations and an entry
   point to start a conversation. Mobile widths use a bottom navigation with a
   central new-conversation action; active sessions remain available when
-  navigating away. This is responsive web UI, not an installable PWA yet.
+  navigating away. On iOS, Home offers instructions for adding Pip to the
+  Home Screen, with a branded icon and standalone web-app presentation. This
+  does not provide offline support. Browser identification is best-effort;
+  the instructions include a browser selector when detection is wrong.
 - A completed conversation can receive one topic emoji from Gemini;
   a neutral icon is used when the provider is unavailable or for older records.
   The topic request uses up to the last 12 turns and is separate from coaching.
@@ -77,6 +80,11 @@ requires a browser exposing `SpeechRecognition` or
 `webkitSpeechRecognition`; the UI names Chrome, Edge, and Safari. Browsers
 without that API cannot use the web conversation view. Actual browser and
 language support still needs runtime verification.
+
+For temporary development-only Home Screen instruction previews, press `S`
+(Safari), `C` (Chrome), `G` (Google app), or `O` (other) on Home; `P` previews
+standalone mode without the prompt, and `R` restores device detection. These shortcuts are not included in production
+builds and are intended to be removed before merging.
 
 Set `GEMINI_API_KEY` in `.env` to enable translation, word hints, and coaching. The server defaults to
 `gemini-3.5-flash-lite` through Jac's byLLM integration. Run `jac install`
@@ -338,6 +346,15 @@ completion. Web does not ask for participant confirmation. Deletion
 and retention controls are not implemented.
 
 ## Validation status
+
+### Home Screen guidance (2026-11-17)
+
+In an isolated WSL copy, `jac check frontend.jac components/Home.jac` passed
+with warnings and `jac build web --as client` succeeded. Browser preview at
+390px and 320px exercised the instruction dialog and development preview keys;
+the manifest and Apple icon returned HTTP 200 from the local preview. An actual
+iPhone installation, standalone launch, sign-in persistence, microphone, and
+icon appearance have not been verified. No offline support is provided.
 
 ### Web live conversation redesign (2026-11-13)
 
