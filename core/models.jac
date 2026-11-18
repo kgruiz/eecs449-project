@@ -19,12 +19,20 @@ obj TranscriptTurn {
     has id: str, speaker: str, text: str, duration_seconds: float = 0.0,
         speaker_source: str = "manual", speaker_score: float | None = None;
 }
+# The answer to an explicit "how do I say X?" aside inside the learner's draft.
+obj WordLookup {
+    has asked: str, word: str;
+}
+sem WordLookup.asked = "The word or phrase the learner asked how to say, exactly as they said it.";
+sem WordLookup.word = "How to say that word or phrase in the target language, as the learner should say it in this sentence.";
 # A suggested next word for a learner who stalls mid-sentence; never stored as a turn.
 obj WordHint {
     has word: str, meaning: str;
+    has lookup: WordLookup | None = None;
 }
 sem WordHint.word = "One word in the target language (a short fixed phrase only if one word cannot stand alone) that naturally continues the learner's sentence.";
 sem WordHint.meaning = "A gloss of that word in the learner's native language, at most a few words.";
+sem WordHint.lookup = "Set only when partial_sentence contains the learner asking how to say a specific word or phrase, in either their native or the target language (for example 'how do I say bread' or 'come si dice bread'). Otherwise null.";
 obj PracticePriority {
     has turn_id: str, quote: str, suggestion: str, explanation: str, practice: str;
     has kind: str = "", title: str = "";

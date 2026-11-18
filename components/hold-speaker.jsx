@@ -2,7 +2,9 @@ import { Hand } from "lucide-react";
 import { useEffect, useRef } from "react";
 
 // Pointer capture and global release handle drags, interruptions and lost focus.
-export function HoldSpeaker({ speaking, onChange, disabled }) {
+// `listening` is false while the microphone is off, so no one is being transcribed.
+// `compact` renders only the button; the caller shows the status text.
+export function HoldSpeaker({ speaking, onChange, disabled, listening = true, compact = false }) {
 	const held = useRef(false);
 	const callback = useRef(onChange);
 	callback.current = onChange;
@@ -32,8 +34,8 @@ export function HoldSpeaker({ speaking, onChange, disabled }) {
 			callback.current(true);
 		}
 	}
-	return <div className="hold-speaker">
-		<p className="hold-speaker-status" aria-live="polite">{speaking ? "Me speaking" : "Partner speaking"}</p>
+	return <div className={`hold-speaker ${compact ? "is-compact" : ""}`}>
+		{!compact && <p className="hold-speaker-status" aria-live="polite">{!listening ? "Microphone off" : speaking ? "Me speaking" : "Partner speaking"}</p>}
 		<button type="button" className={`hold-speaker-button ${speaking ? "is-held" : ""}`} disabled={disabled}
 			aria-label="Hold while you speak; assistive technology can activate to toggle" aria-pressed={speaking}
 			onPointerDown={(event) => { if (event.button === 0) { event.preventDefault(); event.currentTarget.setPointerCapture(event.pointerId); press(); } }}
@@ -41,8 +43,8 @@ export function HoldSpeaker({ speaking, onChange, disabled }) {
 			onClick={(event) => { if (event.detail === 0) { if (held.current) release(); else press(); } }}
 			onKeyDown={(event) => { if ((event.key === " " || event.key === "Enter") && !event.repeat) { event.preventDefault(); press(); } }}
 			onKeyUp={(event) => { if (event.key === " " || event.key === "Enter") { event.preventDefault(); release(); } }}>
-			<Hand size={29} aria-hidden="true"/><span>Me</span>
+			<Hand size={compact ? 20 : 29} aria-hidden="true"/><span>{compact ? "Hold" : "Me"}</span>
 		</button>
-		<p className="hold-speaker-help">{speaking ? "Release when you finish" : "Hold while you speak"}</p>
+		{!compact && <p className="hold-speaker-help">{!listening ? "Turn on the microphone to transcribe speech" : speaking ? "Release when you finish" : "Hold while you speak"}</p>}
 	</div>;
 }

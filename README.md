@@ -25,11 +25,15 @@ The current checkout includes:
   a neutral icon is used when the provider is unavailable or for older records.
   The topic request uses up to the last 12 turns and is separate from coaching.
 - A learner profile with native language, target language, and CEFR level.
+  The learning language must differ from the native language (regional
+  variants such as English (US) and English (UK) count as the same language).
   Web setup uses searchable language choices such as Spanish (Spain) and
   Spanish (Mexico). Listening defaults to the learning language; Change opens
   a language picker with Cancel and Apply, affecting transcription only.
-- Authenticated sessions and saved text transcripts. Native mobile and the
-  shared API still support typed turns; the web conversation view uses speech.
+- Participant consent before starting each conversation. On web, every new
+  conversation opens a confirmation dialog; coaching requires the confirmation.
+- Authenticated sessions, saved text transcripts, and typed turns. The web
+  live view has a compact composer with a Me/Partner choice beside speech.
 - A web **Download transcript (.txt)** button for active or ended conversations
   with at least one turn. The UTF-8 file includes speaker labels, languages,
   CEFR level, and session status, and is generated locally in the browser.
@@ -39,8 +43,8 @@ The current checkout includes:
   otherwise hold Me while speaking and release for the partner. Holding Me
   does not mute the mic. Uncertain voice matches fall back to Partner and can
   be corrected in the transcript.
-- Use the translation icon on a transcript turn to show English beneath
-  the original. Toggle it to hide or reveal the cached translation.
+- Use the translation icon on a transcript turn to show a translation into
+  the learner's native language beneath the original. Toggle it to hide or reveal the cached translation.
 - A responsive Pip-styled web interface for sign-in, live transcripts, and
   speech controls. The design does not add
   the planned language-assistance features.
@@ -73,13 +77,17 @@ jac run --dev web
 
 Open the local URL printed by Jac. Create an account, choose your languages
 and CEFR level, and use the new-conversation action. The web app attempts to
-start listening; browser microphone permission may be needed. Hold **Me** while
-you speak and release for your partner; End waits for pending turns to save.
-There is no participant-confirmation step or backend requirement. Speech input
+start listening; browser microphone permission may be needed. The header pill
+shows **Listening** or **Mic off**; select **Mic off** to retry, and typing
+always works. Hold the **Hold** button while you speak and release for your
+partner, or type a message and use the Me/Partner chip to choose who said it;
+End waits for pending turns to save. In-progress speech appears under the
+transcript, and your turns carry a blue accent. Each new conversation first asks
+you to confirm that all participants agree to transcription. Speech input
 requires a browser exposing `SpeechRecognition` or
 `webkitSpeechRecognition`; the UI names Chrome, Edge, and Safari. Browsers
-without that API cannot use the web conversation view. Actual browser and
-language support still needs runtime verification.
+without that API, or with the microphone blocked, can still use typed turns.
+Actual browser and language support still needs runtime verification.
 
 Set `GEMINI_API_KEY` in `.env` to enable translation, word hints, and coaching. The server defaults to
 `gemini-3.5-flash-lite` through Jac's byLLM integration. Run `jac install`
@@ -294,7 +302,11 @@ code signing.
 ## Web navigation
 
 **Home** offers recent completed conversations. The
-new-conversation action opens the live transcript and controls.
+new-conversation action opens the live transcript and controls. Each page has
+a hash address (`#/`, `#/conversations`, `#/conversations/<id>`, `#/profile`,
+`#/talk`), so browser Back/Forward, refresh, and links work; navigation is
+undone while spoken turns are still saving. `#/talk` only opens an active
+conversation in the current tab.
 **Conversations** lists your completed sessions, newest dated sessions first,
 with a title taken from the opening turn, language/level, local date/time,
 turn count, and summary preview. Earlier sessions without timestamps remain
@@ -306,7 +318,8 @@ Opening a conversation shows three sections:
 - **Transcript:** saved turns, on-demand translations, and text download.
 - **Practice:** evidence-based phrasing improvements and short practice tasks.
 
-Ending a session takes you directly to its Overview. The new-conversation
+Ending a session takes you directly to its Overview. A session ended before
+any turn was added returns to Home and is left out of the library. The new-conversation
 action starts a session using the saved profile. Navigation is hidden during
 an active web conversation. Active
 sessions are not shown in the completed library, and active-session recovery
@@ -321,6 +334,12 @@ The recap includes a summary, up to three strengths, and up to three priorities
 with learner quotes, suggested phrasing, and specific practice tasks. Explanations
 use the session's native language; phrasing follows its target language and CEFR level.
 Feedback uses text only and does not score pronunciation or acoustic fluency.
+
+On web, each practice priority is shown as a tutor's mark
+(`components/tutor-mark.jsx`): the learner's words with removed words struck
+through, then the suggested wording with new words written in. Corrections use
+red and optional improvements blue. The marks appear in the Overview's "To work
+on" list; the transcript itself stays unmarked.
 
 Successful reports are saved with the conversation and returned by
 `get_conversation`; repeat requests reuse them. The web Conversations tab
@@ -337,7 +356,8 @@ not store raw audio. Speech recognition uses the browser's speech service;
 Chrome and Edge send audio to their provider. The native app uses the phone's
 speech service, where Apple or Google may process audio. Conversation text is
 sent to Gemini for requested language help and an automatic recap after
-completion. Web does not ask for participant confirmation. Deletion
+completion. Web asks for participant confirmation before each conversation,
+and coaching is generated only for confirmed conversations. Deletion
 and retention controls are not implemented.
 
 ## Validation status
@@ -359,6 +379,82 @@ simulated iOS browser also displayed and opened the alert on sign-in;
 the manifest and Apple icon returned HTTP 200 from the local preview. An actual
 iPhone installation, standalone launch, sign-in persistence, microphone, and
 icon appearance have not been verified. No offline support is provided.
+
+### Tutor marks in the recap and transcript (2026-11-17)
+
+On macOS with Jac 0.37.23, `jac check` reported no errors (warnings only) for
+`components/CoachingPanel.jac`. No saved recap had practice priorities, so the
+real `CoachingPanel` and `TranscriptScroll` components were rendered in the
+running app with a sample session holding one correction and one improvement:
+the Overview listed both marks with struck and inserted words. The transcript
+does not show marks. No AI-backed endpoint was called. Marks on a
+real generated recap remain unverified.
+
+### Live layout and conversation list redesign (2026-11-17)
+
+On macOS with Jac 0.37.23, `jac check` reported no errors (warnings only) for
+`frontend.jac`, `components/SpeechInput.jac`, `components/WordHelper.jac`,
+`components/Conversations.jac`, `components/Home.jac`, and
+`components/TranscriptScroll.jac`. Offline tests passed for `endpoints.jac`
+(34), `core/hints.jac` (7), and `core/history.jac` (4). Headless browser checks
+with typed turns measured the live transcript at 469px of a 720px viewport
+(203px before) and 603px of 844px at the narrowest available width, with no
+horizontal overflow; verified alternating Me/Partner styling, a dismissible
+microphone notice, the centered Latest button not overlapping translate
+controls, the shared conversation row on Home and Conversations, the secondary
+start button on a conversation's detail page, and its absence at phone widths.
+No AI-backed endpoint was called during these checks. Real microphone use and
+interim speech display were not exercised.
+
+### Navigation, live controls, and polish (2026-11-17)
+
+On macOS with Jac 0.37.23, `jac check` reported no errors (warnings only) for
+`frontend.jac`, `components/SpeechInput.jac`, `components/Conversations.jac`,
+`components/Onboarding.jac`, and `components/Home.jac`. Offline tests passed
+for `endpoints.jac` (34), `core/history.jac` (4), `core/coaching.jac` (13),
+`core/hints.jac` (7), and `core/ai.jac` (5). Headless browser checks with
+disposable accounts verified: hash addresses for Home, Conversations, Profile,
+and Talk; Back, Forward, and reload of `#/profile`; a deep link to an unknown
+conversation ID opening and failing gracefully, including after Back; Back from
+an active conversation to Home and Forward into it again with a single history
+entry; sign-in errors shown inside the card; the page title "Pip" (set at
+runtime because the dev template hard-codes its own title; `jac.toml`
+`[client.app_meta_data]` covers builds); "Welcome" for an account without
+conversations; the compact microphone control, "Microphone off" state, and
+typing hint when the microphone is blocked; the one-row word-suggestion bar;
+sticky onboarding actions at 1280x800; and no hero art clipping or horizontal
+overflow at the browser tool's 500px minimum width. A deep link to a real
+completed conversation was not exercised because creating one would call
+Gemini; live microphone permission prompts were not available headless.
+
+### Language rules, native translation, and empty sessions (2026-11-17)
+
+On macOS with Jac 0.37.23, `jac check` reported no errors (warnings only) for
+`frontend.jac`, `endpoints.jac`, `core/ai.jac`, `core/history.jac`,
+`components/Onboarding.jac`, `components/Translation.jac`, and
+`components/TranscriptScroll.jac`. Offline tests passed for `endpoints.jac` (34),
+`core/ai.jac` (5), `core/history.jac` (4), `core/coaching.jac` (13),
+`core/hints.jac` (7), `core/practice.jac` (8), and `core/emoji.jac` (7), with
+model calls mocked. Headless browser checks with a disposable account verified
+that a Spanish native speaker's learning step hides Spanish with a note and
+blocks Continue until another language is chosen; the profile blocks saving
+Spanish (Spain) with Spanish (Mexico); the onboarding copy and the transcript
+translate control name Spanish; and ending an empty conversation returns to
+Home with an empty library and no Gemini call. No translation was requested,
+so live translation into non-English languages remains unverified.
+
+### Web consent and typed turns restored (2026-11-17)
+
+On macOS with Jac 0.37.23, `jac check frontend.jac` reported no errors (warnings
+only) and `jac test core/coaching.jac` passed 12 collected tests with the model
+mocked. In the local dev server, headless browser checks with a disposable
+account verified that Start opens the consent dialog, Cancel creates no session,
+Start stays disabled until the box is checked, and confirming creates a session.
+A typed Partner turn and a typed Me turn (submitted with Send and with a typed
+Enter) saved with the right speakers. The composer did not overflow a 360px
+layout. Headless Chromium blocked the microphone, so spoken turns were not
+retested. Ending the conversation, coaching for confirmed sessions, and live
+Gemini calls were not exercised.
 
 ### Web live conversation redesign (2026-11-13)
 
