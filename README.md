@@ -17,7 +17,7 @@ The current checkout includes:
 - A responsive web Home shows recent completed conversations and an entry
   point to start a conversation. Mobile widths use a bottom navigation with a
   central new-conversation action; active sessions remain available when
-  navigating away. On iOS, Home offers instructions for adding Pip to the
+  navigating away. On iOS, sign-in and Home offer instructions for adding Pip to the
   Home Screen, with a branded icon and standalone web-app presentation. This
   does not provide offline support. Browser identification is best-effort;
   the instructions include a browser selector when detection is wrong.
@@ -346,7 +346,8 @@ and retention controls are not implemented.
 
 In an isolated WSL copy, `jac check frontend.jac components/Home.jac` passed
 with warnings and `jac build web --as client` succeeded. Browser preview at
-390px and 320px exercised the instruction dialog and browser variants;
+390px and 320px exercised the instruction dialog and browser variants. A
+simulated iOS browser also displayed and opened the alert on sign-in;
 the manifest and Apple icon returned HTTP 200 from the local preview. An actual
 iPhone installation, standalone launch, sign-in persistence, microphone, and
 icon appearance have not been verified. No offline support is provided.

@@ -3,7 +3,7 @@ import from "lucide-react" { X, Home as HomeIcon, MessageCircle, Plus, ChevronRi
 import from "./components/hold-speaker.jsx" { HoldSpeaker }
 import from "./components/language-flag.jsx" { LanguageFlag }
 import from "./components/scroll-bounce.jsx" { ScrollBounce }
-import from "./components/home-screen-install.jsx" { WebAppMetadata }
+import from "./components/home-screen-install.jsx" { HomeScreenInstall, WebAppMetadata }
 import from "@jac/runtime" { jacLogin, jacSignup, jacLogout, jacIsLoggedIn, SignupResult }
 import from .core.models { SessionView, TranscriptTurn }
 import from .endpoints {
@@ -172,6 +172,7 @@ def:pub app -> JsxElement {
                         <button className="button button-secondary" disabled={busy} onClick={lambda { authenticate(True); }}>Create account</button>
                     </div>
                     <p className="auth-footnote">Your conversations, your learning.</p>
+                    <HomeScreenInstall/>
                 </section>
             </div>}
             {logged_in and not profileReady and <div className="profile-loading"><p role="status">{error if error else "Preparing your space…"}</p>{error and <button className="button button-secondary" onClick={loadProfile}>Try again</button>}</div>}
