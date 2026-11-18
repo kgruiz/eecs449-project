@@ -81,11 +81,6 @@ requires a browser exposing `SpeechRecognition` or
 without that API cannot use the web conversation view. Actual browser and
 language support still needs runtime verification.
 
-For temporary development-only Home Screen instruction previews, press `S`
-(Safari), `C` (Chrome), `G` (Google app), or `O` (other) on Home; `P` previews
-standalone mode without the prompt, and `R` restores device detection. These shortcuts are not included in production
-builds and are intended to be removed before merging.
-
 Set `GEMINI_API_KEY` in `.env` to enable translation, word hints, and coaching. The server defaults to
 `gemini-3.5-flash-lite` through Jac's byLLM integration. Run `jac install`
 after pulling the change, and restart the server after changing environment variables.
@@ -351,7 +346,7 @@ and retention controls are not implemented.
 
 In an isolated WSL copy, `jac check frontend.jac components/Home.jac` passed
 with warnings and `jac build web --as client` succeeded. Browser preview at
-390px and 320px exercised the instruction dialog and development preview keys;
+390px and 320px exercised the instruction dialog and browser variants;
 the manifest and Apple icon returned HTTP 200 from the local preview. An actual
 iPhone installation, standalone launch, sign-in persistence, microphone, and
 icon appearance have not been verified. No offline support is provided.

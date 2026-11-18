@@ -21,37 +21,22 @@ export function WebAppMetadata() {
 
 export function HomeScreenInstall() {
 	const [detected] = useState(environment);
-	const [preview, setPreview] = useState(null);
 	const [browser, setBrowser] = useState(detected.browser);
 	const [dismissed, setDismissed] = useState(false);
 	const [open, setOpen] = useState(false);
 	const dialog = useRef(null);
 
-	// TEMPORARY QA: S/C/G/O preview browsers; P previews standalone; R resets.
-	useEffect(() => {
-		if (!import.meta.env.DEV) return;
-		const keys = { s: "Safari", c: "Chrome", g: "Google app", o: "Other" };
-		const onKey = (event) => {
-			if (event.ctrlKey || event.metaKey || event.altKey || event.target?.closest("input, textarea, select, [contenteditable=true]")) return;
-			const key = event.key.toLowerCase();
-			if (key === "r") { setPreview(null); setBrowser(detected.browser); setDismissed(false); }
-			else if (key === "p") { setOpen(false); setPreview("standalone"); }
-			else if (keys[key]) { setPreview(keys[key]); setBrowser(keys[key]); setDismissed(false); }
-		};
-		window.addEventListener("keydown", onKey);
-		return () => window.removeEventListener("keydown", onKey);
-	}, [detected.browser]);
 	useEffect(() => {
 		if (open && !dialog.current?.open) dialog.current?.showModal();
 		else if (!open && dialog.current?.open) dialog.current.close();
 	}, [open]);
 
-	if (preview === "standalone" || ((!detected.ios || detected.standalone || dismissed) && !preview)) return null;
+	if (!detected.ios || detected.standalone || dismissed) return null;
 	return <>
 		<div className="install-prompt">
 			<span className="install-prompt-icon" aria-hidden="true">⚠️</span>
 			<button className="install-prompt-main" onClick={() => setOpen(true)}><strong>You’re using Pip on the web.</strong><span>Add to your Home Screen for easier practice <ArrowRight size={15} aria-hidden="true" /></span></button>
-			<button className="install-prompt-dismiss" aria-label="Dismiss Home Screen suggestion" onClick={() => { setDismissed(true); setPreview(null); }}><X size={17} aria-hidden="true" /></button>
+			<button className="install-prompt-dismiss" aria-label="Dismiss Home Screen suggestion" onClick={() => setDismissed(true)}><X size={17} aria-hidden="true" /></button>
 		</div>
 		<dialog ref={dialog} className="install-dialog" aria-labelledby="install-title" onClose={() => setOpen(false)}>
 			<div className="install-dialog-header"><span className="install-dialog-icon" aria-hidden="true">🏡</span><button className="install-dialog-close" aria-label="Close instructions" onClick={() => setOpen(false)}><X size={20} aria-hidden="true" /></button></div>
