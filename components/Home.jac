@@ -1,4 +1,5 @@
 import from "lucide-react" { ArrowRight, MessageCircle, Plus }
+import from "./home-screen-install.jsx" { HomeScreenInstall }
 import from ..core.models { ConversationSummary as HomeItem }
 import from ..endpoints { list_conversations }
 
@@ -13,6 +14,7 @@ def:pub Home(name: str, active: bool, onNew: Callable[[], None], onOpen: Callabl
     can with entry { load(); }
     <section className="home-screen">
         <div className="home-hero"><div><p className="eyebrow">YOUR SPACE TO GROW</p><h1>{"Welcome back, " + name if name else "Welcome to Pip"}</h1><p>Every conversation is a chance to learn.</p><button className="button button-primary home-start" onClick={onNew}><Plus size={20}/>{"Return to conversation" if active else "Start a conversation"}</button></div><div className="speech-art home-hero-art" aria-hidden="true"><span className="speech-bubble speech-bubble-back"/><span className="speech-bubble speech-bubble-front"><i/><i/><i/></span><span className="speech-spark">✦</span></div></div>
+        <HomeScreenInstall/>
         <div className="home-heading"><h2>Recent conversations</h2><button className="home-view-all" onClick={onAll}>View all <ArrowRight size={17}/></button></div>
         {loading and <p role="status" className="muted">Loading your conversations…</p>}
         {error and <div className="error-banner" role="alert">Could not load conversations. <button onClick={load}>Try again</button></div>}
